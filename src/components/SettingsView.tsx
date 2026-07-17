@@ -404,39 +404,43 @@ export default function SettingsView({
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -10 }}
               onSubmit={handleSaveProfile}
-              className="space-y-4 text-xs text-slate-700"
+              className={`space-y-4 text-xs ${isDark ? 'text-zinc-300' : 'text-slate-700'}`}
             >
               <div>
-                <h3 className="font-display font-bold text-base text-slate-900">Perfil Profissional</h3>
-                <p className="text-slate-400">Edite as informações mostradas aos seus clientes em agendamentos</p>
+                <h3 className={`font-display font-bold text-base ${isDark ? 'text-white' : 'text-slate-900'}`}>Perfil Profissional</h3>
+                <p className={isDark ? 'text-zinc-400' : 'text-slate-400'}>Edite as informações mostradas aos seus clientes em agendamentos</p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1.5">Seu Nome / Razão Social</label>
+                  <label className={`block font-semibold mb-1.5 ${isDark ? 'text-zinc-200' : 'text-slate-700'}`}>Seu Nome / Razão Social</label>
                   <input
                     type="text"
                     value={profName}
                     onChange={(e) => setProfName(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs"
+                    className={`w-full border rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-indigo-500 transition-colors ${
+                      isDark ? 'bg-zinc-800 border-zinc-700 text-zinc-100' : 'bg-slate-50 border-slate-200 text-slate-900'
+                    }`}
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1.5">Ramo de Atuação</label>
+                  <label className={`block font-semibold mb-1.5 ${isDark ? 'text-zinc-200' : 'text-slate-700'}`}>Ramo de Atuação</label>
                   <input
                     type="text"
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs"
+                    className={`w-full border rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-indigo-500 transition-colors ${
+                      isDark ? 'bg-zinc-800 border-zinc-700 text-zinc-100' : 'bg-slate-50 border-slate-200 text-slate-900'
+                    }`}
                     required
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-700 mb-1.5">Número de WhatsApp *</label>
+                <label className={`block font-semibold mb-1.5 ${isDark ? 'text-zinc-200' : 'text-slate-700'}`}>Número de WhatsApp *</label>
                 <div className="flex gap-2">
                   <div className="w-24 shrink-0 relative">
                     <input
@@ -445,7 +449,9 @@ export default function SettingsView({
                       value={countryCode}
                       onChange={(e) => setCountryCode(e.target.value)}
                       placeholder="+55"
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none text-center font-medium"
+                      className={`w-full border rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-indigo-500 text-center font-medium transition-colors ${
+                        isDark ? 'bg-zinc-800 border-zinc-700 text-zinc-100' : 'bg-slate-50 border-slate-200 text-slate-900'
+                      }`}
                     />
                     <datalist id="settings-country-codes">
                       <option value="+55">🇧🇷 Brasil (+55)</option>
@@ -610,11 +616,11 @@ export default function SettingsView({
               initial={{ opacity: 0, x: 10 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -10 }}
-              className="space-y-4 text-xs text-slate-700"
+              className={`space-y-4 text-xs ${isDark ? 'text-zinc-300' : 'text-slate-700'}`}
             >
               <div>
-                <h3 className="font-display font-bold text-base text-slate-900">Horários de Atendimento</h3>
-                <p className="text-slate-400">Configure os dias de trabalho e a jornada de atendimento da sua agenda</p>
+                <h3 className={`font-display font-bold text-base ${isDark ? 'text-white' : 'text-slate-900'}`}>Horários de Atendimento</h3>
+                <p className={isDark ? 'text-zinc-400' : 'text-slate-400'}>Configure os dias de trabalho e a jornada de atendimento da sua agenda</p>
               </div>
 
               <div className="space-y-3 pt-2">
@@ -625,8 +631,8 @@ export default function SettingsView({
                       key={wd.dayOfWeek}
                       className={`p-4 rounded-2xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
                         wd.isWorking 
-                          ? 'bg-slate-50/50 border-slate-200' 
-                          : 'bg-slate-50/20 border-slate-100 opacity-60'
+                          ? (isDark ? 'bg-zinc-800/50 border-zinc-700' : 'bg-slate-50/50 border-slate-200')
+                          : (isDark ? 'bg-zinc-900 border-zinc-800 opacity-60' : 'bg-slate-50/20 border-slate-100 opacity-60')
                       }`}
                     >
                       {/* Day Toggle & Name */}
@@ -636,17 +642,17 @@ export default function SettingsView({
                           onClick={() => toggleDayWorking(wd.dayOfWeek)}
                           className={`w-9 h-9 rounded-xl flex items-center justify-center border transition-all cursor-pointer ${
                             wd.isWorking 
-                              ? 'bg-slate-950 border-slate-900 text-white' 
-                              : 'bg-white border-slate-200 text-slate-400 hover:border-slate-300'
+                              ? (isDark ? 'bg-indigo-600 border-indigo-500 text-white shadow-sm' : 'bg-slate-950 border-slate-900 text-white shadow-sm')
+                              : (isDark ? 'bg-zinc-800 border-zinc-700 text-zinc-500 hover:border-zinc-600' : 'bg-white border-slate-200 text-slate-400 hover:border-slate-300')
                           }`}
                         >
                           {wd.isWorking ? <Check className="w-4 h-4" /> : <Clock className="w-4 h-4" />}
                         </button>
                         <div>
-                          <span className={`text-xs font-bold block ${wd.isWorking ? 'text-slate-900' : 'text-slate-400'}`}>
+                          <span className={`text-xs font-bold block ${wd.isWorking ? (isDark ? 'text-white' : 'text-slate-900') : (isDark ? 'text-zinc-500' : 'text-slate-400')}`}>
                             {weekdayNames[wd.dayOfWeek]}
                           </span>
-                          <span className="text-[10px] text-slate-400 font-mono">
+                          <span className={`text-[10px] font-mono ${isDark ? 'text-zinc-400' : 'text-slate-400'}`}>
                             {wd.isWorking ? 'Trabalha' : 'Folga'}
                           </span>
                         </div>
@@ -657,21 +663,29 @@ export default function SettingsView({
                         <div className="flex flex-wrap items-center gap-4 text-xs">
                           {/* Core Hours */}
                           <div className="flex items-center gap-2">
-                            <span className="text-[10px] uppercase font-mono text-slate-400">Expediente:</span>
+                            <span className={`text-[10px] uppercase font-mono ${isDark ? 'text-zinc-400' : 'text-slate-400'}`}>Expediente:</span>
                             <div className="flex items-center gap-1">
                               <input
                                 type="text"
                                 value={wd.startTime}
                                 onChange={(e) => updateDayHours(wd.dayOfWeek, 'startTime', e.target.value)}
-                                className="w-14 bg-white border border-slate-200 rounded-lg py-1 px-1.5 text-center font-mono text-xs focus:border-slate-800 focus:outline-none"
+                                className={`w-14 border rounded-lg py-1 px-1.5 text-center font-mono text-xs focus:outline-none transition-colors ${
+                                  isDark 
+                                    ? 'bg-zinc-800 border-zinc-700 text-zinc-200 focus:border-zinc-500' 
+                                    : 'bg-white border-slate-200 text-slate-800 focus:border-slate-800'
+                                }`}
                                 placeholder="09:00"
                               />
-                              <span className="text-slate-400">às</span>
+                              <span className={isDark ? 'text-zinc-400' : 'text-slate-400'}>às</span>
                               <input
                                 type="text"
                                 value={wd.endTime}
                                 onChange={(e) => updateDayHours(wd.dayOfWeek, 'endTime', e.target.value)}
-                                className="w-14 bg-white border border-slate-200 rounded-lg py-1 px-1.5 text-center font-mono text-xs focus:border-slate-800 focus:outline-none"
+                                className={`w-14 border rounded-lg py-1 px-1.5 text-center font-mono text-xs focus:outline-none transition-colors ${
+                                  isDark 
+                                    ? 'bg-zinc-800 border-zinc-700 text-zinc-200 focus:border-zinc-500' 
+                                    : 'bg-white border-slate-200 text-slate-800 focus:border-slate-800'
+                                }`}
                                 placeholder="18:00"
                               />
                             </div>
@@ -679,28 +693,38 @@ export default function SettingsView({
 
                           {/* Lunch Hours */}
                           <div className="flex items-center gap-2">
-                            <span className="text-[10px] uppercase font-mono text-slate-400">Almoço:</span>
+                            <span className={`text-[10px] uppercase font-mono ${isDark ? 'text-zinc-400' : 'text-slate-400'}`}>Almoço:</span>
                             <div className="flex items-center gap-1">
                               <input
                                 type="text"
                                 value={wd.lunchStart || ''}
                                 onChange={(e) => updateDayHours(wd.dayOfWeek, 'lunchStart', e.target.value)}
-                                className="w-14 bg-white border border-slate-200 rounded-lg py-1 px-1.5 text-center font-mono text-xs focus:border-slate-800 focus:outline-none"
+                                className={`w-14 border rounded-lg py-1 px-1.5 text-center font-mono text-xs focus:outline-none transition-colors ${
+                                  isDark 
+                                    ? 'bg-zinc-800 border-zinc-700 text-zinc-200 focus:border-zinc-500' 
+                                    : 'bg-white border-slate-200 text-slate-800 focus:border-slate-800'
+                                }`}
                                 placeholder="12:00"
                               />
-                              <span className="text-slate-400">às</span>
+                              <span className={isDark ? 'text-zinc-400' : 'text-slate-400'}>às</span>
                               <input
                                 type="text"
                                 value={wd.lunchEnd || ''}
                                 onChange={(e) => updateDayHours(wd.dayOfWeek, 'lunchEnd', e.target.value)}
-                                className="w-14 bg-white border border-slate-200 rounded-lg py-1 px-1.5 text-center font-mono text-xs focus:border-slate-800 focus:outline-none"
+                                className={`w-14 border rounded-lg py-1 px-1.5 text-center font-mono text-xs focus:outline-none transition-colors ${
+                                  isDark 
+                                    ? 'bg-zinc-800 border-zinc-700 text-zinc-200 focus:border-zinc-500' 
+                                    : 'bg-white border-slate-200 text-slate-800 focus:border-slate-800'
+                                }`}
                                 placeholder="13:00"
                               />
                             </div>
                           </div>
                         </div>
                       ) : (
-                        <div className="flex items-center justify-center py-1.5 px-3 bg-slate-100 rounded-lg font-mono text-[10px] text-slate-400 select-none">
+                        <div className={`flex items-center justify-center py-1.5 px-3 rounded-lg font-mono text-[10px] select-none ${
+                          isDark ? 'bg-zinc-800/50 text-zinc-500' : 'bg-slate-100 text-slate-400'
+                        }`}>
                           Sem Expediente
                         </div>
                       )}
@@ -709,11 +733,13 @@ export default function SettingsView({
                 })}
               </div>
 
-              <div className="pt-3.5 border-t border-slate-100 flex justify-end">
+              <div className={`pt-3.5 border-t flex justify-end ${isDark ? 'border-zinc-800' : 'border-slate-100'}`}>
                 <button
                   type="button"
                   onClick={handleSaveHours}
-                  className="bg-slate-900 hover:bg-slate-800 text-white font-semibold py-2 px-5 rounded-xl flex items-center gap-1.5 transition-all cursor-pointer shadow-sm active:scale-98"
+                  className={`font-semibold py-2 px-5 rounded-xl flex items-center gap-1.5 transition-all cursor-pointer shadow-sm active:scale-98 ${
+                    isDark ? 'bg-indigo-600 hover:bg-indigo-500 text-white' : 'bg-slate-900 hover:bg-slate-800 text-white'
+                  }`}
                 >
                   <Save className="w-4 h-4" />
                   Salvar Horários
@@ -729,24 +755,24 @@ export default function SettingsView({
               initial={{ opacity: 0, x: 10 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -10 }}
-              className="space-y-4 text-xs text-slate-700"
+              className={`space-y-4 text-xs ${isDark ? 'text-zinc-300' : 'text-slate-700'}`}
             >
               <div>
-                <h3 className="font-display font-bold text-base text-slate-900">Mensagens Automáticas</h3>
-                <p className="text-slate-400">Edite as mensagens geradas ao compartilhar lembretes por WhatsApp</p>
+                <h3 className={`font-display font-bold text-base ${isDark ? 'text-white' : 'text-slate-900'}`}>Mensagens Automáticas</h3>
+                <p className={isDark ? 'text-zinc-400' : 'text-slate-400'}>Edite as mensagens geradas ao compartilhar lembretes por WhatsApp</p>
               </div>
 
               {/* Tags info box */}
-              <div className="bg-indigo-50/50 p-3 rounded-xl border border-indigo-100 text-slate-700 text-xs flex gap-2 items-start">
-                <AlertCircle className="w-4.5 h-4.5 text-indigo-500 shrink-0 mt-0.5" />
+              <div className={`p-3 rounded-xl border text-xs flex gap-2 items-start ${isDark ? 'bg-indigo-900/20 border-indigo-500/20 text-indigo-200' : 'bg-indigo-50/50 border-indigo-100 text-slate-700'}`}>
+                <AlertCircle className={`w-4.5 h-4.5 shrink-0 mt-0.5 ${isDark ? 'text-indigo-400' : 'text-indigo-500'}`} />
                 <div className="space-y-1">
-                  <span className="font-bold block text-indigo-900">Variáveis Inteligentes</span>
-                  <p className="leading-relaxed">Você pode utilizar variáveis dinâmicas em seus textos para preenchimento em tempo de envio. Utilize exatamente os formatos abaixo:</p>
+                  <span className={`font-bold block ${isDark ? 'text-indigo-300' : 'text-indigo-900'}`}>Variáveis Inteligentes</span>
+                  <p className={`leading-relaxed ${isDark ? 'text-indigo-200/80' : 'text-slate-700'}`}>Você pode utilizar variáveis dinâmicas em seus textos para preenchimento em tempo de envio. Utilize exatamente os formatos abaixo:</p>
                   <div className="flex flex-wrap gap-1.5 pt-1 font-mono text-[10px]">
-                    <span className="bg-white border text-indigo-800 px-1.5 py-0.5 rounded">{"{nome}"}</span>
-                    <span className="bg-white border text-indigo-800 px-1.5 py-0.5 rounded">{"{data}"}</span>
-                    <span className="bg-white border text-indigo-800 px-1.5 py-0.5 rounded">{"{hora}"}</span>
-                    <span className="bg-white border text-indigo-800 px-1.5 py-0.5 rounded">{"{serviço}"}</span>
+                    <span className={`border px-1.5 py-0.5 rounded ${isDark ? 'bg-indigo-900/40 border-indigo-500/30 text-indigo-300' : 'bg-white border-indigo-200 text-indigo-800'}`}>{"{nome}"}</span>
+                    <span className={`border px-1.5 py-0.5 rounded ${isDark ? 'bg-indigo-900/40 border-indigo-500/30 text-indigo-300' : 'bg-white border-indigo-200 text-indigo-800'}`}>{"{data}"}</span>
+                    <span className={`border px-1.5 py-0.5 rounded ${isDark ? 'bg-indigo-900/40 border-indigo-500/30 text-indigo-300' : 'bg-white border-indigo-200 text-indigo-800'}`}>{"{hora}"}</span>
+                    <span className={`border px-1.5 py-0.5 rounded ${isDark ? 'bg-indigo-900/40 border-indigo-500/30 text-indigo-300' : 'bg-white border-indigo-200 text-indigo-800'}`}>{"{serviço}"}</span>
                   </div>
                 </div>
               </div>
@@ -754,13 +780,17 @@ export default function SettingsView({
               {/* Templates Forms lists */}
               <div className="space-y-4 pt-1">
                 {editingTemplates.map((t) => (
-                  <div key={t.id} className="p-4 bg-slate-50/50 border border-slate-200/50 rounded-xl space-y-2 text-xs">
-                    <span className="font-bold text-slate-900 text-xs block">{t.title}</span>
+                  <div key={t.id} className={`p-4 border rounded-xl space-y-2 text-xs ${isDark ? 'bg-zinc-800/30 border-zinc-700/50' : 'bg-slate-50/50 border-slate-200/50'}`}>
+                    <span className={`font-bold text-xs block ${isDark ? 'text-white' : 'text-slate-900'}`}>{t.title}</span>
                     <textarea
                       value={t.body}
                       onChange={(e) => handleTemplateChange(t.id, e.target.value)}
                       rows={3}
-                      className="w-full bg-white border border-slate-200 rounded-xl p-3 focus:outline-none text-xs leading-relaxed font-sans text-slate-700"
+                      className={`w-full border rounded-xl p-3 focus:outline-none text-xs leading-relaxed font-sans transition-colors ${
+                        isDark 
+                          ? 'bg-zinc-900/50 border-zinc-700 text-zinc-300 focus:border-indigo-500' 
+                          : 'bg-white border-slate-200 text-slate-700 focus:border-indigo-500'
+                      }`}
                     />
                   </div>
                 ))}

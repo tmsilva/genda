@@ -683,7 +683,7 @@ export default function App() {
   }
 
   return (
-    <div className={`min-h-screen theme-${currentTheme.id} ${isDark ? 'dark-mode' : 'light-mode'} ${currentTheme.background} selection:bg-indigo-600 selection:text-white transition-colors duration-300 font-sans`}>
+    <div className={`min-h-[100dvh] w-full overflow-x-hidden theme-${currentTheme.id} ${isDark ? 'dark-mode' : 'light-mode'} ${currentTheme.background} selection:bg-indigo-600 selection:text-white transition-colors duration-300 font-sans`}>
       
       {/* Onboarding View Check */}
       <AnimatePresence mode="wait">
@@ -711,7 +711,7 @@ export default function App() {
             key="dashboard"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="w-full min-h-screen flex flex-col md:flex-row"
+            className="w-full min-h-[100dvh] flex flex-col md:flex-row"
           >
             {/* DESKTOP RETRACTABLE SIDEBAR */}
             <aside 
@@ -1176,7 +1176,7 @@ export default function App() {
             </div>
 
             {/* MAIN CONTAINER LAYOUT WITH TRANSITIONS */}
-            <main className="max-w-none mx-auto px-4 md:px-8 py-6 transition-all duration-200" id="genda-main-content">
+            <main className="flex-1 min-w-0 w-full max-w-none mx-auto px-3 sm:px-4 md:px-8 py-6 transition-all duration-200 overflow-x-hidden pb-24 md:pb-6" id="genda-main-content">
               <AnimatePresence mode="wait">
                 {activeTab === 'agenda' && (
                   <motion.div
@@ -1327,139 +1327,139 @@ export default function App() {
             </main>
 
             {/* PERSISTENT BOTTOM NAVIGATION TAB BAR */}
-            <div className="fixed bottom-0 left-0 right-0 z-40 themed-mobile-bar backdrop-blur-md border-t shadow-lg px-6 py-2 flex items-center justify-between gap-6 overflow-x-auto scrollbar-none rounded-t-3xl md:hidden">
+            <div className="fixed bottom-0 left-0 right-0 z-40 themed-mobile-bar backdrop-blur-md border-t shadow-lg px-2 sm:px-6 py-2 flex items-center justify-between sm:justify-center gap-1 sm:gap-4 overflow-x-auto scrollbar-none rounded-t-2xl md:hidden">
               
               {/* Tab 1: Agenda */}
               <button
                 onClick={() => { setActiveClientId(null); setActiveTab('agenda'); }}
-                className={`flex flex-col items-center gap-1 cursor-pointer transition-all shrink-0 ${
+                className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-all flex-1 min-w-[44px] ${
                   activeTab === 'agenda' 
                     ? (isDark ? 'text-indigo-400 scale-105 font-bold' : 'text-indigo-600 scale-105 font-bold') 
                     : 'themed-mobile-inactive'
                 }`}
               >
-                <div className={`p-1.5 rounded-xl transition-all ${
+                <div className={`p-1 sm:p-1.5 rounded-xl transition-all ${
                   activeTab === 'agenda' 
                     ? (isDark ? 'bg-indigo-500/10 text-indigo-400' : 'bg-indigo-50 text-indigo-600') 
                     : 'bg-transparent'
                 }`}>
-                  <Calendar className="w-5 h-5" />
+                  <Calendar className="w-5 h-5 sm:w-5 sm:h-5" />
                 </div>
-                <span className="text-[10px]">Agenda</span>
+                <span className="text-[9px] sm:text-[10px] truncate max-w-full">Agenda</span>
               </button>
 
               {/* Tab 2: Clients */}
               <button
                 onClick={() => { setActiveClientId(null); setActiveTab('clients'); }}
-                className={`flex flex-col items-center gap-1 cursor-pointer transition-all shrink-0 ${
+                className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-all flex-1 min-w-[44px] ${
                   activeTab === 'clients' 
                     ? (isDark ? 'text-indigo-400 scale-105 font-bold' : 'text-indigo-600 scale-105 font-bold') 
                     : 'themed-mobile-inactive'
                 }`}
               >
-                <div className={`p-1.5 rounded-xl transition-all ${
+                <div className={`p-1 sm:p-1.5 rounded-xl transition-all ${
                   activeTab === 'clients' 
                     ? (isDark ? 'bg-indigo-500/10 text-indigo-400' : 'bg-indigo-50 text-indigo-600') 
                     : 'bg-transparent'
                 }`}>
-                  <Users className="w-5 h-5" />
+                  <Users className="w-5 h-5 sm:w-5 sm:h-5" />
                 </div>
-                <span className="text-[10px]">Clientes</span>
+                <span className="text-[9px] sm:text-[10px] truncate max-w-full">Clientes</span>
               </button>
 
               {/* Tab 2.5: Services */}
               <button
                 onClick={() => { setActiveClientId(null); setActiveTab('services'); }}
-                className={`flex flex-col items-center gap-1 cursor-pointer transition-all shrink-0 ${
+                className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-all flex-1 min-w-[44px] ${
                   activeTab === 'services' 
                     ? (isDark ? 'text-indigo-400 scale-105 font-bold' : 'text-indigo-600 scale-105 font-bold') 
                     : 'themed-mobile-inactive'
                 }`}
               >
-                <div className={`p-1.5 rounded-xl transition-all ${
+                <div className={`p-1 sm:p-1.5 rounded-xl transition-all ${
                   activeTab === 'services' 
                     ? (isDark ? 'bg-indigo-500/10 text-indigo-400' : 'bg-indigo-50 text-indigo-600') 
                     : 'bg-transparent'
                 }`}>
-                  <Clipboard className="w-5 h-5" />
+                  <Clipboard className="w-5 h-5 sm:w-5 sm:h-5" />
                 </div>
-                <span className="text-[10px]">Serviços</span>
+                <span className="text-[9px] sm:text-[10px] truncate max-w-full">Serviços</span>
               </button>
 
               {/* Tab 3: Finance */}
               <button
                 onClick={() => { setActiveClientId(null); setActiveTab('finance'); }}
-                className={`flex flex-col items-center gap-1 cursor-pointer transition-all shrink-0 ${
+                className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-all flex-1 min-w-[44px] ${
                   activeTab === 'finance' 
                     ? (isDark ? 'text-indigo-400 scale-105 font-bold' : 'text-indigo-600 scale-105 font-bold') 
                     : 'themed-mobile-inactive'
                 }`}
               >
-                <div className={`p-1.5 rounded-xl transition-all ${
+                <div className={`p-1 sm:p-1.5 rounded-xl transition-all ${
                   activeTab === 'finance' 
                     ? (isDark ? 'bg-indigo-500/10 text-indigo-400' : 'bg-indigo-50 text-indigo-600') 
                     : 'bg-transparent'
                 }`}>
-                  <DollarSign className="w-5 h-5" />
+                  <DollarSign className="w-5 h-5 sm:w-5 sm:h-5" />
                 </div>
-                <span className="text-[10px]">Financeiro</span>
+                <span className="text-[9px] sm:text-[10px] truncate max-w-full">Finanças</span>
               </button>
 
               {/* Tab 3.1: Estoque */}
               <button
                 onClick={() => { setActiveClientId(null); setActiveTab('estoque'); }}
-                className={`flex flex-col items-center gap-1 cursor-pointer transition-all shrink-0 ${
+                className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-all flex-1 min-w-[44px] ${
                   activeTab === 'estoque' 
                     ? (isDark ? 'text-indigo-400 scale-105 font-bold' : 'text-indigo-600 scale-105 font-bold') 
                     : 'themed-mobile-inactive'
                 }`}
               >
-                <div className={`p-1.5 rounded-xl transition-all ${
+                <div className={`p-1 sm:p-1.5 rounded-xl transition-all ${
                   activeTab === 'estoque' 
                     ? (isDark ? 'bg-indigo-500/10 text-indigo-400' : 'bg-indigo-50 text-indigo-600') 
                     : 'bg-transparent'
                 }`}>
-                  <Package className="w-5 h-5" />
+                  <Package className="w-5 h-5 sm:w-5 sm:h-5" />
                 </div>
-                <span className="text-[10px]">Estoque</span>
+                <span className="text-[9px] sm:text-[10px] truncate max-w-full">Estoque</span>
               </button>
 
               {/* Tab 3.2: Genda AI */}
               <button
                 onClick={() => { setActiveClientId(null); setActiveTab('ai'); }}
-                className={`flex flex-col items-center gap-1 cursor-pointer transition-all shrink-0 ${
+                className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-all flex-1 min-w-[44px] ${
                   activeTab === 'ai' 
                     ? (isDark ? 'text-indigo-400 scale-105 font-bold' : 'text-indigo-600 scale-105 font-bold') 
                     : 'themed-mobile-inactive'
                 }`}
               >
-                <div className={`p-1.5 rounded-xl transition-all ${
+                <div className={`p-1 sm:p-1.5 rounded-xl transition-all ${
                   activeTab === 'ai' 
                     ? (isDark ? 'bg-indigo-500/10 text-indigo-400' : 'bg-indigo-50 text-indigo-600') 
                     : 'bg-transparent'
                 }`}>
-                  <Bot className="w-5 h-5" />
+                  <Bot className="w-5 h-5 sm:w-5 sm:h-5" />
                 </div>
-                <span className="text-[10px]">Genda AI</span>
+                <span className="text-[9px] sm:text-[10px] truncate max-w-full">Genda AI</span>
               </button>
 
               {/* Tab 4: Settings */}
               <button
                 onClick={() => { setActiveClientId(null); setActiveTab('settings'); }}
-                className={`flex flex-col items-center gap-1 cursor-pointer transition-all shrink-0 ${
+                className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-all flex-1 min-w-[44px] ${
                   activeTab === 'settings' 
                     ? (isDark ? 'text-indigo-400 scale-105 font-bold' : 'text-indigo-600 scale-105 font-bold') 
                     : 'themed-mobile-inactive'
                 }`}
               >
-                <div className={`p-1.5 rounded-xl transition-all ${
+                <div className={`p-1 sm:p-1.5 rounded-xl transition-all ${
                   activeTab === 'settings' 
                     ? (isDark ? 'bg-indigo-500/10 text-indigo-400' : 'bg-indigo-50 text-indigo-600') 
                     : 'bg-transparent'
                 }`}>
-                  <Settings className="w-5 h-5" />
+                  <Settings className="w-5 h-5 sm:w-5 sm:h-5" />
                 </div>
-                <span className="text-[10px]">Ajustes</span>
+                <span className="text-[9px] sm:text-[10px] truncate max-w-full">Ajustes</span>
               </button>
 
             </div>

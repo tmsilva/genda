@@ -787,12 +787,12 @@ export default function ScheduleView({
                   return (
                     <div key={slot} className={`flex min-h-[56px] transition-all ${isDark ? 'hover:bg-zinc-900/10' : 'hover:bg-slate-50/40'}`}>
                       {/* Left Hour Tag */}
-                      <div className={`w-16 border-r ${isDark ? 'border-zinc-800/60' : 'border-slate-100'} py-3 text-center flex items-center justify-center`}>
+                      <div className={`w-14 sm:w-16 shrink-0 border-r ${isDark ? 'border-zinc-800/60' : 'border-slate-100'} py-3 text-center flex items-center justify-center`}>
                         <span className={`font-mono text-xs font-semibold ${isDark ? 'text-zinc-600' : 'text-slate-400'}`}>{slot}</span>
                       </div>
 
                       {/* Right Slot Container */}
-                      <div className="flex-1 p-2 flex items-center">
+                      <div className="flex-1 p-1.5 sm:p-2 flex items-center min-w-0">
                         {booking ? (
                           /* BOOKED CARD */
                           <button
@@ -802,16 +802,16 @@ export default function ScheduleView({
                               e.dataTransfer.setData('genda_drag_type', 'appointment');
                               e.dataTransfer.setData('genda_drag_id', booking.id);
                             }}
-                            className="w-full text-left p-2.5 rounded-xl border flex items-center justify-between transition-all shadow-sm hover:scale-[1.01] cursor-pointer"
+                            className="w-full min-w-0 text-left p-2 sm:p-2.5 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-0 transition-all shadow-sm hover:scale-[1.01] cursor-pointer"
                             style={{ 
                               backgroundColor: `${getApptService(booking.serviceId).color}15`,
                               borderColor: getApptService(booking.serviceId).color,
                               color: getApptService(booking.serviceId).color
                             }}
                           >
-                            <div className="space-y-0.5">
+                            <div className="space-y-0.5 min-w-0 flex-1">
                               <div className="flex items-center gap-1.5 flex-wrap">
-                                <span className="text-[10px] uppercase font-mono tracking-wider opacity-90 block">
+                                <span className="text-[10px] uppercase font-mono tracking-wider opacity-90 truncate max-w-[120px] sm:max-w-[200px]">
                                   {getApptService(booking.serviceId).name}
                                 </span>
                                 {getApptService(booking.serviceId).isPackage && (
@@ -824,21 +824,21 @@ export default function ScheduleView({
                                   </span>
                                 )}
                               </div>
-                              <h4 className={`font-bold ${isDark ? 'text-white' : 'text-slate-900'} text-xs`}>
+                              <h4 className={`font-bold ${isDark ? 'text-white' : 'text-slate-900'} text-xs truncate`}>
                                 {getApptClient(booking.clientId).name}
                               </h4>
-                              <div className={`flex items-center gap-2 text-[10px] ${isDark ? 'text-zinc-400' : 'text-slate-500'} font-mono`}>
-                                <span className="flex items-center gap-0.5">
+                              <div className={`flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[10px] ${isDark ? 'text-zinc-400' : 'text-slate-500'} font-mono`}>
+                                <span className="flex items-center gap-0.5 shrink-0">
                                   <Clock className="w-3 h-3" /> {booking.time} ({booking.duration}m)
                                 </span>
-                                <span>•</span>
-                                <span className={`font-bold ${isDark ? 'text-zinc-200' : 'text-slate-800'}`}>
+                                <span className="hidden sm:inline">•</span>
+                                <span className={`font-bold shrink-0 ${isDark ? 'text-zinc-200' : 'text-slate-800'}`}>
                                   R$ {formatPrice(booking.price)}
                                 </span>
                               </div>
                             </div>
 
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 self-start sm:self-auto mt-1 sm:mt-0">
                               {booking.isRecurring !== 'none' && (
                                 <span className={`p-1 rounded ${isDark ? 'bg-zinc-800 text-zinc-300 border-zinc-700' : 'bg-white text-slate-600 border'} text-[9px] font-mono`}>Recorrente</span>
                               )}
@@ -853,10 +853,10 @@ export default function ScheduleView({
                           </button>
                         ) : isLunch ? (
                           /* LUNCH BREAK / BLOCKED SLOT */
-                          <div className={`w-full py-2 px-3 ${isDark ? 'bg-zinc-800/30 border-zinc-800 text-zinc-500' : 'bg-slate-50 border-slate-200 text-slate-400'} rounded-xl border border-dashed text-xs flex items-center justify-between gap-2 italic`}>
-                            <div className="flex items-center gap-2">
-                              <Briefcase className="w-4 h-4 text-slate-300 animate-pulse" />
-                              <span>Horário de Almoço Reservado</span>
+                          <div className={`w-full min-w-0 py-2 px-2 sm:px-3 ${isDark ? 'bg-zinc-800/30 border-zinc-800 text-zinc-500' : 'bg-slate-50 border-slate-200 text-slate-400'} rounded-xl border border-dashed text-xs flex items-center justify-between gap-2 italic`}>
+                            <div className="flex items-center gap-2 min-w-0 truncate">
+                              <Briefcase className="w-4 h-4 text-slate-300 animate-pulse shrink-0" />
+                              <span className="truncate">Horário de Almoço Reservado</span>
                             </div>
                             <button
                               onClick={() => openCreateModal(slot)}
@@ -867,14 +867,14 @@ export default function ScheduleView({
                           </div>
                         ) : getCustomBlock(slot) ? (
                           /* CUSTOM BLOCKED SLOT */
-                          <div className={`w-full py-2 px-3 ${isDark ? 'bg-red-500/10 border-red-500/20 text-red-400' : 'bg-red-50 border-red-100 text-red-700'} rounded-xl border border-dashed text-xs flex items-center justify-between gap-2`}>
-                            <div className="flex items-center gap-2">
+                          <div className={`w-full min-w-0 py-2 px-2 sm:px-3 ${isDark ? 'bg-red-500/10 border-red-500/20 text-red-400' : 'bg-red-50 border-red-100 text-red-700'} rounded-xl border border-dashed text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2`}>
+                            <div className="flex items-center gap-2 min-w-0">
                               <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                               </svg>
-                              <span className="font-medium text-left">{getCustomBlock(slot)?.reason}</span>
+                              <span className="font-medium text-left truncate">{getCustomBlock(slot)?.reason}</span>
                             </div>
-                            <div className="flex items-center gap-2 shrink-0">
+                            <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto">
                               <button
                                 onClick={() => openCreateModal(slot)}
                                 className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white transition-all cursor-pointer shrink-0"

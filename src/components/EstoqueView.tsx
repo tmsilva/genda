@@ -188,64 +188,71 @@ export default function EstoqueView({ stock, onUpdateStock, isDark = false }: Es
             return (
               <div 
                 key={item.id} 
-                className={`p-4 flex items-center justify-between ${isDark ? 'hover:bg-zinc-850/40' : 'hover:bg-slate-50/20'} transition-all text-xs`}
+                className={`p-3 sm:p-4 flex flex-col gap-2 ${isDark ? 'hover:bg-zinc-850/40' : 'hover:bg-slate-50/20'} transition-all`}
               >
-                <div className="space-y-1 pr-4 min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className={`font-bold ${isDark ? 'text-white' : 'text-slate-900'} text-sm truncate`}>{item.name}</span>
-                    <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold border ${
-                      isOutOfStock 
-                        ? (isDark ? 'bg-red-950/40 text-red-300 border-red-900/30' : 'bg-red-50 text-red-600 border-red-100') 
-                        : isLowStock 
-                        ? (isDark ? 'bg-amber-950/40 text-amber-300 border-amber-900/30' : 'bg-amber-50 text-amber-600 border-amber-100') 
-                        : (isDark ? 'bg-emerald-950/40 text-emerald-300 border-emerald-900/30' : 'bg-emerald-50 text-emerald-600 border-emerald-100')
-                    }`}>
-                      {isOutOfStock ? 'ESGOTADO' : isLowStock ? 'ESTOQUE BAIXO' : 'NORMAL'}
-                    </span>
-                  </div>
-                  <div className={`text-[10px] ${isDark ? 'text-zinc-500' : 'text-slate-400'} font-mono`}>
-                    Mínimo necessário: {item.minQuantity} {item.unit} • Atualizado: {new Date(item.lastUpdated).toLocaleDateString('pt-BR')}
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-4 shrink-0">
-                  {/* QUANTITY CONTROL BUTTONS */}
-                  <div className={`flex items-center gap-1.5 ${isDark ? 'bg-zinc-950/80 border-zinc-800' : 'bg-slate-50 border-slate-150'} p-1 rounded-xl border`}>
-                    <button
-                      onClick={() => adjustQuantity(item, -1)}
-                      className={`w-7 h-7 ${isDark ? 'bg-zinc-900 hover:bg-zinc-800 border-zinc-800 text-zinc-300' : 'bg-white hover:bg-slate-100 border-slate-200/50 text-slate-600'} rounded-lg flex items-center justify-center cursor-pointer transition-all active:scale-95`}
-                      title="Diminuir"
-                    >
-                      <ArrowDown className="w-3.5 h-3.5" />
-                    </button>
-                    <span className={`w-12 text-center font-extrabold ${isDark ? 'text-white' : 'text-slate-900'} font-mono text-sm`}>
-                      {item.quantity} <span className={`text-[10px] ${isDark ? 'text-zinc-500' : 'text-slate-400'} font-normal font-sans`}>{item.unit}</span>
-                    </span>
-                    <button
-                      onClick={() => adjustQuantity(item, 1)}
-                      className={`w-7 h-7 ${isDark ? 'bg-zinc-900 hover:bg-zinc-800 border-zinc-800 text-zinc-300' : 'bg-white hover:bg-slate-100 border-slate-200/50 text-slate-600'} rounded-lg flex items-center justify-center cursor-pointer transition-all active:scale-95`}
-                      title="Aumentar"
-                    >
-                      <ArrowUp className="w-3.5 h-3.5" />
-                    </button>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-start gap-2.5 flex-1 min-w-0">
+                    <div className="flex-1 min-w-0 flex flex-col">
+                      <span className={`font-bold ${isDark ? 'text-white' : 'text-slate-900'} text-sm leading-snug break-words`}>
+                        {item.name}
+                      </span>
+                      <div className="mt-1">
+                        <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold border max-w-fit flex items-center gap-1 uppercase tracking-wide ${
+                          isOutOfStock 
+                            ? (isDark ? 'bg-red-950/40 text-red-300 border-red-900/30' : 'bg-red-50 text-red-600 border-red-100') 
+                            : isLowStock 
+                            ? (isDark ? 'bg-amber-950/40 text-amber-300 border-amber-900/30' : 'bg-amber-50 text-amber-600 border-amber-100') 
+                            : (isDark ? 'bg-emerald-950/40 text-emerald-300 border-emerald-900/30' : 'bg-emerald-50 text-emerald-600 border-emerald-100')
+                        }`}>
+                          {isOutOfStock ? 'ESGOTADO' : isLowStock ? 'ESTOQUE BAIXO' : 'NORMAL'}
+                        </span>
+                      </div>
+                      <div className={`flex flex-col gap-0.5 mt-2 text-[11px] ${isDark ? 'text-zinc-500' : 'text-slate-400'} font-mono`}>
+                        <span>Mín: {item.minQuantity} {item.unit}</span>
+                        <span>Atualizado: {new Date(item.lastUpdated).toLocaleDateString('pt-BR')}</span>
+                      </div>
+                    </div>
                   </div>
 
-                  {/* EDIT & DELETE */}
-                  <div className="flex gap-1">
-                    <button
-                      onClick={() => handleOpenEdit(item)}
-                      className={`p-2 text-slate-400 ${isDark ? 'hover:text-indigo-450 hover:bg-zinc-800' : 'hover:text-indigo-600 hover:bg-indigo-50/50'} rounded-xl transition-all cursor-pointer`}
-                      title="Editar"
-                    >
-                      <Edit2 className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => handleDeleteItem(item.id)}
-                      className={`p-2 text-slate-400 ${isDark ? 'hover:text-red-400 hover:bg-red-550/10' : 'hover:text-red-600 hover:bg-red-55'} rounded-xl transition-all cursor-pointer`}
-                      title="Excluir"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                  <div className="flex flex-col items-end justify-between self-stretch shrink-0 pl-2">
+                    {/* QUANTITY CONTROL BUTTONS */}
+                    <div className={`flex items-center gap-1.5 ${isDark ? 'bg-zinc-950/80 border-zinc-800' : 'bg-slate-50 border-slate-150'} p-1 rounded-xl border`}>
+                      <button
+                        onClick={() => adjustQuantity(item, -1)}
+                        className={`w-7 h-7 ${isDark ? 'bg-zinc-900 hover:bg-zinc-800 border-zinc-800 text-zinc-300' : 'bg-white hover:bg-slate-100 border-slate-200/50 text-slate-600'} rounded-lg flex items-center justify-center cursor-pointer transition-all active:scale-95`}
+                        title="Diminuir"
+                      >
+                        <ArrowDown className="w-3.5 h-3.5" />
+                      </button>
+                      <span className={`w-10 sm:w-12 text-center font-extrabold ${isDark ? 'text-white' : 'text-slate-900'} font-mono text-sm`}>
+                        {item.quantity} <span className={`text-[9px] sm:text-[10px] ${isDark ? 'text-zinc-500' : 'text-slate-400'} font-normal font-sans`}>{item.unit}</span>
+                      </span>
+                      <button
+                        onClick={() => adjustQuantity(item, 1)}
+                        className={`w-7 h-7 ${isDark ? 'bg-zinc-900 hover:bg-zinc-800 border-zinc-800 text-zinc-300' : 'bg-white hover:bg-slate-100 border-slate-200/50 text-slate-600'} rounded-lg flex items-center justify-center cursor-pointer transition-all active:scale-95`}
+                        title="Aumentar"
+                      >
+                        <ArrowUp className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+
+                    {/* EDIT & DELETE */}
+                    <div className="flex items-center gap-1 mt-auto -mr-1">
+                      <button
+                        onClick={() => handleOpenEdit(item)}
+                        className={`p-1.5 text-slate-400 ${isDark ? 'hover:text-indigo-400 hover:bg-zinc-800' : 'hover:text-indigo-600 hover:bg-indigo-50/50'} rounded-lg transition-all cursor-pointer`}
+                        title="Editar"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteItem(item.id)}
+                        className={`p-1.5 text-slate-400 ${isDark ? 'hover:text-rose-400 hover:bg-zinc-800' : 'hover:text-rose-600 hover:bg-rose-50/50'} rounded-lg transition-all cursor-pointer`}
+                        title="Excluir"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>

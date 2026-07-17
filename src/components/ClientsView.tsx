@@ -479,7 +479,7 @@ export default function ClientsView({
             className="space-y-5"
           >
             {/* Header controls */}
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <h2 className="font-display font-bold text-xl text-slate-900 leading-tight">Painel de Clientes</h2>
                 <span className="text-xs text-slate-500 font-mono">
@@ -489,7 +489,7 @@ export default function ClientsView({
               
               <button
                 onClick={handleOpenCreate}
-                className="bg-slate-950 text-white font-bold text-xs py-2 px-4 rounded-xl flex items-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer"
+                className="bg-slate-950 text-white font-bold text-xs py-2 px-4 rounded-xl flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer self-start sm:self-auto"
                 id="btn-add-client"
               >
                 <Plus className="w-4 h-4" />
@@ -498,7 +498,7 @@ export default function ClientsView({
             </div>
 
             {/* Sub-Tabs Selector */}
-            <div className={`flex p-0.5 rounded-xl text-xs font-semibold max-w-sm border ${
+            <div className={`flex p-0.5 rounded-xl text-xs font-semibold w-full sm:max-w-sm border overflow-x-auto scrollbar-none ${
               isDark 
                 ? 'bg-zinc-900 border-zinc-800' 
                 : 'bg-slate-100 border-slate-200/50'
@@ -506,7 +506,7 @@ export default function ClientsView({
               <button
                 type="button"
                 onClick={() => setSubTab('list')}
-                className={`flex-1 py-1.5 rounded-lg text-center transition-all cursor-pointer ${
+                className={`flex-1 min-w-fit px-4 py-1.5 rounded-lg text-center transition-all cursor-pointer whitespace-nowrap ${
                   subTab === 'list' 
                     ? (isDark ? 'bg-zinc-800 text-white font-bold shadow-sm' : 'bg-white text-slate-950 font-bold shadow-sm') 
                     : (isDark ? 'text-zinc-400 hover:text-zinc-200' : 'text-slate-500 hover:text-slate-800')
@@ -517,7 +517,7 @@ export default function ClientsView({
               <button
                 type="button"
                 onClick={() => setSubTab('crm')}
-                className={`flex-1 py-1.5 rounded-lg text-center transition-all cursor-pointer ${
+                className={`flex-1 min-w-fit px-4 py-1.5 rounded-lg text-center transition-all cursor-pointer whitespace-nowrap ${
                   subTab === 'crm' 
                     ? (isDark ? 'bg-zinc-800 text-white font-bold shadow-sm' : 'bg-white text-slate-950 font-bold shadow-sm') 
                     : (isDark ? 'text-zinc-400 hover:text-zinc-200' : 'text-slate-500 hover:text-slate-800')
@@ -560,189 +560,186 @@ export default function ClientsView({
                   <div className={`border rounded-2xl shadow-sm overflow-hidden transition-all duration-200 ${
                     isDark ? 'bg-zinc-950/20 border-zinc-900/60' : 'bg-white border-slate-100'
                   }`}>
-                    <div className="w-full overflow-x-auto">
-                      <table className="w-full border-collapse text-left text-xs min-w-[800px]">
-                        <thead>
-                          <tr className={`border-b font-display font-bold tracking-wider uppercase text-[10px] ${
-                            isDark ? 'bg-zinc-900/40 border-zinc-900 text-zinc-400' : 'bg-slate-50 border-slate-100 text-slate-500'
-                          }`}>
-                            <th className="py-3 px-4">Cliente</th>
-                            <th className="py-3 px-4">Contato</th>
-                            <th className="py-3 px-4">Endereço</th>
-                            <th className="py-3 px-4 text-center">Atendimentos</th>
-                            <th className="py-3 px-4 text-center">CRM</th>
-                            <th className="py-3 px-4 text-right">Ações</th>
-                          </tr>
-                        </thead>
-                        <tbody className={`divide-y ${isDark ? 'divide-zinc-900/60' : 'divide-slate-100'}`}>
-                          {filteredClients.map((client) => {
-                            const hasFuture = hasFutureAppointment(client.id);
-                            const totalVisits = appointments.filter((a) => a.clientId === client.id).length;
+                    <div className="w-full">
+                      {/* HEADER - DESKTOP ONLY */}
+                      <div className={`hidden md:grid grid-cols-[2fr_1.5fr_1.5fr_1fr_1fr_1fr] gap-4 px-4 py-3 border-b font-display font-bold tracking-wider uppercase text-[10px] ${
+                        isDark ? 'bg-zinc-900/40 border-zinc-900 text-zinc-400' : 'bg-slate-50 border-slate-100 text-slate-500'
+                      }`}>
+                        <div>Cliente</div>
+                        <div>Contato</div>
+                        <div>Endereço</div>
+                        <div className="text-center">Atendimentos</div>
+                        <div className="text-center">CRM</div>
+                        <div className="text-right">Ações</div>
+                      </div>
+
+                      {/* CLIENT ROWS */}
+                      <div className={`divide-y ${isDark ? 'divide-zinc-900/60' : 'divide-slate-100'}`}>
+                        {filteredClients.map((client) => {
+                          const hasFuture = hasFutureAppointment(client.id);
+                          const totalVisits = appointments.filter((a) => a.clientId === client.id).length;
+                          
+                          // Get CRM Status
+                          const getClientCRMStatus = (clientId: string) => {
+                            const isRisk = crmMetrics.risk.some(r => r.id === clientId);
+                            const isVip = crmMetrics.vip.some(v => v.id === clientId);
+                            const isNovo = crmMetrics.novos.some(n => n.id === clientId);
+                            const isRecorrente = crmMetrics.recorrentes.some(rec => rec.id === clientId);
                             
-                            // Get CRM Status
-                            const getClientCRMStatus = (clientId: string) => {
-                              const isRisk = crmMetrics.risk.some(r => r.id === clientId);
-                              const isVip = crmMetrics.vip.some(v => v.id === clientId);
-                              const isNovo = crmMetrics.novos.some(n => n.id === clientId);
-                              const isRecorrente = crmMetrics.recorrentes.some(rec => rec.id === clientId);
-                              
-                              if (isRisk) return { label: 'Em Risco', style: isDark ? 'bg-rose-950/40 text-rose-300 border-rose-900/30' : 'bg-rose-50 text-rose-700 border-rose-100' };
-                              if (isVip) return { label: 'VIP', style: isDark ? 'bg-amber-950/40 text-amber-300 border-amber-900/30' : 'bg-amber-50 text-amber-700 border-amber-100' };
-                              if (isNovo) return { label: 'Novo', style: isDark ? 'bg-indigo-950/40 text-indigo-300 border-indigo-900/30' : 'bg-indigo-50 text-indigo-700 border-indigo-100' };
-                              if (isRecorrente) return { label: 'Recorrente', style: isDark ? 'bg-emerald-950/40 text-emerald-300 border-emerald-900/30' : 'bg-emerald-50 text-emerald-700 border-emerald-100' };
-                              if (totalVisits === 0) return { label: 'Sem Visitas', style: isDark ? 'bg-zinc-900/40 text-zinc-400 border-zinc-800/30' : 'bg-slate-50 text-slate-500 border-slate-150' };
-                              return { label: 'Ativo', style: isDark ? 'bg-zinc-800/40 text-zinc-300 border-zinc-800/20' : 'bg-slate-100 text-slate-600 border-slate-200' };
-                            };
+                            if (isRisk) return { label: 'Em Risco', style: isDark ? 'bg-rose-950/40 text-rose-300 border-rose-900/30' : 'bg-rose-50 text-rose-700 border-rose-100' };
+                            if (isVip) return { label: 'VIP', style: isDark ? 'bg-amber-950/40 text-amber-300 border-amber-900/30' : 'bg-amber-50 text-amber-700 border-amber-100' };
+                            if (isNovo) return { label: 'Novo', style: isDark ? 'bg-indigo-950/40 text-indigo-300 border-indigo-900/30' : 'bg-indigo-50 text-indigo-700 border-indigo-100' };
+                            if (isRecorrente) return { label: 'Recorrente', style: isDark ? 'bg-emerald-950/40 text-emerald-300 border-emerald-900/30' : 'bg-emerald-50 text-emerald-700 border-emerald-100' };
+                            if (totalVisits === 0) return { label: 'Sem Visitas', style: isDark ? 'bg-zinc-900/40 text-zinc-400 border-zinc-800/30' : 'bg-slate-50 text-slate-500 border-slate-150' };
+                            return { label: 'Ativo', style: isDark ? 'bg-zinc-800/40 text-zinc-300 border-zinc-800/20' : 'bg-slate-100 text-slate-600 border-slate-200' };
+                          };
 
-                            const crmStatus = getClientCRMStatus(client.id);
+                          const crmStatus = getClientCRMStatus(client.id);
 
-                            return (
-                              <tr 
-                                key={client.id}
-                                className={`transition-all duration-150 ${
-                                  isDark ? 'hover:bg-zinc-900/30' : 'hover:bg-slate-50/50'
-                                }`}
-                              >
-                                {/* CLIENT INFO */}
-                                <td className="py-3 px-4 font-medium">
-                                  <div className="flex items-center gap-3">
-                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-display font-bold text-xs border ${
-                                      isDark 
-                                        ? 'bg-zinc-900 text-zinc-300 border-zinc-800' 
-                                        : 'bg-slate-50 text-slate-600 border-slate-100'
-                                    }`}>
-                                      {client.name.charAt(0).toUpperCase()}
-                                    </div>
-                                    <div className="space-y-0.5">
-                                      <div className="flex items-center gap-1.5">
-                                        <button 
-                                          onClick={() => setSelectedClientId(client.id)}
-                                          className={`font-semibold text-xs hover:underline text-left cursor-pointer transition-all ${
-                                            isDark ? 'text-zinc-100 hover:text-indigo-400' : 'text-slate-900 hover:text-indigo-600'
-                                          }`}
-                                        >
-                                          {client.name}
-                                        </button>
-                                        {hasFuture && (
-                                          <span 
-                                            className="w-1.5 h-1.5 rounded-full bg-indigo-500 notification-pulse shrink-0" 
-                                            title="Tem agendamento futuro marcado"
-                                          />
-                                        )}
-                                      </div>
-                                      {client.notes && (
-                                        <p className="text-[9px] max-w-[160px] truncate italic text-slate-400">
-                                          "{client.notes}"
-                                        </p>
-                                      )}
-                                    </div>
-                                  </div>
-                                </td>
-
-                                {/* CONTACT INFO */}
-                                <td className="py-3 px-4">
-                                  <div className="space-y-0.5">
-                                    <span className={`font-mono text-[10px] block whitespace-nowrap ${isDark ? 'text-zinc-300' : 'text-slate-700'}`}>
-                                      {client.phone.startsWith('+') ? client.phone : formatPhone(client.phone)}
-                                    </span>
-                                    {client.email ? (
-                                      <span className="text-[10px] text-slate-400 block max-w-[140px] truncate">
-                                        {client.email}
-                                      </span>
-                                    ) : (
-                                      <span className="text-[9px] text-slate-400 italic block">
-                                        sem e-mail
-                                      </span>
+                          return (
+                            <div 
+                              key={client.id}
+                              className={`flex flex-col md:grid md:grid-cols-[2fr_1.5fr_1.5fr_1fr_1fr_1fr] gap-3 md:gap-4 p-4 md:px-4 md:py-3 md:items-center transition-all duration-150 ${
+                                isDark ? 'hover:bg-zinc-900/30' : 'hover:bg-slate-50/50'
+                              }`}
+                            >
+                              {/* CLIENT INFO */}
+                              <div className="flex items-center gap-3 min-w-0">
+                                <div className={`w-10 h-10 md:w-8 md:h-8 rounded-lg flex items-center justify-center font-display font-bold text-sm md:text-xs border shrink-0 ${
+                                  isDark 
+                                    ? 'bg-zinc-900 text-zinc-300 border-zinc-800' 
+                                    : 'bg-slate-50 text-slate-600 border-slate-100'
+                                }`}>
+                                  {client.name.charAt(0).toUpperCase()}
+                                </div>
+                                <div className="space-y-0.5 min-w-0 flex-1">
+                                  <div className="flex items-center gap-1.5">
+                                    <button 
+                                      onClick={() => setSelectedClientId(client.id)}
+                                      className={`font-semibold text-sm md:text-xs hover:underline text-left cursor-pointer transition-all truncate ${
+                                        isDark ? 'text-zinc-100 hover:text-indigo-400' : 'text-slate-900 hover:text-indigo-600'
+                                      }`}
+                                    >
+                                      {client.name}
+                                    </button>
+                                    {hasFuture && (
+                                      <span 
+                                        className="w-1.5 h-1.5 rounded-full bg-indigo-500 notification-pulse shrink-0" 
+                                        title="Tem agendamento futuro marcado"
+                                      />
                                     )}
                                   </div>
-                                </td>
-
-                                {/* ADDRESS */}
-                                <td className="py-3 px-4">
-                                  {client.address ? (
-                                    <div className="flex items-center gap-1 max-w-[200px]">
-                                      <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                                      <span className="text-[10px] truncate text-slate-400" title={client.address}>
-                                        {client.address}
-                                      </span>
-                                    </div>
-                                  ) : (
-                                    <span className="text-[10px] text-slate-400 italic font-light">
-                                      não informado
-                                    </span>
+                                  {client.notes && (
+                                    <p className="text-[10px] md:text-[9px] w-full truncate italic text-slate-400">
+                                      "{client.notes}"
+                                    </p>
                                   )}
-                                </td>
+                                </div>
+                              </div>
 
+                              {/* CONTACT INFO */}
+                              <div className="space-y-0.5 mt-1 md:mt-0 ml-[52px] md:ml-0 min-w-0">
+                                <span className={`font-mono text-[11px] md:text-[10px] block whitespace-nowrap ${isDark ? 'text-zinc-300' : 'text-slate-700'}`}>
+                                  {client.phone.startsWith('+') ? client.phone : formatPhone(client.phone)}
+                                </span>
+                                {client.email ? (
+                                  <span className="text-[11px] md:text-[10px] text-slate-400 block w-full truncate">
+                                    {client.email}
+                                  </span>
+                                ) : (
+                                  <span className="text-[10px] md:text-[9px] text-slate-400 italic block">
+                                    sem e-mail
+                                  </span>
+                                )}
+                              </div>
+
+                              {/* ADDRESS */}
+                              <div className="ml-[52px] md:ml-0 mt-1 md:mt-0 min-w-0">
+                                {client.address ? (
+                                  <div className="flex items-center gap-1.5 w-full">
+                                    <MapPin className="w-3.5 h-3.5 md:w-3 md:h-3 text-slate-400 shrink-0" />
+                                    <span className="text-[11px] md:text-[10px] truncate text-slate-400" title={client.address}>
+                                      {client.address}
+                                    </span>
+                                  </div>
+                                ) : (
+                                  <span className="text-[11px] md:text-[10px] text-slate-400 italic font-light block">
+                                    Endereço não informado
+                                  </span>
+                                )}
+                              </div>
+
+                              {/* METRICS & CRM MOBILE CONTAINER */}
+                              <div className="flex items-center justify-between md:contents mt-2 md:mt-0 pt-3 md:pt-0 border-t md:border-t-0 border-dashed border-slate-200 dark:border-zinc-800">
                                 {/* TOTAL VISITS */}
-                                <td className="py-3 px-4 text-center">
+                                <div className="flex md:flex-col items-center md:justify-center gap-2 md:gap-0">
+                                  <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 md:hidden">Visitas:</span>
                                   <span className={`font-mono font-bold text-xs ${
                                     isDark ? 'text-zinc-300' : 'text-slate-800'
                                   }`}>
                                     {totalVisits}
                                   </span>
-                                </td>
+                                </div>
 
                                 {/* CRM STATUS */}
-                                <td className="py-3 px-4 text-center">
-                                  <span className={`inline-block text-[9px] font-semibold px-2 py-0.5 rounded-full border ${crmStatus.style}`}>
+                                <div className="flex items-center justify-center">
+                                  <span className={`inline-block text-[10px] md:text-[9px] font-semibold px-2 py-0.5 rounded-full border ${crmStatus.style}`}>
                                     {crmStatus.label}
                                   </span>
-                                </td>
+                                </div>
 
                                 {/* ACTIONS */}
-                                <td className="py-3 px-4 text-right">
-                                  <div className="flex items-center justify-end gap-1">
-                                    <button
-                                      onClick={() => setSelectedClientId(client.id)}
-                                      title="Ver Ficha"
-                                      className={`p-1.5 rounded-lg border transition-all cursor-pointer hover:scale-105 active:scale-95 ${
-                                        isDark 
-                                          ? 'bg-zinc-900 border-zinc-800 text-zinc-300 hover:bg-zinc-800 hover:text-zinc-100' 
-                                          : 'bg-slate-50 border-slate-150 text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-                                      }`}
-                                    >
-                                      <Eye className="w-3.5 h-3.5" />
-                                    </button>
-                                    <button
-                                      onClick={() => handleOpenEdit(client)}
-                                      title="Editar Dados"
-                                      className={`p-1.5 rounded-lg border transition-all cursor-pointer hover:scale-105 active:scale-95 ${
-                                        isDark 
-                                          ? 'bg-zinc-900 border-zinc-800 text-zinc-300 hover:bg-zinc-800 hover:text-zinc-100' 
-                                          : 'bg-slate-50 border-slate-150 text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-                                      }`}
-                                    >
-                                      <Edit2 className="w-3.5 h-3.5" />
-                                    </button>
-                                    <button
-                                      onClick={() => onSelectClientForBooking(client.id)}
-                                      title="Novo Agendamento"
-                                      className={`p-1.5 rounded-lg border transition-all cursor-pointer hover:scale-105 active:scale-95 ${
-                                        isDark 
-                                          ? 'bg-indigo-950/40 border-indigo-900/30 text-indigo-300 hover:bg-indigo-900/40 hover:text-indigo-200' 
-                                          : 'bg-indigo-50 border-indigo-100 text-indigo-600 hover:bg-indigo-100/50 hover:text-indigo-700'
-                                      }`}
-                                    >
-                                      <Calendar className="w-3.5 h-3.5" />
-                                    </button>
-                                    <button
-                                      onClick={() => handleDeleteClient(client.id)}
-                                      title="Excluir Cliente"
-                                      className={`p-1.5 rounded-lg border transition-all cursor-pointer hover:scale-105 active:scale-95 ${
-                                        isDark 
-                                          ? 'bg-rose-950/40 border-rose-900/30 text-rose-300 hover:bg-rose-900/40 hover:text-rose-200' 
-                                          : 'bg-rose-50 border-rose-100 text-rose-600 hover:bg-rose-100/50 hover:text-rose-700'
-                                      }`}
-                                    >
-                                      <Trash2 className="w-3.5 h-3.5" />
-                                    </button>
-                                  </div>
-                                </td>
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
+                                <div className="flex items-center justify-end gap-1.5 md:gap-1">
+                                  <button
+                                    onClick={() => setSelectedClientId(client.id)}
+                                    title="Ver Ficha"
+                                    className={`p-2 md:p-1.5 rounded-lg border transition-all cursor-pointer hover:scale-105 active:scale-95 ${
+                                      isDark 
+                                        ? 'bg-zinc-900 border-zinc-800 text-zinc-300 hover:bg-zinc-800 hover:text-zinc-100' 
+                                        : 'bg-slate-50 border-slate-150 text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                                    }`}
+                                  >
+                                    <Eye className="w-4 h-4 md:w-3.5 md:h-3.5" />
+                                  </button>
+                                  <button
+                                    onClick={() => handleOpenEdit(client)}
+                                    title="Editar Dados"
+                                    className={`p-2 md:p-1.5 rounded-lg border transition-all cursor-pointer hover:scale-105 active:scale-95 ${
+                                      isDark 
+                                        ? 'bg-zinc-900 border-zinc-800 text-zinc-300 hover:bg-zinc-800 hover:text-zinc-100' 
+                                        : 'bg-slate-50 border-slate-150 text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                                    }`}
+                                  >
+                                    <Edit2 className="w-4 h-4 md:w-3.5 md:h-3.5" />
+                                  </button>
+                                  <button
+                                    onClick={() => onSelectClientForBooking(client.id)}
+                                    title="Novo Agendamento"
+                                    className={`p-2 md:p-1.5 rounded-lg border transition-all cursor-pointer hover:scale-105 active:scale-95 ${
+                                      isDark 
+                                        ? 'bg-indigo-950/40 border-indigo-900/30 text-indigo-300 hover:bg-indigo-900/40 hover:text-indigo-200' 
+                                        : 'bg-indigo-50 border-indigo-100 text-indigo-600 hover:bg-indigo-100/50 hover:text-indigo-700'
+                                    }`}
+                                  >
+                                    <Calendar className="w-4 h-4 md:w-3.5 md:h-3.5" />
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeleteClient(client.id)}
+                                    title="Excluir Cliente"
+                                    className={`p-2 md:p-1.5 rounded-lg border transition-all cursor-pointer hover:scale-105 active:scale-95 ${
+                                      isDark 
+                                        ? 'bg-rose-950/40 border-rose-900/30 text-rose-300 hover:bg-rose-900/40 hover:text-rose-200' 
+                                        : 'bg-rose-50 border-rose-100 text-rose-600 hover:bg-rose-100/50 hover:text-rose-700'
+                                    }`}
+                                  >
+                                    <Trash2 className="w-4 h-4 md:w-3.5 md:h-3.5" />
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
                   </div>
                 )}

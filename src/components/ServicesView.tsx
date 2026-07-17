@@ -184,78 +184,90 @@ export default function ServicesView({ services, onUpdateServices, profile, isDa
           {filteredServices.map((service) => (
             <div 
               key={service.id} 
-              className={`p-4 flex items-center justify-between ${isDark ? 'hover:bg-zinc-850/40' : 'hover:bg-slate-50/20'} text-left transition-all group`}
+              className={`p-3 sm:p-4 flex flex-col gap-2 ${isDark ? 'hover:bg-zinc-850/40' : 'hover:bg-slate-50/20'} transition-all`}
             >
-              <div className="flex items-center gap-3">
-                <span 
-                  className={`w-3.5 h-3.5 rounded-full shrink-0 border ${isDark ? 'border-zinc-700' : 'border-slate-200'}`} 
-                  style={{ backgroundColor: service.color || '#0ea5e9' }} 
-                />
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className={`font-bold ${isDark ? 'text-white' : 'text-slate-900'} text-sm block`}>{service.name}</span>
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-start gap-2.5 flex-1 min-w-0">
+                  <span 
+                    className={`w-3.5 h-3.5 rounded-full shrink-0 border mt-1 ${isDark ? 'border-zinc-700' : 'border-slate-200'}`} 
+                    style={{ backgroundColor: service.color || '#0ea5e9' }} 
+                  />
+                  <div className="flex-1 min-w-0 flex flex-col">
+                    <span className={`font-bold ${isDark ? 'text-white' : 'text-slate-900'} text-sm leading-snug break-words`}>
+                      {service.name}
+                    </span>
                     {service.isPackage && (
-                      <span className={`${
-                        isDark ? 'bg-amber-950/40 text-amber-300 border-amber-900/30' : 'bg-amber-50 text-amber-600 border-amber-200'
-                      } text-[9px] font-extrabold px-1.5 py-0.5 rounded flex items-center gap-0.5 uppercase tracking-wide`}>
-                        ★ Pacote
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex flex-col gap-1.5 mt-0.5">
-                    <div className="flex items-center gap-3 text-[10px] text-slate-400 font-mono">
-                      <span className="flex items-center gap-1">
-                        <Clock className={`w-3.5 h-3.5 ${isDark ? 'text-zinc-600' : 'text-slate-300'}`} />
-                        {service.duration} min
-                      </span>
-                    </div>
-                    {service.isPackage && service.packageItems && service.packageItems.length > 0 && (
-                      <div className={`text-[10px] ${
-                        isDark ? 'text-zinc-400 bg-amber-950/20 border-amber-900/30' : 'text-slate-500 bg-amber-50/20 border-amber-100/50'
-                      } rounded-lg px-2 py-0.5 max-w-fit flex items-center gap-1`}>
-                        <span className={`font-semibold ${isDark ? 'text-amber-300' : 'text-amber-700'}`}>Itens inclusos:</span>
-                        <span>
-                          {services
-                            .filter(s => service.packageItems?.includes(s.id))
-                            .map(s => s.name)
-                            .join(', ') || 'Serviços associados'}
+                      <div className="mt-1">
+                        <span className={`${
+                          isDark ? 'text-amber-500' : 'text-amber-600'
+                        } text-[9px] font-extrabold flex items-center gap-1 uppercase tracking-wide`}>
+                          ★ Pacote
                         </span>
                       </div>
                     )}
-                    {service.materials && (
-                      <div className={`text-[10px] ${
-                        isDark ? 'text-zinc-400 bg-zinc-950/60 border-zinc-800' : 'text-slate-500 bg-slate-50 border-slate-100'
-                      } rounded-lg px-2 py-0.5 max-w-fit flex items-center gap-1`}>
-                        <span className={`font-semibold ${isDark ? 'text-zinc-300' : 'text-slate-600'}`}>Materiais:</span>
-                        <span className="truncate">{service.materials}</span>
-                      </div>
-                    )}
+                    <div className="flex items-center gap-1.5 text-[11px] text-slate-400 font-mono mt-1">
+                      <Clock className="w-3 h-3 opacity-70" />
+                      {service.duration} min
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex flex-col items-end justify-between self-stretch shrink-0 pl-2">
+                  <span className={`font-extrabold ${isDark ? 'text-white' : 'text-slate-900'} font-mono text-sm`}>
+                    R$ {formatPrice(service.price)}
+                  </span>
+                  <div className="flex items-center gap-1 mt-auto -mr-1">
+                    <button
+                      onClick={() => handleOpenEdit(service)}
+                      className={`p-1.5 text-slate-400 ${isDark ? 'hover:text-indigo-400 hover:bg-zinc-800' : 'hover:text-indigo-600 hover:bg-indigo-50/50'} rounded-lg transition-all cursor-pointer`}
+                      title="Editar Serviço"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteService(service.id)}
+                      className={`p-1.5 text-slate-400 ${isDark ? 'hover:text-rose-400 hover:bg-zinc-800' : 'hover:text-rose-600 hover:bg-rose-50/50'} rounded-lg transition-all cursor-pointer`}
+                      title="Excluir Serviço"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   </div>
                 </div>
               </div>
 
-              <div className="flex items-center gap-3.5">
-                <span className={`font-extrabold ${isDark ? 'text-white' : 'text-slate-900'} font-mono text-sm`}>
-                  R$ {formatPrice(service.price)}
-                </span>
-
-                <div className="flex gap-1">
-                  <button
-                    onClick={() => handleOpenEdit(service)}
-                    className={`p-2 text-slate-400 ${isDark ? 'hover:text-indigo-450 hover:bg-zinc-800' : 'hover:text-indigo-600 hover:bg-indigo-50/50'} rounded-xl transition-all cursor-pointer`}
-                    title="Editar Serviço"
-                  >
-                    <Edit2 className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => handleDeleteService(service.id)}
-                    className={`p-2 text-slate-400 ${isDark ? 'hover:text-red-400 hover:bg-red-500/10' : 'hover:text-red-600 hover:bg-red-55'} rounded-xl transition-all cursor-pointer`}
-                    title="Excluir Serviço"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+              {/* Secondary Info */}
+              {((service.isPackage && service.packageItems && service.packageItems.length > 0) || service.materials) && (
+                <div className="pl-6 pt-2 mt-1 border-t border-dashed border-slate-100 dark:border-zinc-800/60">
+                  <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-2">
+                    {service.isPackage && service.packageItems && service.packageItems.length > 0 && (
+                      <>
+                        <span className={`text-[10px] font-semibold ${isDark ? 'text-amber-500' : 'text-amber-600'}`}>
+                          Itens<br/>inclusos:
+                        </span>
+                        <ul className="flex flex-col gap-0.5">
+                          {services
+                            .filter(s => service.packageItems?.includes(s.id))
+                            .map(s => (
+                              <li key={s.id} className={`text-[10px] ${isDark ? 'text-zinc-400' : 'text-slate-500'} truncate`}>
+                                {s.name}
+                              </li>
+                            ))}
+                        </ul>
+                      </>
+                    )}
+                    {service.materials && (
+                      <>
+                        <span className={`text-[10px] font-semibold ${isDark ? 'text-zinc-300' : 'text-slate-600'}`}>
+                          Materiais:
+                        </span>
+                        <span className={`text-[10px] ${isDark ? 'text-zinc-400' : 'text-slate-500'} break-words`}>
+                          {service.materials}
+                        </span>
+                      </>
+                    )}
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           ))}
         </div>
