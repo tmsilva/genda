@@ -683,7 +683,7 @@ export default function App() {
   }
 
   return (
-    <div className={`min-h-[100dvh] w-full overflow-x-hidden theme-${currentTheme.id} ${isDark ? 'dark-mode' : 'light-mode'} ${currentTheme.background} selection:bg-indigo-600 selection:text-white transition-colors duration-300 font-sans`}>
+    <div className={`h-[100dvh] w-full overflow-hidden theme-${currentTheme.id} ${isDark ? 'dark-mode' : 'light-mode'} ${currentTheme.background} selection:bg-indigo-600 selection:text-white transition-colors duration-300 font-sans`}>
       
       {/* Onboarding View Check */}
       <AnimatePresence mode="wait">
@@ -711,11 +711,11 @@ export default function App() {
             key="dashboard"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="w-full min-h-[100dvh] flex flex-col md:flex-row"
+            className="w-full h-full flex flex-col md:flex-row"
           >
             {/* DESKTOP RETRACTABLE SIDEBAR */}
             <aside 
-              className={`hidden md:flex flex-col shrink-0 transition-all duration-300 border-r z-40 md:sticky md:top-0 md:h-screen ${
+              className={`hidden md:flex flex-col shrink-0 transition-all duration-300 border-r z-40 h-full overflow-y-auto scrollbar-none ${
                 isSidebarExpanded ? 'w-64' : 'w-20'
               } themed-sidebar shadow-xl`}
             >
@@ -853,7 +853,7 @@ export default function App() {
             </aside>
 
             {/* Main content wrapper */}
-            <div className="flex-1 flex flex-col min-w-0 pb-24 md:pb-6">
+            <div className="flex-1 flex flex-col min-w-0 h-full overflow-y-auto pb-24 md:pb-6 relative">
             
              {/* SIMULATED IN-APP PUSH NOTIFICATION POPUP */}
              <AnimatePresence>
