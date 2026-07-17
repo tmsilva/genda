@@ -551,7 +551,7 @@ export default function ScheduleView({
           </span>
           <input
             type="text"
-            placeholder="Busca universal... (Nome do cliente, serviço, telefone ou data AAAA-MM-DD)"
+            placeholder="Buscar cliente, serviço ou data..."
             value={globalSearchTerm}
             onChange={(e) => setGlobalSearchTerm(e.target.value)}
             className="w-full bg-transparent border-none rounded-2xl pl-11 pr-10 py-3 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500/30"
@@ -621,27 +621,27 @@ export default function ScheduleView({
       </div>
 
       {/* Top Banner Calendar Controls */}
-      <div className={`${isDark ? 'bg-zinc-900 border-zinc-800' : 'bg-white border-slate-100'} rounded-2xl p-4 border shadow-sm flex flex-col gap-3`}>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1">
+      <div className={`${isDark ? 'bg-zinc-900 border-zinc-800' : 'bg-white border-slate-100'} rounded-2xl p-3 sm:p-4 border shadow-sm flex flex-col gap-3`}>
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="flex items-center justify-between w-full sm:w-auto gap-2">
             <button 
               onClick={() => navigateDate(-1)}
-              className={`p-2 rounded-xl transition-all cursor-pointer ${
+              className={`p-1.5 sm:p-2 rounded-xl transition-all cursor-pointer ${
                 isDark ? 'hover:bg-zinc-800 text-zinc-300' : 'hover:bg-slate-50 text-slate-600'
               }`}
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
-            <div className="text-left px-2">
-              <h2 className={`font-display font-bold text-lg leading-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
+            <div className="text-center sm:text-left px-1 flex-1 sm:flex-none">
+              <h2 className={`font-display font-bold text-sm sm:text-base md:text-lg leading-tight capitalize ${isDark ? 'text-white' : 'text-slate-900'}`}>
                 {activeTab === 'day' ? parsedDate.formatted : parsedDate.month.toUpperCase() + ' ' + parsedDate.year}
               </h2>
-              <div className="flex flex-col gap-0.5 mt-0.5">
-                <span className={`text-[11px] font-mono ${isDark ? 'text-zinc-500' : 'text-slate-400'}`}>
+              <div className="flex flex-col gap-0.5 mt-0.5 items-center sm:items-start">
+                <span className={`text-[10px] sm:text-[11px] font-mono ${isDark ? 'text-zinc-500' : 'text-slate-400'}`}>
                   {dayAppointments.length} agendamentos hoje
                 </span>
                 {activeTab === 'day' && dayOccupancy.total > 0 && (
-                  <div className="flex flex-wrap items-center gap-x-2 text-[11px] font-mono mt-0.5 leading-tight">
+                  <div className="flex flex-wrap items-center gap-x-2 text-[10px] sm:text-[11px] font-mono leading-tight">
                     <span className={isDark ? 'text-zinc-400' : 'text-slate-500 font-medium'}>
                       {dayOccupancy.occupied}/{dayOccupancy.total} horários ocupados
                     </span>
@@ -651,7 +651,7 @@ export default function ScheduleView({
             </div>
             <button 
               onClick={() => navigateDate(1)}
-              className={`p-2 rounded-xl transition-all cursor-pointer ${
+              className={`p-1.5 sm:p-2 rounded-xl transition-all cursor-pointer ${
                 isDark ? 'hover:bg-zinc-800 text-zinc-300' : 'hover:bg-slate-50 text-slate-600'
               }`}
             >
@@ -660,12 +660,12 @@ export default function ScheduleView({
           </div>
 
           {/* Quick Tab Selectors */}
-          <div className={`flex ${isDark ? 'bg-zinc-800 border-zinc-700/60' : 'bg-slate-100 border-slate-200/40'} p-0.5 rounded-xl border text-xs font-medium`}>
+          <div className={`flex self-center sm:self-auto ${isDark ? 'bg-zinc-800 border-zinc-700/60' : 'bg-slate-100 border-slate-200/40'} p-0.5 rounded-xl border text-xs font-medium`}>
             {(['day', 'week', 'month'] as const).map((t) => (
               <button
                 key={t}
                 onClick={() => setActiveTab(t)}
-                className={`px-3 py-1.5 rounded-lg transition-all capitalize cursor-pointer ${
+                className={`px-2.5 py-1.5 sm:px-3 rounded-lg transition-all capitalize cursor-pointer ${
                   activeTab === t 
                     ? (isDark ? 'bg-zinc-700 text-white shadow-sm' : 'bg-white text-slate-900 shadow-sm') 
                     : (isDark ? 'text-zinc-400 hover:text-zinc-200' : 'text-slate-500 hover:text-slate-800')
@@ -686,14 +686,14 @@ export default function ScheduleView({
                 <button
                   key={wd.date}
                   onClick={() => setSelectedDate(wd.date)}
-                  className={`py-2 rounded-xl text-center flex flex-col items-center gap-1 transition-all cursor-pointer ${
+                  className={`py-1.5 sm:py-2 rounded-xl text-center flex flex-col items-center gap-0.5 sm:gap-1 transition-all cursor-pointer ${
                     isSelected 
                       ? (isDark ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-900 text-white shadow-sm') 
                       : (isDark ? 'hover:bg-zinc-800 text-zinc-400' : 'hover:bg-slate-50 text-slate-600')
                   }`}
                 >
-                  <span className="text-[10px] uppercase font-medium">{wd.dayName}</span>
-                  <span className="text-sm font-bold">{wd.dayNum}</span>
+                  <span className="text-[8px] sm:text-[10px] uppercase font-medium">{wd.dayName}</span>
+                  <span className="text-xs sm:text-sm font-bold">{wd.dayNum}</span>
                   {wd.appointments.length > 0 && (
                     <span className={`w-1 h-1 rounded-full ${isSelected ? 'bg-white' : (isDark ? 'bg-indigo-400' : 'bg-slate-900')}`} />
                   )}

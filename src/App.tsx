@@ -942,10 +942,10 @@ export default function App() {
                     <Logo variant="icon" className="w-9 h-9 shadow-md rounded-xl" />
                   )}
                   <div className="text-left">
-                    <span className={`font-display font-extrabold ${isDark ? 'text-white' : 'text-slate-950'} text-base leading-tight block`}>
+                    <span className={`font-display font-extrabold ${isDark ? 'text-white' : 'text-slate-950'} text-sm sm:text-base leading-tight block max-w-[100px] sm:max-w-[200px] md:max-w-none truncate`}>
                       {profile.name}
                     </span>
-                    <span className={`text-[10px] font-mono ${isDark ? 'text-zinc-500' : 'text-slate-400'} block -mt-0.5`}>
+                    <span className={`text-[9px] sm:text-[10px] font-mono ${isDark ? 'text-zinc-500' : 'text-slate-400'} block -mt-0.5 truncate max-w-[100px] sm:max-w-[200px] md:max-w-none`}>
                       {profile.category} • Agenda Genda
                     </span>
                   </div>
@@ -985,7 +985,7 @@ export default function App() {
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, y: 10, scale: 0.95 }}
                             transition={{ duration: 0.15 }}
-                            className={`absolute right-0 mt-2 w-80 md:w-96 rounded-2xl border shadow-xl z-50 overflow-hidden text-left ${
+                            className={`absolute right-0 mt-2 w-[280px] sm:w-80 md:w-96 rounded-2xl border shadow-xl z-50 overflow-hidden text-left ${
                               isDark
                                 ? 'bg-zinc-950 border-zinc-850 text-zinc-300 shadow-zinc-950/80'
                                 : 'bg-white border-slate-200 text-slate-700 shadow-slate-200/50'
@@ -1134,7 +1134,7 @@ export default function App() {
 
                   {user ? (
                     <div
-                      className={`px-2.5 py-1 rounded-full border text-[10px] font-semibold flex items-center gap-1.5 transition-all ${
+                      className={`px-2 py-1 sm:px-2.5 rounded-full border text-[10px] font-semibold flex items-center gap-1 sm:gap-1.5 transition-all ${
                         isDark 
                           ? 'bg-indigo-950/20 border-indigo-900/40 text-indigo-300' 
                           : 'bg-indigo-50 border-indigo-100 text-indigo-700'
@@ -1142,11 +1142,11 @@ export default function App() {
                       title="Sincronização em tempo real ativada."
                     >
                       <Cloud className={`w-3.5 h-3.5 text-indigo-500 ${isCloudSyncing ? 'animate-spin' : ''}`} />
-                      <span>{isCloudSyncing ? 'Sincronizando...' : 'Nuvem Conectada'}</span>
+                      <span>{isCloudSyncing ? 'Sincronizando...' : <><span className="hidden sm:inline">Nuvem Conectada</span><span className="sm:hidden">Nuvem</span></>}</span>
                     </div>
                   ) : (
                     <div
-                      className={`px-2.5 py-1 rounded-full border text-[10px] font-semibold flex items-center gap-1.5 transition-all ${
+                      className={`px-2 py-1 sm:px-2.5 rounded-full border text-[10px] font-semibold flex items-center gap-1 sm:gap-1.5 transition-all ${
                         isDark 
                           ? 'bg-zinc-800 border-zinc-700 text-zinc-400' 
                           : 'bg-slate-100 border-slate-200 text-slate-500'
@@ -1154,7 +1154,7 @@ export default function App() {
                       title="Seus dados estão salvos de forma segura e local neste dispositivo."
                     >
                       <Smartphone className="w-3.5 h-3.5 text-indigo-500" />
-                      <span>Dados Locais • Nuvem Desconectada</span>
+                      <span><span className="hidden sm:inline">Dados Locais • Nuvem Desconectada</span><span className="sm:hidden">Local</span></span>
                     </div>
                   )}
 
