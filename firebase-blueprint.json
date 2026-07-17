@@ -1,0 +1,272 @@
+{
+  "entities": {
+    "WorkingDay": {
+      "title": "WorkingDay",
+      "description": "Defines working hours for a single day of the week",
+      "type": "object",
+      "properties": {
+        "dayOfWeek": {
+          "type": "integer",
+          "description": "Day of the week (0 = Sunday, 1 = Monday, etc.)"
+        },
+        "isWorking": {
+          "type": "boolean",
+          "description": "Whether the professional is working on this day"
+        },
+        "startTime": {
+          "type": "string",
+          "pattern": "^[0-9]{2}:[0-9]{2}$",
+          "description": "Start of working hours (HH:MM)"
+        },
+        "endTime": {
+          "type": "string",
+          "pattern": "^[0-9]{2}:[0-9]{2}$",
+          "description": "End of working hours (HH:MM)"
+        },
+        "lunchStart": {
+          "type": "string",
+          "pattern": "^[0-9]{2}:[0-9]{2}$",
+          "description": "Optional start of lunch break (HH:MM)"
+        },
+        "lunchEnd": {
+          "type": "string",
+          "pattern": "^[0-9]{2}:[0-9]{2}$",
+          "description": "Optional end of lunch break (HH:MM)"
+        }
+      },
+      "required": ["dayOfWeek", "isWorking", "startTime", "endTime"]
+    },
+    "Service": {
+      "title": "Service",
+      "description": "A service offered by the professional",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier of the service"
+        },
+        "name": {
+          "type": "string",
+          "maxLength": 100,
+          "description": "Name of the service"
+        },
+        "duration": {
+          "type": "number",
+          "description": "Duration in minutes"
+        },
+        "price": {
+          "type": "number",
+          "description": "Price in BRL"
+        },
+        "color": {
+          "type": "string",
+          "description": "Visual theme color hex or class"
+        },
+        "materials": {
+          "type": "string",
+          "maxLength": 500,
+          "description": "Optional materials used in this service"
+        },
+        "isPackage": {
+          "type": "boolean",
+          "description": "Whether this service is a combo/package of other services"
+        }
+      },
+      "required": ["id", "name", "duration", "price", "color"]
+    },
+    "Client": {
+      "title": "Client",
+      "description": "A registered client in the professional CRM",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier of the client"
+        },
+        "name": {
+          "type": "string",
+          "maxLength": 100,
+          "description": "Full name of the client"
+        },
+        "phone": {
+          "type": "string",
+          "maxLength": 20,
+          "description": "Contact phone number"
+        },
+        "email": {
+          "type": "string",
+          "maxLength": 100,
+          "description": "Optional email address"
+        },
+        "address": {
+          "type": "string",
+          "maxLength": 200,
+          "description": "Optional physical address"
+        },
+        "notes": {
+          "type": "string",
+          "maxLength": 1000,
+          "description": "Personalized client notes"
+        }
+      },
+      "required": ["id", "name", "phone"]
+    },
+    "Appointment": {
+      "title": "Appointment",
+      "description": "A scheduled appointment details",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique appointment identifier"
+        },
+        "clientId": {
+          "type": "string",
+          "description": "Associated client ID"
+        },
+        "serviceId": {
+          "type": "string",
+          "description": "Associated service ID"
+        },
+        "date": {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+          "description": "Date of appointment (YYYY-MM-DD)"
+        },
+        "time": {
+          "type": "string",
+          "pattern": "^[0-9]{2}:[0-9]{2}$",
+          "description": "Time of appointment (HH:MM)"
+        },
+        "duration": {
+          "type": "number",
+          "description": "Duration in minutes"
+        },
+        "price": {
+          "type": "number",
+          "description": "Agreed price in BRL"
+        },
+        "isRecurring": {
+          "type": "string",
+          "enum": ["none", "weekly", "biweekly", "monthly"],
+          "description": "Recurrence pattern"
+        },
+        "isReminderEnabled": {
+          "type": "boolean",
+          "description": "Whether automatic reminder notifications are enabled"
+        },
+        "paymentStatus": {
+          "type": "string",
+          "enum": ["paid", "pending", "installments"],
+          "description": "Payment status"
+        },
+        "installmentCount": {
+          "type": "number",
+          "description": "Number of payment installments"
+        },
+        "installmentValue": {
+          "type": "number",
+          "description": "Value per installment in BRL"
+        },
+        "paymentDate": {
+          "type": "string",
+          "description": "Optional date when payment was settled"
+        },
+        "paymentMethod": {
+          "type": "string",
+          "description": "Optional payment method (money, pix, credit, etc.)"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["scheduled", "completed", "cancelled"],
+          "description": "Current status of the appointment"
+        }
+      },
+      "required": ["id", "clientId", "serviceId", "date", "time", "duration", "price", "isRecurring", "isReminderEnabled", "paymentStatus", "status"]
+    },
+    "MessageTemplate": {
+      "title": "MessageTemplate",
+      "description": "Customizable WhatsApp text templates",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique template identifier"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["reminder", "confirm", "reschedule", "thanks"],
+          "description": "Template type"
+        },
+        "title": {
+          "type": "string",
+          "maxLength": 100,
+          "description": "Short reference name"
+        },
+        "body": {
+          "type": "string",
+          "maxLength": 2000,
+          "description": "Actual message body"
+        }
+      },
+      "required": ["id", "type", "title", "body"]
+    },
+    "ProfessionalProfile": {
+      "title": "ProfessionalProfile",
+      "description": "The professional user's core configuration",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "maxLength": 100,
+          "description": "Professional's name"
+        },
+        "category": {
+          "type": "string",
+          "maxLength": 100,
+          "description": "Professional niche / category"
+        },
+        "avatarUrl": {
+          "type": "string",
+          "description": "Optional profile picture URL"
+        },
+        "whatsapp": {
+          "type": "string",
+          "maxLength": 20,
+          "description": "Optional business WhatsApp number"
+        },
+        "themeId": {
+          "type": "string",
+          "description": "Theme identification code"
+        },
+        "isOfflineModeEnabled": {
+          "type": "boolean",
+          "description": "Whether to run exclusively local without cloud features"
+        }
+      },
+      "required": ["name", "category", "themeId", "isOfflineModeEnabled"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}/profile/main": {
+      "schema": "ProfessionalProfile",
+      "description": "Professional profile details"
+    },
+    "/users/{userId}/services/{serviceId}": {
+      "schema": "Service",
+      "description": "Services offered by the professional"
+    },
+    "/users/{userId}/clients/{clientId}": {
+      "schema": "Client",
+      "description": "Registered clients details"
+    },
+    "/users/{userId}/appointments/{appointmentId}": {
+      "schema": "Appointment",
+      "description": "Appointment reservations"
+    },
+    "/users/{userId}/templates/{templateId}": {
+      "schema": "MessageTemplate",
+      "description": "WhatsApp message templates"
+    }
+  }
+}

@@ -1,0 +1,123 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // DefaultCatch-all rule to block all unmapped paths
+    match /{document=**} {
+      allow read, write: if false;
+    }
+    
+    // Primitive global auth and format helpers
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+    
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+    
+    // Helper to validate Profile structure
+    function isValidProfile(data) {
+      return data.name is string && data.name.size() <= 100
+          && data.category is string && data.category.size() <= 100
+          && data.themeId is string
+          && data.isOfflineModeEnabled is bool;
+    }
+    
+    // Helper to validate Service structure
+    function isValidService(data) {
+      return data.id is string && data.id.size() <= 128
+          && data.name is string && data.name.size() <= 100
+          && data.duration is number
+          && data.price is number
+          && data.color is string;
+    }
+    
+    // Helper to validate Client structure
+    function isValidClient(data) {
+      return data.id is string && data.id.size() <= 128
+          && data.name is string && data.name.size() <= 100
+          && data.phone is string && data.phone.size() <= 20;
+    }
+    
+    // Helper to validate Appointment structure
+    function isValidAppointment(data) {
+      return data.id is string && data.id.size() <= 128
+          && data.clientId is string && data.clientId.size() <= 128
+          && data.serviceId is string && data.serviceId.size() <= 128
+          && data.date is string && data.date.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+          && data.time is string && data.time.matches('^[0-9]{2}:[0-9]{2}$')
+          && data.duration is number
+          && data.price is number
+          && data.isRecurring is string
+          && data.isReminderEnabled is bool
+          && data.paymentStatus is string
+          && data.status is string;
+    }
+    
+    // Helper to validate MessageTemplate structure
+    function isValidTemplate(data) {
+      return data.id is string && data.id.size() <= 128
+          && data.type is string
+          && data.title is string && data.title.size() <= 100
+          && data.body is string && data.body.size() <= 2000;
+    }
+
+    match /users/{userId} {
+      
+      match /profile/{profileId} {
+        allow get: if isOwner(userId) && isValidId(profileId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidId(profileId) 
+          && isValidProfile(request.resource.data);
+        allow update: if isOwner(userId) && isValidId(profileId) 
+          && isValidProfile(request.resource.data);
+        allow delete: if isOwner(userId) && isValidId(profileId);
+      }
+      
+      match /services/{serviceId} {
+        allow get: if isOwner(userId) && isValidId(serviceId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidId(serviceId) 
+          && isValidService(request.resource.data);
+        allow update: if isOwner(userId) && isValidId(serviceId) 
+          && isValidService(request.resource.data);
+        allow delete: if isOwner(userId) && isValidId(serviceId);
+      }
+      
+      match /clients/{clientId} {
+        allow get: if isOwner(userId) && isValidId(clientId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidId(clientId) 
+          && isValidClient(request.resource.data);
+        allow update: if isOwner(userId) && isValidId(clientId) 
+          && isValidClient(request.resource.data);
+        allow delete: if isOwner(userId) && isValidId(clientId);
+      }
+      
+      match /appointments/{appointmentId} {
+        allow get: if isOwner(userId) && isValidId(appointmentId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidId(appointmentId) 
+          && isValidAppointment(request.resource.data);
+        allow update: if isOwner(userId) && isValidId(appointmentId) 
+          && isValidAppointment(request.resource.data);
+        allow delete: if isOwner(userId) && isValidId(appointmentId);
+      }
+      
+      match /templates/{templateId} {
+        allow get: if isOwner(userId) && isValidId(templateId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidId(templateId) 
+          && isValidTemplate(request.resource.data);
+        allow update: if isOwner(userId) && isValidId(templateId) 
+          && isValidTemplate(request.resource.data);
+        allow delete: if isOwner(userId) && isValidId(templateId);
+      }
+    }
+  }
+}
