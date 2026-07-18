@@ -562,7 +562,7 @@ export default function ClientsView({
                   }`}>
                     <div className="w-full">
                       {/* HEADER - DESKTOP ONLY */}
-                      <div className={`hidden md:grid grid-cols-[2fr_1.5fr_1.5fr_1fr_1fr_1fr] gap-4 px-4 py-3 border-b font-display font-bold tracking-wider uppercase text-[10px] ${
+                      <div className={`hidden lg:grid grid-cols-[2fr_1.5fr_1.5fr_1fr_1fr_1fr] gap-4 px-4 py-3 border-b font-display font-bold tracking-wider uppercase text-[10px] ${
                         isDark ? 'bg-zinc-900/40 border-zinc-900 text-zinc-400' : 'bg-slate-50 border-slate-100 text-slate-500'
                       }`}>
                         <div>Cliente</div>
@@ -599,13 +599,13 @@ export default function ClientsView({
                           return (
                             <div 
                               key={client.id}
-                              className={`flex flex-col md:grid md:grid-cols-[2fr_1.5fr_1.5fr_1fr_1fr_1fr] gap-3 md:gap-4 p-4 md:px-4 md:py-3 md:items-center transition-all duration-150 ${
+                              className={`flex flex-col lg:grid lg:grid-cols-[2fr_1.5fr_1.5fr_1fr_1fr_1fr] gap-3 lg:gap-4 p-4 lg:px-4 lg:py-3 lg:items-center transition-all duration-150 ${
                                 isDark ? 'hover:bg-zinc-900/30' : 'hover:bg-slate-50/50'
                               }`}
                             >
                               {/* CLIENT INFO */}
                               <div className="flex items-center gap-3 min-w-0">
-                                <div className={`w-10 h-10 md:w-8 md:h-8 rounded-lg flex items-center justify-center font-display font-bold text-sm md:text-xs border shrink-0 ${
+                                <div className={`w-10 h-10 lg:w-8 lg:h-8 rounded-lg flex items-center justify-center font-display font-bold text-sm lg:text-xs border shrink-0 ${
                                   isDark 
                                     ? 'bg-zinc-900 text-zinc-300 border-zinc-800' 
                                     : 'bg-slate-50 text-slate-600 border-slate-100'
@@ -616,7 +616,7 @@ export default function ClientsView({
                                   <div className="flex items-center gap-1.5">
                                     <button 
                                       onClick={() => setSelectedClientId(client.id)}
-                                      className={`font-semibold text-sm md:text-xs hover:underline text-left cursor-pointer transition-all truncate ${
+                                      className={`font-semibold text-sm lg:text-xs hover:underline text-left cursor-pointer transition-all truncate ${
                                         isDark ? 'text-zinc-100 hover:text-indigo-400' : 'text-slate-900 hover:text-indigo-600'
                                       }`}
                                     >
@@ -630,7 +630,7 @@ export default function ClientsView({
                                     )}
                                   </div>
                                   {client.notes && (
-                                    <p className="text-[10px] md:text-[9px] w-full truncate italic text-slate-400">
+                                    <p className="text-[10px] lg:text-[9px] w-full truncate italic text-slate-400">
                                       "{client.notes}"
                                     </p>
                                   )}
@@ -638,42 +638,42 @@ export default function ClientsView({
                               </div>
 
                               {/* CONTACT INFO */}
-                              <div className="space-y-0.5 mt-1 md:mt-0 ml-[52px] md:ml-0 min-w-0">
-                                <span className={`font-mono text-[11px] md:text-[10px] block whitespace-nowrap ${isDark ? 'text-zinc-300' : 'text-slate-700'}`}>
+                              <div className="space-y-0.5 mt-1 lg:mt-0 ml-[52px] lg:ml-0 min-w-0">
+                                <span className={`font-mono text-[11px] lg:text-[10px] block whitespace-nowrap ${isDark ? 'text-zinc-300' : 'text-slate-700'}`}>
                                   {client.phone.startsWith('+') ? client.phone : formatPhone(client.phone)}
                                 </span>
                                 {client.email ? (
-                                  <span className="text-[11px] md:text-[10px] text-slate-400 block w-full truncate">
+                                  <span className="text-[11px] lg:text-[10px] text-slate-400 block w-full truncate">
                                     {client.email}
                                   </span>
                                 ) : (
-                                  <span className="text-[10px] md:text-[9px] text-slate-400 italic block">
+                                  <span className="text-[10px] lg:text-[9px] text-slate-400 italic block">
                                     sem e-mail
                                   </span>
                                 )}
                               </div>
 
                               {/* ADDRESS */}
-                              <div className="ml-[52px] md:ml-0 mt-1 md:mt-0 min-w-0">
+                              <div className="ml-[52px] lg:ml-0 mt-1 lg:mt-0 min-w-0">
                                 {client.address ? (
                                   <div className="flex items-center gap-1.5 w-full">
-                                    <MapPin className="w-3.5 h-3.5 md:w-3 md:h-3 text-slate-400 shrink-0" />
-                                    <span className="text-[11px] md:text-[10px] truncate text-slate-400" title={client.address}>
+                                    <MapPin className="w-3.5 h-3.5 lg:w-3 lg:h-3 text-slate-400 shrink-0" />
+                                    <span className="text-[11px] lg:text-[10px] truncate text-slate-400" title={client.address}>
                                       {client.address}
                                     </span>
                                   </div>
                                 ) : (
-                                  <span className="text-[11px] md:text-[10px] text-slate-400 italic font-light block">
+                                  <span className="text-[11px] lg:text-[10px] text-slate-400 italic font-light block">
                                     Endereço não informado
                                   </span>
                                 )}
                               </div>
 
                               {/* METRICS & CRM MOBILE CONTAINER */}
-                              <div className="flex items-center justify-between md:contents mt-2 md:mt-0 pt-3 md:pt-0 border-t md:border-t-0 border-dashed border-slate-200 dark:border-zinc-800">
+                              <div className="flex items-center justify-between lg:contents mt-2 lg:mt-0 pt-3 lg:pt-0 border-t lg:border-t-0 border-dashed border-slate-200 dark:border-zinc-800">
                                 {/* TOTAL VISITS */}
-                                <div className="flex md:flex-col items-center md:justify-center gap-2 md:gap-0">
-                                  <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 md:hidden">Visitas:</span>
+                                <div className="flex lg:flex-col items-center lg:justify-center gap-2 lg:gap-0">
+                                  <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 lg:hidden">Visitas:</span>
                                   <span className={`font-mono font-bold text-xs ${
                                     isDark ? 'text-zinc-300' : 'text-slate-800'
                                   }`}>
@@ -683,56 +683,56 @@ export default function ClientsView({
 
                                 {/* CRM STATUS */}
                                 <div className="flex items-center justify-center">
-                                  <span className={`inline-block text-[10px] md:text-[9px] font-semibold px-2 py-0.5 rounded-full border ${crmStatus.style}`}>
+                                  <span className={`inline-block text-[10px] lg:text-[9px] font-semibold px-2 py-0.5 rounded-full border ${crmStatus.style}`}>
                                     {crmStatus.label}
                                   </span>
                                 </div>
 
                                 {/* ACTIONS */}
-                                <div className="flex items-center justify-end gap-1.5 md:gap-1">
+                                <div className="flex items-center justify-end gap-1.5 lg:gap-1">
                                   <button
                                     onClick={() => setSelectedClientId(client.id)}
                                     title="Ver Ficha"
-                                    className={`p-2 md:p-1.5 rounded-lg border transition-all cursor-pointer hover:scale-105 active:scale-95 ${
+                                    className={`p-2 lg:p-1.5 rounded-lg border transition-all cursor-pointer hover:scale-105 active:scale-95 ${
                                       isDark 
                                         ? 'bg-zinc-900 border-zinc-800 text-zinc-300 hover:bg-zinc-800 hover:text-zinc-100' 
                                         : 'bg-slate-50 border-slate-150 text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                                     }`}
                                   >
-                                    <Eye className="w-4 h-4 md:w-3.5 md:h-3.5" />
+                                    <Eye className="w-4 h-4 lg:w-3.5 lg:h-3.5" />
                                   </button>
                                   <button
                                     onClick={() => handleOpenEdit(client)}
                                     title="Editar Dados"
-                                    className={`p-2 md:p-1.5 rounded-lg border transition-all cursor-pointer hover:scale-105 active:scale-95 ${
+                                    className={`p-2 lg:p-1.5 rounded-lg border transition-all cursor-pointer hover:scale-105 active:scale-95 ${
                                       isDark 
                                         ? 'bg-zinc-900 border-zinc-800 text-zinc-300 hover:bg-zinc-800 hover:text-zinc-100' 
                                         : 'bg-slate-50 border-slate-150 text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                                     }`}
                                   >
-                                    <Edit2 className="w-4 h-4 md:w-3.5 md:h-3.5" />
+                                    <Edit2 className="w-4 h-4 lg:w-3.5 lg:h-3.5" />
                                   </button>
                                   <button
                                     onClick={() => onSelectClientForBooking(client.id)}
                                     title="Novo Agendamento"
-                                    className={`p-2 md:p-1.5 rounded-lg border transition-all cursor-pointer hover:scale-105 active:scale-95 ${
+                                    className={`p-2 lg:p-1.5 rounded-lg border transition-all cursor-pointer hover:scale-105 active:scale-95 ${
                                       isDark 
                                         ? 'bg-indigo-950/40 border-indigo-900/30 text-indigo-300 hover:bg-indigo-900/40 hover:text-indigo-200' 
                                         : 'bg-indigo-50 border-indigo-100 text-indigo-600 hover:bg-indigo-100/50 hover:text-indigo-700'
                                     }`}
                                   >
-                                    <Calendar className="w-4 h-4 md:w-3.5 md:h-3.5" />
+                                    <Calendar className="w-4 h-4 lg:w-3.5 lg:h-3.5" />
                                   </button>
                                   <button
                                     onClick={() => handleDeleteClient(client.id)}
                                     title="Excluir Cliente"
-                                    className={`p-2 md:p-1.5 rounded-lg border transition-all cursor-pointer hover:scale-105 active:scale-95 ${
+                                    className={`p-2 lg:p-1.5 rounded-lg border transition-all cursor-pointer hover:scale-105 active:scale-95 ${
                                       isDark 
                                         ? 'bg-rose-950/40 border-rose-900/30 text-rose-300 hover:bg-rose-900/40 hover:text-rose-200' 
                                         : 'bg-rose-50 border-rose-100 text-rose-600 hover:bg-rose-100/50 hover:text-rose-700'
                                     }`}
                                   >
-                                    <Trash2 className="w-4 h-4 md:w-3.5 md:h-3.5" />
+                                    <Trash2 className="w-4 h-4 lg:w-3.5 lg:h-3.5" />
                                   </button>
                                 </div>
                               </div>

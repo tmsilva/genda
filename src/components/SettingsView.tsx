@@ -327,22 +327,22 @@ export default function SettingsView({
       {/* Sidebar navigation menu */}
       <div className={`lg:col-span-1 ${isDark ? 'bg-zinc-900 border-zinc-800 text-zinc-300' : 'bg-white border-slate-100 text-slate-700'} rounded-2xl p-2 lg:p-4 border shadow-sm flex flex-col justify-between lg:min-h-[400px] gap-6 text-xs font-semibold`}>
         
-        <div className="flex flex-row lg:flex-col flex-nowrap overflow-x-auto scrollbar-none gap-2 lg:gap-1.5 pb-1 lg:pb-0">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-1 gap-2 lg:gap-1.5 w-full">
           <button
             onClick={() => setActiveSection('profile')}
-            className={`shrink-0 w-auto lg:w-full p-2.5 rounded-xl text-left flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap lg:whitespace-normal ${
+            className={`w-full p-2.5 rounded-xl text-left flex items-center gap-2 transition-all cursor-pointer text-xs whitespace-normal ${
               activeSection === 'profile' 
                 ? (isDark ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-900 text-white shadow-sm') 
                 : (isDark ? 'hover:bg-zinc-800 text-zinc-400 hover:text-white' : 'hover:bg-slate-50 text-slate-700')
             }`}
           >
             <User className="w-4 h-4 shrink-0" />
-            Perfil Profissional
+            <span className="leading-tight">Perfil Profissional</span>
           </button>
 
           <button
             onClick={() => setActiveSection('hours')}
-            className={`shrink-0 w-auto lg:w-full p-2.5 rounded-xl text-left flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap lg:whitespace-normal ${
+            className={`w-full p-2.5 rounded-xl text-left flex items-center gap-2 transition-all cursor-pointer text-xs whitespace-normal ${
               activeSection === 'hours' 
                 ? (isDark ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-900 text-white shadow-sm') 
                 : (isDark ? 'hover:bg-zinc-800 text-zinc-400 hover:text-white' : 'hover:bg-slate-50 text-slate-700')
@@ -350,43 +350,43 @@ export default function SettingsView({
             id="btn-settings-hours"
           >
             <Clock className="w-4 h-4 shrink-0" />
-            Horários de Atendimento
+            <span className="leading-tight">Horários de Atendimento</span>
           </button>
 
           <button
             onClick={() => setActiveSection('templates')}
-            className={`shrink-0 w-auto lg:w-full p-2.5 rounded-xl text-left flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap lg:whitespace-normal ${
+            className={`w-full p-2.5 rounded-xl text-left flex items-center gap-2 transition-all cursor-pointer text-xs whitespace-normal ${
               activeSection === 'templates' 
                 ? (isDark ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-900 text-white shadow-sm') 
                 : (isDark ? 'hover:bg-zinc-800 text-zinc-400 hover:text-white' : 'hover:bg-slate-50 text-slate-700')
             }`}
           >
             <MessageSquare className="w-4 h-4 shrink-0" />
-            Mensagens do WhatsApp
+            <span className="leading-tight">Mensagens do WhatsApp</span>
           </button>
 
           <button
             onClick={() => setActiveSection('theme')}
-            className={`shrink-0 w-auto lg:w-full p-2.5 rounded-xl text-left flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap lg:whitespace-normal ${
+            className={`w-full p-2.5 rounded-xl text-left flex items-center gap-2 transition-all cursor-pointer text-xs whitespace-normal ${
               activeSection === 'theme' 
                 ? (isDark ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-900 text-white shadow-sm') 
                 : (isDark ? 'hover:bg-zinc-800 text-zinc-400 hover:text-white' : 'hover:bg-slate-50 text-slate-700')
             }`}
           >
             <Sparkles className="w-4 h-4 shrink-0" />
-            Aparência / Tema
+            <span className="leading-tight">Aparência / Tema</span>
           </button>
 
           <button
             onClick={() => setActiveSection('backup')}
-            className={`shrink-0 w-auto lg:w-full p-2.5 rounded-xl text-left flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap lg:whitespace-normal ${
+            className={`w-full p-2.5 rounded-xl text-left flex items-center gap-2 transition-all cursor-pointer text-xs whitespace-normal ${
               activeSection === 'backup' 
                 ? (isDark ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-900 text-white shadow-sm') 
                 : (isDark ? 'hover:bg-zinc-800 text-zinc-400 hover:text-white' : 'hover:bg-slate-50 text-slate-700')
             }`}
           >
             <Smartphone className="w-4 h-4 shrink-0" />
-            Backup & Sincronização
+            <span className="leading-tight">Backup & Sincronização</span>
           </button>
         </div>
 
