@@ -1,3 +1,5 @@
+import { now, parseDate, getTodayStr } from './dateUtils';
+import dayjs from 'dayjs';
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -17,6 +19,7 @@ import {
 import { getWhatsAppNumber } from './utils';
 
 import Onboarding from './components/Onboarding';
+import DashboardView from './components/DashboardView';
 import ScheduleView from './components/ScheduleView';
 import ClientsView from './components/ClientsView';
 import ServicesView from './components/ServicesView';
@@ -87,7 +90,7 @@ export default function App() {
     return cached ? JSON.parse(cached) : DEFAULT_TEMPLATES;
   });
 
-  const [activeTab, setActiveTab] = useState<'agenda' | 'clients' | 'services' | 'finance' | 'estoque' | 'ai' | 'settings'>('agenda');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'agenda' | 'clients' | 'services' | 'finance' | 'estoque' | 'ai' | 'settings'>('dashboard');
   const [stock, setStock] = useState<StockItem[]>(() => {
     return localStorage.getItem('genda_stock') ? JSON.parse(localStorage.getItem('genda_stock')!) : DEFAULT_STOCK_ITEMS;
   });
@@ -98,6 +101,7 @@ export default function App() {
 
   const [activeClientId, setActiveClientId] = useState<string | null>(null);
   const [isSidebarExpanded, setIsSidebarExpanded] = useState<boolean>(true);
+  const [mobileNavPage, setMobileNavPage] = useState<0 | 1>(0);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState<boolean>(false);
 
   // Push Notification / Local Alerts State
@@ -211,7 +215,7 @@ export default function App() {
               setMessageTemplates(cloudData.templates);
             }
             setIsOnboarded(true);
-            setActiveTab('agenda');
+            setActiveTab('dashboard');
           } else {
             // No data in the cloud (empty cloud account or new registration).
             // Initialize with their current local data if any, otherwise default data, and upload it to the cloud.
@@ -237,7 +241,7 @@ export default function App() {
             setAppointments(localAppts);
             setMessageTemplates(initialTemplates);
             setIsOnboarded(true);
-            setActiveTab('agenda');
+            setActiveTab('dashboard');
           }
         } catch (err) {
           console.error('Cloud synchronization failed', err);
@@ -314,7 +318,7 @@ export default function App() {
               id: notifId,
               title: 'Lembrete de Atendimento • Amanhã',
               body: notifBody,
-              timestamp: new Date().toISOString(),
+              timestamp: now().format(),
               read: false,
               appointmentId: nextAppt.id,
             };
@@ -358,7 +362,7 @@ export default function App() {
       id: 'notif_' + Date.now(),
       title: 'Novo Agendamento',
       body: `${client ? client.name : 'Cliente'} agendou ${service ? service.name : 'serviço'} para ${appt.date} às ${appt.time}`,
-      timestamp: new Date().toISOString(),
+      timestamp: now().format(),
       read: false,
       appointmentId: appt.id
     };
@@ -396,7 +400,7 @@ export default function App() {
           id: 'notif_' + Date.now(),
           title: notifTitle,
           body: notifBody,
-          timestamp: new Date().toISOString(),
+          timestamp: now().format(),
           read: false,
           appointmentId: appt.id
         };
@@ -475,7 +479,7 @@ export default function App() {
     setClients([]);
     setAppointments([]);
     setIsOnboarded(true);
-    setActiveTab('agenda');
+    setActiveTab('dashboard');
 
     // Sync to localStorage immediately to guarantee availability
     localStorage.setItem('genda_onboarded', 'true');
@@ -506,7 +510,7 @@ export default function App() {
           id: 'notif_' + Date.now(),
           title: 'Erro de Sincronização',
           body: `Sua conta local foi criada, mas não foi possível conectar à nuvem: ${err.message || err}`,
-          timestamp: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+          timestamp: now().format('HH:mm'),
           read: false
         };
         setNotifications(prev => [newNotif, ...prev]);
@@ -533,7 +537,7 @@ export default function App() {
     setAppointments(getInitialAppointments());
     setMessageTemplates(DEFAULT_TEMPLATES);
     setIsOnboarded(true);
-    setActiveTab('agenda');
+    setActiveTab('dashboard');
   };
 
   const handleLogout = async () => {
@@ -651,15 +655,15 @@ export default function App() {
   const unreadCount = notifications.filter(n => !n.read).length;
 
   const formatNotifTime = (isoString: string) => {
-    const d = new Date(isoString);
-    const now = new Date();
-    const diffMs = now.getTime() - d.getTime();
+    const d = parseDate(isoString);
+    const currentDate = now();
+    const diffMs = currentDate.valueOf() - d.valueOf();
     const diffMin = Math.floor(diffMs / 60000);
     if (diffMin < 1) return 'Agora';
     if (diffMin < 60) return `${diffMin}m`;
     const diffHrs = Math.floor(diffMin / 60);
     if (diffHrs < 24) return `${diffHrs}h`;
-    return d.toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' });
+    return d.format('D [de] MMM');
   };
 
   // State and handler to select and open appointment details from notification clicks
@@ -735,6 +739,20 @@ export default function App() {
 
               {/* Navigation Items */}
               <div className="flex-1 py-4 px-3 space-y-1.5 overflow-y-auto">
+                {/* Item 0: Dashboard */}
+                <button
+                  onClick={() => { setActiveClientId(null); setActiveTab('dashboard'); }}
+                  className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all cursor-pointer ${
+                    activeTab === 'dashboard'
+                      ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/25'
+                      : 'themed-sidebar-inactive-btn'
+                  } ${!isSidebarExpanded && 'justify-center'}`}
+                  title="Dashboard"
+                >
+                  <Package className="w-5 h-5 shrink-0" />
+                  {isSidebarExpanded && <span className="text-sm">Dashboard</span>}
+                </button>
+
                 {/* Item 1: Agenda */}
                 <button
                   onClick={() => { setActiveClientId(null); setActiveTab('agenda'); }}
@@ -1178,6 +1196,29 @@ export default function App() {
             {/* MAIN CONTAINER LAYOUT WITH TRANSITIONS */}
             <main className="flex-1 min-w-0 w-full max-w-none mx-auto px-3 sm:px-4 md:px-8 py-6 transition-all duration-200 overflow-x-hidden pb-24 md:pb-6" id="genda-main-content">
               <AnimatePresence mode="wait">
+                {activeTab === 'dashboard' && (
+                  <motion.div
+                    key="dashboard"
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -15 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <DashboardView
+                      appointments={appointments}
+                      clients={clients}
+                      services={services}
+                      stock={stock}
+                      profile={profile}
+                      isDark={isDark}
+                      onNavigateToTab={setActiveTab}
+                      onTriggerNewAppointment={() => setActiveTab('agenda')}
+                      onTriggerNewClient={() => setActiveTab('clients')}
+                      onTriggerNewService={() => setActiveTab('services')}
+                    />
+                  </motion.div>
+                )}
+
                 {activeTab === 'agenda' && (
                   <motion.div
                     key="agenda"
@@ -1327,144 +1368,203 @@ export default function App() {
             </main>
 
             {/* PERSISTENT BOTTOM NAVIGATION TAB BAR */}
-            <div className="fixed bottom-0 left-0 right-0 z-40 themed-mobile-bar backdrop-blur-md border-t shadow-lg px-2 sm:px-6 py-2 flex items-center justify-between sm:justify-center gap-1 sm:gap-4 overflow-x-auto scrollbar-none rounded-t-2xl md:hidden">
-              
-              {/* Tab 1: Agenda */}
-              <button
-                onClick={() => { setActiveClientId(null); setActiveTab('agenda'); }}
-                className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-all flex-1 min-w-[44px] ${
-                  activeTab === 'agenda' 
-                    ? (isDark ? 'text-indigo-400 scale-105 font-bold' : 'text-indigo-600 scale-105 font-bold') 
-                    : 'themed-mobile-inactive'
-                }`}
-              >
-                <div className={`p-1 sm:p-1.5 rounded-xl transition-all ${
-                  activeTab === 'agenda' 
-                    ? (isDark ? 'bg-indigo-500/10 text-indigo-400' : 'bg-indigo-50 text-indigo-600') 
-                    : 'bg-transparent'
-                }`}>
-                  <Calendar className="w-5 h-5 sm:w-5 sm:h-5" />
-                </div>
-                <span className="text-[9px] sm:text-[10px] truncate max-w-full">Agenda</span>
-              </button>
+            <div className="fixed bottom-0 left-0 right-0 z-40 themed-mobile-bar backdrop-blur-md border-t shadow-lg px-2 sm:px-6 py-2 flex items-center justify-between sm:justify-center gap-1 sm:gap-4 rounded-t-2xl md:hidden">
+              <AnimatePresence mode="wait">
+                {mobileNavPage === 0 ? (
+                  <motion.div 
+                    key="page0"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 20 }}
+                    transition={{ duration: 0.2 }}
+                    className="flex-1 flex items-center justify-between sm:justify-center gap-1 sm:gap-4 w-full"
+                  >
+                    {/* Tab 0: Dashboard */}
+                    <button
+                      onClick={() => { setActiveClientId(null); setActiveTab('dashboard'); }}
+                      className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-all shrink-0 min-w-[56px] sm:min-w-[64px] ${
+                        activeTab === 'dashboard' 
+                          ? (isDark ? 'text-indigo-400 scale-105 font-bold' : 'text-indigo-600 scale-105 font-bold') 
+                          : 'themed-mobile-inactive'
+                      }`}
+                    >
+                      <div className={`p-1 sm:p-1.5 rounded-xl transition-all ${
+                        activeTab === 'dashboard' 
+                          ? (isDark ? 'bg-indigo-500/10 text-indigo-400' : 'bg-indigo-50 text-indigo-600') 
+                          : 'bg-transparent'
+                      }`}>
+                        <Package className="w-5 h-5 sm:w-5 sm:h-5" />
+                      </div>
+                      <span className="text-[9px] sm:text-[10px] truncate max-w-full">Painel</span>
+                    </button>
 
-              {/* Tab 2: Clients */}
-              <button
-                onClick={() => { setActiveClientId(null); setActiveTab('clients'); }}
-                className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-all flex-1 min-w-[44px] ${
-                  activeTab === 'clients' 
-                    ? (isDark ? 'text-indigo-400 scale-105 font-bold' : 'text-indigo-600 scale-105 font-bold') 
-                    : 'themed-mobile-inactive'
-                }`}
-              >
-                <div className={`p-1 sm:p-1.5 rounded-xl transition-all ${
-                  activeTab === 'clients' 
-                    ? (isDark ? 'bg-indigo-500/10 text-indigo-400' : 'bg-indigo-50 text-indigo-600') 
-                    : 'bg-transparent'
-                }`}>
-                  <Users className="w-5 h-5 sm:w-5 sm:h-5" />
-                </div>
-                <span className="text-[9px] sm:text-[10px] truncate max-w-full">Clientes</span>
-              </button>
+                    {/* Tab 1: Agenda */}
+                    <button
+                      onClick={() => { setActiveClientId(null); setActiveTab('agenda'); }}
+                      className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-all shrink-0 min-w-[56px] sm:min-w-[64px] ${
+                        activeTab === 'agenda' 
+                          ? (isDark ? 'text-indigo-400 scale-105 font-bold' : 'text-indigo-600 scale-105 font-bold') 
+                          : 'themed-mobile-inactive'
+                      }`}
+                    >
+                      <div className={`p-1 sm:p-1.5 rounded-xl transition-all ${
+                        activeTab === 'agenda' 
+                          ? (isDark ? 'bg-indigo-500/10 text-indigo-400' : 'bg-indigo-50 text-indigo-600') 
+                          : 'bg-transparent'
+                      }`}>
+                        <Calendar className="w-5 h-5 sm:w-5 sm:h-5" />
+                      </div>
+                      <span className="text-[9px] sm:text-[10px] truncate max-w-full">Agenda</span>
+                    </button>
 
-              {/* Tab 2.5: Services */}
-              <button
-                onClick={() => { setActiveClientId(null); setActiveTab('services'); }}
-                className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-all flex-1 min-w-[44px] ${
-                  activeTab === 'services' 
-                    ? (isDark ? 'text-indigo-400 scale-105 font-bold' : 'text-indigo-600 scale-105 font-bold') 
-                    : 'themed-mobile-inactive'
-                }`}
-              >
-                <div className={`p-1 sm:p-1.5 rounded-xl transition-all ${
-                  activeTab === 'services' 
-                    ? (isDark ? 'bg-indigo-500/10 text-indigo-400' : 'bg-indigo-50 text-indigo-600') 
-                    : 'bg-transparent'
-                }`}>
-                  <Clipboard className="w-5 h-5 sm:w-5 sm:h-5" />
-                </div>
-                <span className="text-[9px] sm:text-[10px] truncate max-w-full">Serviços</span>
-              </button>
+                    {/* Tab 2: Clients */}
+                    <button
+                      onClick={() => { setActiveClientId(null); setActiveTab('clients'); }}
+                      className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-all shrink-0 min-w-[56px] sm:min-w-[64px] ${
+                        activeTab === 'clients' 
+                          ? (isDark ? 'text-indigo-400 scale-105 font-bold' : 'text-indigo-600 scale-105 font-bold') 
+                          : 'themed-mobile-inactive'
+                      }`}
+                    >
+                      <div className={`p-1 sm:p-1.5 rounded-xl transition-all ${
+                        activeTab === 'clients' 
+                          ? (isDark ? 'bg-indigo-500/10 text-indigo-400' : 'bg-indigo-50 text-indigo-600') 
+                          : 'bg-transparent'
+                      }`}>
+                        <Users className="w-5 h-5 sm:w-5 sm:h-5" />
+                      </div>
+                      <span className="text-[9px] sm:text-[10px] truncate max-w-full">Clientes</span>
+                    </button>
 
-              {/* Tab 3: Finance */}
-              <button
-                onClick={() => { setActiveClientId(null); setActiveTab('finance'); }}
-                className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-all flex-1 min-w-[44px] ${
-                  activeTab === 'finance' 
-                    ? (isDark ? 'text-indigo-400 scale-105 font-bold' : 'text-indigo-600 scale-105 font-bold') 
-                    : 'themed-mobile-inactive'
-                }`}
-              >
-                <div className={`p-1 sm:p-1.5 rounded-xl transition-all ${
-                  activeTab === 'finance' 
-                    ? (isDark ? 'bg-indigo-500/10 text-indigo-400' : 'bg-indigo-50 text-indigo-600') 
-                    : 'bg-transparent'
-                }`}>
-                  <DollarSign className="w-5 h-5 sm:w-5 sm:h-5" />
-                </div>
-                <span className="text-[9px] sm:text-[10px] truncate max-w-full">Finanças</span>
-              </button>
+                    {/* Tab 2.5: Services */}
+                    <button
+                      onClick={() => { setActiveClientId(null); setActiveTab('services'); }}
+                      className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-all shrink-0 min-w-[56px] sm:min-w-[64px] ${
+                        activeTab === 'services' 
+                          ? (isDark ? 'text-indigo-400 scale-105 font-bold' : 'text-indigo-600 scale-105 font-bold') 
+                          : 'themed-mobile-inactive'
+                      }`}
+                    >
+                      <div className={`p-1 sm:p-1.5 rounded-xl transition-all ${
+                        activeTab === 'services' 
+                          ? (isDark ? 'bg-indigo-500/10 text-indigo-400' : 'bg-indigo-50 text-indigo-600') 
+                          : 'bg-transparent'
+                      }`}>
+                        <Clipboard className="w-5 h-5 sm:w-5 sm:h-5" />
+                      </div>
+                      <span className="text-[9px] sm:text-[10px] truncate max-w-full">Serviços</span>
+                    </button>
 
-              {/* Tab 3.1: Estoque */}
-              <button
-                onClick={() => { setActiveClientId(null); setActiveTab('estoque'); }}
-                className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-all flex-1 min-w-[44px] ${
-                  activeTab === 'estoque' 
-                    ? (isDark ? 'text-indigo-400 scale-105 font-bold' : 'text-indigo-600 scale-105 font-bold') 
-                    : 'themed-mobile-inactive'
-                }`}
-              >
-                <div className={`p-1 sm:p-1.5 rounded-xl transition-all ${
-                  activeTab === 'estoque' 
-                    ? (isDark ? 'bg-indigo-500/10 text-indigo-400' : 'bg-indigo-50 text-indigo-600') 
-                    : 'bg-transparent'
-                }`}>
-                  <Package className="w-5 h-5 sm:w-5 sm:h-5" />
-                </div>
-                <span className="text-[9px] sm:text-[10px] truncate max-w-full">Estoque</span>
-              </button>
+                    {/* Next Page Arrow */}
+                    <button
+                      onClick={() => setMobileNavPage(1)}
+                      className="flex flex-col items-center justify-center gap-1 cursor-pointer transition-all shrink-0 min-w-[40px] sm:min-w-[48px] text-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400"
+                    >
+                      <div className="p-1 sm:p-1.5 rounded-xl transition-all bg-indigo-500/10 text-indigo-500 flex items-center justify-center h-[28px] w-[28px] sm:h-[32px] sm:w-[32px]">
+                        <ChevronRight className="w-5 h-5 sm:w-5 sm:h-5" />
+                      </div>
+                      <span className="text-[9px] sm:text-[10px] truncate max-w-full font-bold">Mais</span>
+                    </button>
+                  </motion.div>
+                ) : (
+                  <motion.div 
+                    key="page1"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    transition={{ duration: 0.2 }}
+                    className="flex-1 flex items-center justify-between sm:justify-center gap-1 sm:gap-4 w-full"
+                  >
+                    {/* Prev Page Arrow */}
+                    <button
+                      onClick={() => setMobileNavPage(0)}
+                      className="flex flex-col items-center justify-center gap-1 cursor-pointer transition-all shrink-0 min-w-[40px] sm:min-w-[48px] text-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400"
+                    >
+                      <div className="p-1 sm:p-1.5 rounded-xl transition-all bg-indigo-500/10 text-indigo-500 flex items-center justify-center h-[28px] w-[28px] sm:h-[32px] sm:w-[32px]">
+                        <ChevronLeft className="w-5 h-5 sm:w-5 sm:h-5" />
+                      </div>
+                      <span className="text-[9px] sm:text-[10px] truncate max-w-full font-bold">Voltar</span>
+                    </button>
 
-              {/* Tab 3.2: Genda AI */}
-              <button
-                onClick={() => { setActiveClientId(null); setActiveTab('ai'); }}
-                className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-all flex-1 min-w-[44px] ${
-                  activeTab === 'ai' 
-                    ? (isDark ? 'text-indigo-400 scale-105 font-bold' : 'text-indigo-600 scale-105 font-bold') 
-                    : 'themed-mobile-inactive'
-                }`}
-              >
-                <div className={`p-1 sm:p-1.5 rounded-xl transition-all ${
-                  activeTab === 'ai' 
-                    ? (isDark ? 'bg-indigo-500/10 text-indigo-400' : 'bg-indigo-50 text-indigo-600') 
-                    : 'bg-transparent'
-                }`}>
-                  <Bot className="w-5 h-5 sm:w-5 sm:h-5" />
-                </div>
-                <span className="text-[9px] sm:text-[10px] truncate max-w-full">Genda AI</span>
-              </button>
+                    {/* Tab 3: Finance */}
+                    <button
+                      onClick={() => { setActiveClientId(null); setActiveTab('finance'); }}
+                      className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-all shrink-0 min-w-[56px] sm:min-w-[64px] ${
+                        activeTab === 'finance' 
+                          ? (isDark ? 'text-indigo-400 scale-105 font-bold' : 'text-indigo-600 scale-105 font-bold') 
+                          : 'themed-mobile-inactive'
+                      }`}
+                    >
+                      <div className={`p-1 sm:p-1.5 rounded-xl transition-all ${
+                        activeTab === 'finance' 
+                          ? (isDark ? 'bg-indigo-500/10 text-indigo-400' : 'bg-indigo-50 text-indigo-600') 
+                          : 'bg-transparent'
+                      }`}>
+                        <DollarSign className="w-5 h-5 sm:w-5 sm:h-5" />
+                      </div>
+                      <span className="text-[9px] sm:text-[10px] truncate max-w-full">Finanças</span>
+                    </button>
 
-              {/* Tab 4: Settings */}
-              <button
-                onClick={() => { setActiveClientId(null); setActiveTab('settings'); }}
-                className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-all flex-1 min-w-[44px] ${
-                  activeTab === 'settings' 
-                    ? (isDark ? 'text-indigo-400 scale-105 font-bold' : 'text-indigo-600 scale-105 font-bold') 
-                    : 'themed-mobile-inactive'
-                }`}
-              >
-                <div className={`p-1 sm:p-1.5 rounded-xl transition-all ${
-                  activeTab === 'settings' 
-                    ? (isDark ? 'bg-indigo-500/10 text-indigo-400' : 'bg-indigo-50 text-indigo-600') 
-                    : 'bg-transparent'
-                }`}>
-                  <Settings className="w-5 h-5 sm:w-5 sm:h-5" />
-                </div>
-                <span className="text-[9px] sm:text-[10px] truncate max-w-full">Ajustes</span>
-              </button>
+                    {/* Tab 3.1: Estoque */}
+                    <button
+                      onClick={() => { setActiveClientId(null); setActiveTab('estoque'); }}
+                      className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-all shrink-0 min-w-[56px] sm:min-w-[64px] ${
+                        activeTab === 'estoque' 
+                          ? (isDark ? 'text-indigo-400 scale-105 font-bold' : 'text-indigo-600 scale-105 font-bold') 
+                          : 'themed-mobile-inactive'
+                      }`}
+                    >
+                      <div className={`p-1 sm:p-1.5 rounded-xl transition-all ${
+                        activeTab === 'estoque' 
+                          ? (isDark ? 'bg-indigo-500/10 text-indigo-400' : 'bg-indigo-50 text-indigo-600') 
+                          : 'bg-transparent'
+                      }`}>
+                        <Package className="w-5 h-5 sm:w-5 sm:h-5" />
+                      </div>
+                      <span className="text-[9px] sm:text-[10px] truncate max-w-full">Estoque</span>
+                    </button>
 
-            </div>
+                    {/* Tab 3.2: Genda AI */}
+                    <button
+                      onClick={() => { setActiveClientId(null); setActiveTab('ai'); }}
+                      className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-all shrink-0 min-w-[56px] sm:min-w-[64px] ${
+                        activeTab === 'ai' 
+                          ? (isDark ? 'text-indigo-400 scale-105 font-bold' : 'text-indigo-600 scale-105 font-bold') 
+                          : 'themed-mobile-inactive'
+                      }`}
+                    >
+                      <div className={`p-1 sm:p-1.5 rounded-xl transition-all ${
+                        activeTab === 'ai' 
+                          ? (isDark ? 'bg-indigo-500/10 text-indigo-400' : 'bg-indigo-50 text-indigo-600') 
+                          : 'bg-transparent'
+                      }`}>
+                        <Bot className="w-5 h-5 sm:w-5 sm:h-5" />
+                      </div>
+                      <span className="text-[9px] sm:text-[10px] truncate max-w-full">Genda AI</span>
+                    </button>
 
-          </div>
+                    {/* Tab 4: Settings */}
+                    <button
+                      onClick={() => { setActiveClientId(null); setActiveTab('settings'); }}
+                      className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-all shrink-0 min-w-[56px] sm:min-w-[64px] ${
+                        activeTab === 'settings' 
+                          ? (isDark ? 'text-indigo-400 scale-105 font-bold' : 'text-indigo-600 scale-105 font-bold') 
+                          : 'themed-mobile-inactive'
+                      }`}
+                    >
+                      <div className={`p-1 sm:p-1.5 rounded-xl transition-all ${
+                        activeTab === 'settings' 
+                          ? (isDark ? 'bg-indigo-500/10 text-indigo-400' : 'bg-indigo-50 text-indigo-600') 
+                          : 'bg-transparent'
+                      }`}>
+                        <Settings className="w-5 h-5 sm:w-5 sm:h-5" />
+                      </div>
+                      <span className="text-[9px] sm:text-[10px] truncate max-w-full">Ajustes</span>
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>          </div>
         </motion.div>
         )}
       </AnimatePresence>

@@ -1,3 +1,5 @@
+import { now, parseDate, getTodayStr, formatDatePtBR } from '../dateUtils';
+import dayjs from 'dayjs';
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -71,7 +73,7 @@ export default function EstoqueView({ stock, onUpdateStock, isDark = false }: Es
       quantity: formQuantity,
       minQuantity: formMinQuantity,
       unit: formUnit,
-      lastUpdated: new Date().toISOString()
+      lastUpdated: now().format()
     };
 
     if (editingItem) {
@@ -94,7 +96,7 @@ export default function EstoqueView({ stock, onUpdateStock, isDark = false }: Es
     onUpdateStock(stock.map(i => i.id === item.id ? { 
       ...i, 
       quantity: newQty, 
-      lastUpdated: new Date().toISOString() 
+      lastUpdated: now().format() 
     } : i));
     triggerAlert(`Quantidade de "${item.name}" atualizada!`);
   };
@@ -209,7 +211,7 @@ export default function EstoqueView({ stock, onUpdateStock, isDark = false }: Es
                       </div>
                       <div className={`flex flex-col gap-0.5 mt-2 text-[11px] ${isDark ? 'text-zinc-500' : 'text-slate-400'} font-mono`}>
                         <span>Mín: {item.minQuantity} {item.unit}</span>
-                        <span>Atualizado: {new Date(item.lastUpdated).toLocaleDateString('pt-BR')}</span>
+                        <span>Atualizado: {formatDatePtBR(item.lastUpdated)}</span>
                       </div>
                     </div>
                   </div>

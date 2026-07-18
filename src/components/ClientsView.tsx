@@ -1,3 +1,5 @@
+import { now, parseDate, getTodayStr, formatDatePtBR } from '../dateUtils';
+import dayjs from 'dayjs';
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -41,7 +43,7 @@ export default function ClientsView({
 
   // CRM Dashboard Calculations
   const crmMetrics = useMemo(() => {
-    const today = new Date('2026-07-16'); // Today context
+    const today = now(); // Today context
     const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
     const riskTemp: Array<{ id: string; name: string; details: string; phone: string; days: number }> = [];
@@ -54,12 +56,12 @@ export default function ClientsView({
       const clientAppts = appointments.filter(a => a.clientId === c.id);
       if (clientAppts.length === 0) return;
 
-      const sortedAppts = [...clientAppts].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+      const sortedAppts = [...clientAppts].sort((a, b) => parseDate(a.date).valueOf() - parseDate(b.date).valueOf());
       const firstAppt = sortedAppts[0];
       const latestAppt = sortedAppts[sortedAppts.length - 1];
 
-      const latestDate = new Date(latestAppt.date);
-      const daysSinceLast = Math.floor((today.getTime() - latestDate.getTime()) / MS_PER_DAY);
+      const latestDate = parseDate(latestAppt.date);
+      const daysSinceLast = Math.floor((today.valueOf() - latestDate.valueOf()) / MS_PER_DAY);
 
       // 1. Risk
       if (daysSinceLast >= 30 && !hasFutureAppointment(c.id)) {
@@ -88,8 +90,8 @@ export default function ClientsView({
       }
 
       // 3. New
-      const firstDateObj = new Date(firstAppt.date);
-      const daysSinceFirst = Math.floor((today.getTime() - firstDateObj.getTime()) / MS_PER_DAY);
+      const firstDateObj = parseDate(firstAppt.date);
+      const daysSinceFirst = Math.floor((today.valueOf() - firstDateObj.valueOf()) / MS_PER_DAY);
       if (daysSinceFirst >= 0 && daysSinceFirst <= 15) {
         let desc = `Primeiro atendimento em ${firstAppt.date.split('-').reverse().join('/')}`;
         if (daysSinceFirst === 0) desc = 'Primeiro atendimento Hoje';
@@ -287,7 +289,7 @@ export default function ClientsView({
 
   // Determine if a client has any future/scheduled appointments
   const hasFutureAppointment = (clientId: string) => {
-    const todayStr = new Date().toISOString().split('T')[0];
+    const todayStr = getTodayStr();
     return appointments.some(
       (appt) => appt.clientId === clientId && appt.status === 'scheduled' && appt.date >= todayStr
     );

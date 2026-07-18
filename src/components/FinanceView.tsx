@@ -1,3 +1,5 @@
+import { now, parseDate, getTodayStr, formatDatePtBR } from '../dateUtils';
+import dayjs from 'dayjs';
 import React, { useState, useMemo } from 'react';
 import { motion } from 'motion/react';
 import { 
@@ -23,15 +25,14 @@ export default function FinanceView({ appointments, clients, services, isDark = 
 
   // Core calculations
   const stats = useMemo(() => {
-    const todayStr = new Date().toISOString().split('T')[0];
+    const todayStr = getTodayStr();
     
     // Get current week range
-    const today = new Date();
-    const firstDayOfWeek = new Date(today.setDate(today.getDate() - today.getDay()));
-    const firstDayStr = firstDayOfWeek.toISOString().split('T')[0];
+    const firstDayOfWeek = now().startOf('week');
+    const firstDayStr = firstDayOfWeek.format('YYYY-MM-DD');
 
     // Get current month range (YYYY-MM)
-    const currentMonthPrefix = new Date().toISOString().slice(0, 7);
+    const currentMonthPrefix = now().format('YYYY-MM');
 
     let billingToday = 0;
     let billingWeek = 0;
@@ -76,15 +77,11 @@ export default function FinanceView({ appointments, clients, services, isDark = 
 
   // Filtered appointments list for Period reports
   const reportAppointments = useMemo(() => {
-    const todayStr = new Date().toISOString().split('T')[0];
-    const today = new Date();
-    
-    // start of week
-    const firstDayOfWeek = new Date(today.setDate(today.getDate() - today.getDay()));
-    const firstDayStr = firstDayOfWeek.toISOString().split('T')[0];
+    const todayStr = getTodayStr();
+    const firstDayStr = now().startOf('week').format('YYYY-MM-DD');
 
     // start of month
-    const currentMonthPrefix = new Date().toISOString().slice(0, 7);
+    const currentMonthPrefix = now().format('YYYY-MM');
 
     return appointments.filter((appt) => {
       if (appt.status === 'cancelled') return false;
@@ -130,10 +127,9 @@ export default function FinanceView({ appointments, clients, services, isDark = 
   const chartPoints = useMemo(() => {
     const days = [];
     for (let i = 5; i >= 0; i--) {
-      const d = new Date();
-      d.setDate(d.getDate() - i);
-      const dateStr = d.toISOString().split('T')[0];
-      const dayLabel = d.toLocaleDateString('pt-BR', { weekday: 'short' }).slice(0, 3);
+      const d = now().subtract(i, 'day');
+      const dateStr = d.format('YYYY-MM-DD');
+      const dayLabel = d.format('ddd');
       
       const dayTotal = appointments
         .filter(appt => appt.date === dateStr && appt.status === 'completed' && appt.paymentStatus === 'paid')

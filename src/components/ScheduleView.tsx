@@ -1,3 +1,5 @@
+import { now, parseDate, getTodayStr, formatDatePtBR } from '../dateUtils';
+import dayjs from 'dayjs';
 import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -53,7 +55,7 @@ export default function ScheduleView({
 
   // Navigation & View State
   const [activeTab, setActiveTab] = useState<'day' | 'week' | 'month'>('day');
-  const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = useState<string>(getTodayStr());
   
   // Drag and drop & Universal Search states
   const [dragOverSlot, setDragOverSlot] = useState<string | null>(null);
@@ -147,21 +149,20 @@ export default function ScheduleView({
 
   // Parse Selected Date
   const parsedDate = useMemo(() => {
-    const d = new Date(selectedDate + 'T00:00:00');
+    const d = parseDate(selectedDate + 'T00:00:00');
     return {
-      day: d.getDate(),
-      dayOfWeek: d.getDay(),
-      month: d.toLocaleString('pt-BR', { month: 'long' }),
-      year: d.getFullYear(),
-      formatted: d.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' }),
+      day: d.date(),
+      dayOfWeek: d.day(),
+      month: d.format('MMMM'),
+      year: d.year(),
+      formatted: d.format('dddd, D [de] MMMM'),
     };
   }, [selectedDate]);
 
   // Navigate Date helper
   const navigateDate = (days: number) => {
-    const current = new Date(selectedDate + 'T00:00:00');
-    current.setDate(current.getDate() + days);
-    setSelectedDate(current.toISOString().split('T')[0]);
+    const current = parseDate(selectedDate + 'T00:00:00');
+    setSelectedDate(current.add(days, 'day').format('YYYY-MM-DD'));
   };
 
   // Helper: Get weekday name
@@ -365,7 +366,7 @@ export default function ScheduleView({
       ...selectedAppointment,
       status: 'completed',
       paymentStatus: 'paid',
-      paymentDate: new Date().toISOString().split('T')[0],
+      paymentDate: getTodayStr(),
       paymentMethod: completedPaymentMethod,
     };
     onUpdateAppointment(updated);
@@ -443,11 +444,11 @@ export default function ScheduleView({
     const year = Number(selectedDate.split('-')[0]);
     const month = Number(selectedDate.split('-')[1]) - 1; // 0-indexed
     
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
+    const firstDay = parseDate().year(year).month(month).date(1);
+    const lastDay = parseDate().year(year).month(month).endOf('month');
     
-    const daysInMonth = lastDay.getDate();
-    const startingDayOfWeek = firstDay.getDay(); // 0 = Sunday
+    const daysInMonth = lastDay.date();
+    const startingDayOfWeek = firstDay.day(); // 0 = Sunday
     
     const days = [];
     // Padding for days of previous month
@@ -468,22 +469,17 @@ export default function ScheduleView({
 
   // Week appointments calculation for week view
   const weekDays = useMemo(() => {
-    const current = new Date(selectedDate + 'T00:00:00');
-    const dayOfWeek = current.getDay();
-    
-    // start at Sunday (0) or Monday (1). Let's start at Sunday
-    const startOfWeek = new Date(current);
-    startOfWeek.setDate(current.getDate() - dayOfWeek);
+    const current = parseDate(selectedDate + 'T00:00:00');
+    const startOfWeek = current.startOf('week');
     
     const days = [];
     for (let i = 0; i < 7; i++) {
-      const d = new Date(startOfWeek);
-      d.setDate(startOfWeek.getDate() + i);
-      const dateStr = d.toISOString().split('T')[0];
+      const d = startOfWeek.add(i, 'day');
+      const dateStr = d.format('YYYY-MM-DD');
       days.push({
         date: dateStr,
-        dayName: d.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', ''),
-        dayNum: d.getDate(),
+        dayName: d.format('ddd').replace('.', ''),
+        dayNum: d.date(),
         appointments: appointments.filter(appt => appt.date === dateStr && appt.status !== 'cancelled'),
       });
     }
@@ -964,7 +960,7 @@ export default function ScheduleView({
             className="space-y-2"
           >
             {weekDays.map((wd) => {
-              const isToday = wd.date === new Date().toISOString().split('T')[0];
+              const isToday = wd.date === getTodayStr();
               return (
                 <div 
                   key={wd.date}
@@ -1048,7 +1044,7 @@ export default function ScheduleView({
               {monthDays.map((day, idx) => {
                 if (!day) return <div key={`empty-${idx}`} className="aspect-square" />;
                 const isSelected = day.date === selectedDate;
-                const isToday = day.date === new Date().toISOString().split('T')[0];
+                const isToday = day.date === getTodayStr();
 
                 return (
                   <button

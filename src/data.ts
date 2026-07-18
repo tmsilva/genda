@@ -1,3 +1,5 @@
+import { now, parseDate, getTodayStr } from './dateUtils';
+import dayjs from 'dayjs';
 import { Service, Client, Appointment, WorkingDay, MessageTemplate, ProfessionalProfile, ThemeOption, StockItem } from './types';
 
 export const THEME_OPTIONS: ThemeOption[] = [
@@ -212,17 +214,17 @@ export const DEFAULT_TEMPLATES: MessageTemplate[] = [
 ];
 
 export const getInitialAppointments = (): Appointment[] => {
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = getTodayStr();
   
   // Get tomorrow
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const tomorrowStr = tomorrow.toISOString().split('T')[0];
+  const tomorrow = now().add(1, 'day');
+  
+  const tomorrowStr = tomorrow.format('YYYY-MM-DD');
 
   // Get yesterday
-  const yesterday = new Date();
-  yesterday.setDate(yesterday.getDate() - 1);
-  const yesterdayStr = yesterday.toISOString().split('T')[0];
+  const yesterday = now().subtract(1, 'day');
+  
+  const yesterdayStr = yesterday.format('YYYY-MM-DD');
 
   return [
     {

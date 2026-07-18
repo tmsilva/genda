@@ -1,3 +1,5 @@
+import { now, parseDate, getTodayStr, formatDatePtBR } from '../dateUtils';
+import dayjs from 'dayjs';
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -88,15 +90,15 @@ export default function AIAssistantView({ clients, appointments, services, stock
 
       if (text.includes('faturamento') || text.includes('lucrativos') || text.includes('lucro')) {
         // Compute actual monthly billing
-        const now = new Date();
-        const thisMonth = now.getMonth();
-        const thisYear = now.getFullYear();
+        const currentDate = now();
+        const thisMonth = currentDate.month();
+        const thisYear = currentDate.year();
 
         // appointments this month that are completed
         const completedAppts = appointments.filter(a => {
           if (a.status !== 'completed') return false;
-          const ad = new Date(a.date);
-          return ad.getMonth() === thisMonth && ad.getFullYear() === thisYear;
+          const ad = parseDate(a.date);
+          return ad.month() === thisMonth && ad.year() === thisYear;
         });
 
         let totalRevenue = 0;
@@ -123,15 +125,15 @@ export default function AIAssistantView({ clients, appointments, services, stock
       } 
       else if (text.includes('risco') || text.includes('evasão') || text.includes('45 dias')) {
         // Find clients without appointments in last 45 days
-        const now = new Date();
-        const fortyFiveDaysAgo = new Date(now.getTime() - (45 * 24 * 60 * 60 * 1000));
+        const currentDate = now();
+        const fortyFiveDaysAgo = currentDate.subtract(45, 'day');
 
         const clientsInRisk = clients.filter(c => {
           // find last appointment for this client
           const clientAppts = appointments.filter(a => a.clientId === c.id);
           if (clientAppts.length === 0) return true; // never scheduled
 
-          const lastDate = new Date(Math.max(...clientAppts.map(a => new Date(a.date).getTime())));
+          const lastDate = parseDate(Math.max(...clientAppts.map(a => parseDate(a.date).valueOf())));
           return lastDate < fortyFiveDaysAgo;
         });
 
