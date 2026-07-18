@@ -517,21 +517,33 @@ export default function ScheduleView({
   // Global search results across all appointments
   const globalSearchResults = useMemo(() => {
     if (!globalSearchTerm.trim()) return [];
-    const term = globalSearchTerm.toLowerCase();
+    
+    // Helper to remove accents for better searching
+    const normalize = (str: string) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+    const term = normalize(globalSearchTerm);
+    
     return appointments.map(appt => {
       const client = getApptClient(appt.clientId);
       const service = getApptService(appt.serviceId);
+      
+      const paymentStatusPt = appt.paymentStatus === 'paid' ? 'pago' : appt.paymentStatus === 'installments' ? 'parcelado' : 'pendente';
+      const statusPt = appt.status === 'scheduled' ? 'agendado' : appt.status === 'completed' ? 'concluido' : 'cancelado';
+
       return {
         ...appt,
         client,
-        service
+        service,
+        paymentStatusPt,
+        statusPt
       };
     }).filter(item => {
       return (
-        item.client.name.toLowerCase().includes(term) ||
+        normalize(item.client.name).includes(term) ||
         item.client.phone.includes(term) ||
-        item.service.name.toLowerCase().includes(term) ||
-        item.date.includes(term)
+        normalize(item.service.name).includes(term) ||
+        item.date.includes(term) ||
+        item.paymentStatusPt.includes(term) ||
+        item.statusPt.includes(term)
       );
     }).slice(0, 8);
   }, [appointments, globalSearchTerm, clients, services]);
@@ -601,13 +613,22 @@ export default function ScheduleView({
                         <span>{appt.date.split('-').reverse().join('/')} às {appt.time}</span>
                       </div>
                     </div>
-                    <span className={`text-[9px] px-2 py-0.5 rounded-full font-semibold capitalize ${
-                      appt.status === 'completed' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400' :
-                      appt.status === 'cancelled' ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400' :
-                      'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-400'
-                    }`}>
-                      {appt.status === 'completed' ? 'Concluído' : appt.status === 'cancelled' ? 'Cancelado' : 'Agendado'}
-                    </span>
+                    <div className="flex gap-1.5 items-center">
+                      <span className={`text-[9px] px-2 py-0.5 rounded-full font-semibold capitalize ${
+                        appt.paymentStatus === 'paid' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400' :
+                        appt.paymentStatus === 'installments' ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400' :
+                        'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400'
+                      }`}>
+                        {appt.paymentStatus === 'paid' ? 'Pago' : appt.paymentStatus === 'installments' ? 'Parcelado' : 'Pendente'}
+                      </span>
+                      <span className={`text-[9px] px-2 py-0.5 rounded-full font-semibold capitalize ${
+                        appt.status === 'completed' ? 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300' :
+                        appt.status === 'cancelled' ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400' :
+                        'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-400'
+                      }`}>
+                        {appt.status === 'completed' ? 'Concluído' : appt.status === 'cancelled' ? 'Cancelado' : 'Agendado'}
+                      </span>
+                    </div>
                   </button>
                 ))}
               </div>

@@ -307,7 +307,7 @@ export default function DashboardView({
               Olá, {profile.name || 'Profissional'}!
             </h1>
             <p className={`text-xs sm:text-sm ${isDark ? 'text-zinc-400' : 'text-slate-500'} max-w-xl`}>
-              Aqui está uma visão integrada do seu negócio para hoje. Você possui <strong className="font-bold">{todayMetrics.activeCount} agendamentos</strong> ativos, com <strong className="font-bold">{formatPrice(todayMetrics.confirmedRevenue)}</strong> já confirmados.
+              Aqui está uma visão integrada do seu negócio para hoje. Você possui <strong className="font-bold">{todayMetrics.activeCount} agendamentos</strong> ativos, com <strong className="font-bold">R$ {Math.round(todayMetrics.confirmedRevenue).toLocaleString('pt-BR')}</strong> já confirmados.
             </p>
           </div>
 

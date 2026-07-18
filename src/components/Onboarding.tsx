@@ -115,6 +115,7 @@ export default function Onboarding({
   const [avatarUrl, setAvatarUrl] = useState('');
   const [countryCode, setCountryCode] = useState('+55');
   const [whatsapp, setWhatsapp] = useState('');
+  const [validationError, setValidationError] = useState('');
 
   const handleFile = (file: File) => {
     if (!file.type.startsWith('image/')) {
@@ -207,17 +208,18 @@ export default function Onboarding({
 
     if (step === 2) {
       if (!profName.trim()) {
-        alert('Por favor, informe o seu nome profissional ou da empresa.');
+        setValidationError('Por favor, informe o seu nome ou o nome do negócio.');
         return;
       }
       if (!category.trim()) {
-        alert('Por favor, informe o seu ramo de atuação / categoria.');
+        setValidationError('Por favor, informe a categoria ou ramo de atuação.');
         return;
       }
       if (!whatsapp.trim()) {
-        alert('Por favor, informe o seu número de WhatsApp para receber notificações.');
+        setValidationError('Por favor, informe o seu número de WhatsApp.');
         return;
       }
+      setValidationError('');
     }
 
     setStep((prev) => prev + 1);
@@ -718,6 +720,19 @@ export default function Onboarding({
                 </div>
 
                 <div className="space-y-4">
+                  <AnimatePresence>
+                    {validationError && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="bg-red-500/10 border border-red-500/20 text-red-400 p-3 rounded-xl flex items-start gap-2"
+                      >
+                        <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
+                        <p className="text-xs">{validationError}</p>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                   <div>
                     <label className="block text-xs font-medium text-slate-400 mb-1.5">Seu Nome ou Nome do Negócio *</label>
                     <div className="relative">
@@ -727,7 +742,10 @@ export default function Onboarding({
                       <input
                         type="text"
                         value={profName}
-                        onChange={(e) => setProfName(e.target.value)}
+                        onChange={(e) => {
+                          setProfName(e.target.value);
+                          if (validationError) setValidationError('');
+                        }}
                         placeholder="Ex: Pedro Barber, Dra. Ana Clinica"
                         className="w-full bg-slate-900 border border-slate-800 rounded-xl pl-10 pr-4 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-all"
                       />
@@ -743,7 +761,10 @@ export default function Onboarding({
                       <input
                         type="text"
                         value={category}
-                        onChange={(e) => setCategory(e.target.value)}
+                        onChange={(e) => {
+                          setCategory(e.target.value);
+                          if (validationError) setValidationError('');
+                        }}
                         placeholder="Ex: Barbearia, Psicologia, Manicure, Advocacia"
                         className="w-full bg-slate-900 border border-slate-800 rounded-xl pl-10 pr-4 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-all"
                         required
@@ -783,7 +804,10 @@ export default function Onboarding({
                         <input
                           type="text"
                           value={whatsapp}
-                          onChange={(e) => setWhatsapp(formatPhone(e.target.value))}
+                          onChange={(e) => {
+                            setWhatsapp(formatPhone(e.target.value));
+                            if (validationError) setValidationError('');
+                          }}
                           placeholder="Ex: (11) 99999-9999"
                           className="w-full bg-slate-900 border border-slate-800 rounded-xl pl-10 pr-4 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-all"
                         />

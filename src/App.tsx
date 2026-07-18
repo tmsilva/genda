@@ -29,7 +29,7 @@ import EstoqueView from './components/EstoqueView';
 import AIAssistantView from './components/AIAssistantView';
 import Logo from './components/Logo';
 import { auth, loginWithGoogle, logoutUser, loginWithEmail, registerWithEmail } from './firebase';
-import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
+import { onAuthStateChanged, User as FirebaseUser, deleteUser } from 'firebase/auth';
 import { 
   fetchAllCloudData, 
   uploadInitialDataToCloud, 
@@ -92,7 +92,7 @@ export default function App() {
 
   const [activeTab, setActiveTab] = useState<'dashboard' | 'agenda' | 'clients' | 'services' | 'finance' | 'estoque' | 'ai' | 'settings'>('dashboard');
   const [stock, setStock] = useState<StockItem[]>(() => {
-    return localStorage.getItem('genda_stock') ? JSON.parse(localStorage.getItem('genda_stock')!) : DEFAULT_STOCK_ITEMS;
+    return localStorage.getItem('genda_stock') ? JSON.parse(localStorage.getItem('genda_stock')!) : [];
   });
 
   useEffect(() => {
@@ -218,30 +218,41 @@ export default function App() {
             setActiveTab('dashboard');
           } else {
             // No data in the cloud (empty cloud account or new registration).
-            // Initialize with their current local data if any, otherwise default data, and upload it to the cloud.
-            const initialProfile = localProfile || {
-              ...DEFAULT_PROFILE,
-              name: currentUser.displayName || 'Meu Negócio',
-            };
-            const initialServices = localServices.length > 0 ? localServices : DEFAULT_SERVICES;
-            const initialTemplates = localTemplates.length > 0 ? localTemplates : DEFAULT_TEMPLATES;
+            const currentlyOnboarded = localStorage.getItem('genda_onboarded') === 'true';
 
-            await uploadInitialDataToCloud(
-              currentUser.uid,
-              initialProfile,
-              initialServices,
-              localClients,
-              localAppts,
-              initialTemplates
-            );
+            if (currentlyOnboarded) {
+              // They are already using the app locally and just logged in to sync
+              const initialProfile = localProfile || {
+                ...DEFAULT_PROFILE,
+                name: currentUser.displayName || 'Meu Negócio',
+              };
+              const initialServices = localServices.length > 0 ? localServices : DEFAULT_SERVICES;
+              const initialTemplates = localTemplates.length > 0 ? localTemplates : DEFAULT_TEMPLATES;
 
-            setProfile(initialProfile);
-            setServices(initialServices);
-            setClients(localClients);
-            setAppointments(localAppts);
-            setMessageTemplates(initialTemplates);
-            setIsOnboarded(true);
-            setActiveTab('dashboard');
+              await uploadInitialDataToCloud(
+                currentUser.uid,
+                initialProfile,
+                initialServices,
+                localClients,
+                localAppts,
+                initialTemplates
+              );
+
+              setProfile(initialProfile);
+              setServices(initialServices);
+              setClients(localClients);
+              setAppointments(localAppts);
+              setMessageTemplates(initialTemplates);
+              setIsOnboarded(true);
+              setActiveTab('dashboard');
+            } else {
+              // They logged in during Onboarding.
+              // Let them finish onboarding! Do not generate ghost data or redirect.
+              setProfile(prev => ({
+                ...prev,
+                name: currentUser.displayName || prev.name
+              }));
+            }
           }
         } catch (err) {
           console.error('Cloud synchronization failed', err);
@@ -478,6 +489,7 @@ export default function App() {
     setServices(srvs);
     setClients([]);
     setAppointments([]);
+    setStock([]);
     setIsOnboarded(true);
     setActiveTab('dashboard');
 
@@ -487,6 +499,7 @@ export default function App() {
     localStorage.setItem('genda_services', JSON.stringify(srvs));
     localStorage.setItem('genda_clients', JSON.stringify([]));
     localStorage.setItem('genda_appointments', JSON.stringify([]));
+    localStorage.setItem('genda_stock', JSON.stringify([]));
 
     if (pendingAuth && pendingAuth.password) {
       isCompletingOnboardingRef.current = true;
@@ -536,6 +549,7 @@ export default function App() {
     setClients(DEFAULT_CLIENTS);
     setAppointments(getInitialAppointments());
     setMessageTemplates(DEFAULT_TEMPLATES);
+    setStock(DEFAULT_STOCK_ITEMS);
     setIsOnboarded(true);
     setActiveTab('dashboard');
   };
@@ -556,6 +570,7 @@ export default function App() {
     localStorage.removeItem('genda_appointments');
     localStorage.removeItem('genda_message_templates');
     localStorage.removeItem('genda_notifications');
+    localStorage.removeItem('genda_stock');
     
     setIsOnboarded(false);
     setProfile(DEFAULT_PROFILE);
@@ -564,15 +579,49 @@ export default function App() {
     setAppointments(getInitialAppointments());
     setMessageTemplates(DEFAULT_TEMPLATES);
     setNotifications([]);
+    setStock(DEFAULT_STOCK_ITEMS);
   };
 
   const handleClearAllData = async () => {
+    let deleteError: any = null;
     if (auth.currentUser) {
-      await clearAllCloudData(auth.currentUser.uid, services, clients, appointments);
+      try {
+        await clearAllCloudData(auth.currentUser.uid, services, clients, appointments);
+      } catch (err) {
+        console.error("Erro ao limpar dados na nuvem", err);
+      }
+      try {
+        await deleteUser(auth.currentUser);
+      } catch (err) {
+        console.error("Erro ao deletar usuário do Firebase Auth", err);
+        deleteError = err;
+        try {
+          await logoutUser();
+        } catch (e) {}
+      }
     }
-    setServices([]);
-    setClients([]);
-    setAppointments([]);
+    
+    localStorage.removeItem('genda_onboarded');
+    localStorage.removeItem('genda_profile');
+    localStorage.removeItem('genda_services');
+    localStorage.removeItem('genda_clients');
+    localStorage.removeItem('genda_appointments');
+    localStorage.removeItem('genda_message_templates');
+    localStorage.removeItem('genda_notifications');
+    localStorage.removeItem('genda_stock');
+    
+    setIsOnboarded(false);
+    setProfile(DEFAULT_PROFILE);
+    setServices(DEFAULT_SERVICES);
+    setClients(DEFAULT_CLIENTS);
+    setAppointments(getInitialAppointments());
+    setMessageTemplates(DEFAULT_TEMPLATES);
+    setNotifications([]);
+    setStock(DEFAULT_STOCK_ITEMS);
+
+    if (deleteError) {
+      throw deleteError;
+    }
   };
 
   // Full data backup exporter (downloads JSON direct)

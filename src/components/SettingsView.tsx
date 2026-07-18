@@ -249,6 +249,7 @@ export default function SettingsView({
 
   // Custom alerts and confirmations state
   const [showDeleteAllConfirm, setShowDeleteAllConfirm] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [alertMessage, setAlertMessage] = useState<{ text: string; type: 'success' | 'error' | 'info' } | null>(null);
 
   const triggerAlert = (text: string, type: 'success' | 'error' | 'info' = 'info') => {
@@ -1059,14 +1060,14 @@ export default function SettingsView({
                   <span>Zona de Perigo</span>
                 </div>
                 <p className={`text-[10px] leading-relaxed ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
-                  Deseja iniciar sua agenda do zero? Esta opção exclui permanentemente todos os seus agendamentos, clientes cadastrados e catálogo de serviços. Essa ação não pode ser desfeita.
+                  Deseja iniciar sua agenda do zero ou excluir sua conta? Esta opção exclui permanentemente todos os seus dados (agendamentos, clientes, serviços) e a sua conta. Essa ação não pode ser desfeita.
                 </p>
                 <button
                   type="button"
                   onClick={() => setShowDeleteAllConfirm(true)}
                   className="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-xl transition-all cursor-pointer text-xs shadow-sm hover:shadow-red-200/40"
                 >
-                  Excluir Agendamentos, Clientes e Serviços
+                  Desconectar e Apagar Dados da Conta
                 </button>
               </div>
 
@@ -1136,30 +1137,51 @@ export default function SettingsView({
                 <Trash2 className="w-6 h-6" />
               </div>
               <div className="space-y-1.5">
-                <h4 className="font-display font-bold text-base text-slate-950">Apagar Todos os Dados?</h4>
+                <h4 className="font-display font-bold text-base text-slate-950">Apagar Dados e Conta?</h4>
                 <p className="text-xs text-slate-500 leading-relaxed">
-                  Isso irá excluir permanentemente todos os seus agendamentos, clientes cadastrados e serviços do catálogo. Esta ação não poderá ser desfeita.
+                  Isso irá excluir permanentemente todos os seus agendamentos, clientes, serviços e a sua conta de usuário. Esta ação não poderá ser desfeita.
                 </p>
+              </div>
+              <div className="text-left space-y-2 pt-2">
+                <label className="text-xs font-semibold text-slate-700 block">
+                  Para confirmar, digite <strong className="text-red-600 font-bold select-none">EXCLUIR</strong> abaixo:
+                </label>
+                <input
+                  type="text"
+                  value={deleteConfirmText}
+                  onChange={(e) => setDeleteConfirmText(e.target.value)}
+                  placeholder="EXCLUIR"
+                  className="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all text-center uppercase"
+                />
               </div>
               <div className="flex gap-2.5 pt-2">
                 <button
-                  onClick={() => setShowDeleteAllConfirm(false)}
+                  onClick={() => {
+                    setShowDeleteAllConfirm(false);
+                    setDeleteConfirmText('');
+                  }}
                   className="flex-1 py-2 px-4 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 cursor-pointer transition-all"
                 >
                   Cancelar
                 </button>
                 <button
+                  disabled={deleteConfirmText.trim().toUpperCase() !== 'EXCLUIR'}
                   onClick={async () => {
                     setShowDeleteAllConfirm(false);
+                    setDeleteConfirmText('');
                     try {
                       await onClearAllData();
-                      triggerAlert('Todos os seus agendamentos, clientes e serviços foram removidos com sucesso!', 'success');
-                    } catch (err) {
+                      triggerAlert('Todos os seus dados e conta foram removidos com sucesso!', 'success');
+                    } catch (err: any) {
                       console.error(err);
-                      triggerAlert('Ocorreu um erro ao excluir os dados.', 'error');
+                      if (err.code === 'auth/requires-recent-login') {
+                        triggerAlert('Você precisa fazer login novamente para excluir sua conta.', 'error');
+                      } else {
+                        triggerAlert('Ocorreu um erro ao excluir a conta.', 'error');
+                      }
                     }
                   }}
-                  className="flex-1 py-2 px-4 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-semibold cursor-pointer transition-all shadow-sm"
+                  className="flex-1 py-2 px-4 rounded-xl bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:hover:bg-red-600 text-white text-xs font-semibold cursor-pointer transition-all shadow-sm"
                 >
                   Confirmar Exclusão
                 </button>
