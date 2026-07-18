@@ -844,20 +844,6 @@ export default function App() {
                   {isSidebarExpanded && <span className="text-sm">Serviços</span>}
                 </button>
 
-                {/* Item 4: Financeiro */}
-                <button
-                  onClick={() => { setActiveClientId(null); setActiveTab('finance'); }}
-                  className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all cursor-pointer ${
-                    activeTab === 'finance'
-                      ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/25'
-                      : 'themed-sidebar-inactive-btn'
-                  } ${!isSidebarExpanded && 'justify-center'}`}
-                  title="Financeiro"
-                >
-                  <DollarSign className="w-5 h-5 shrink-0" />
-                  {isSidebarExpanded && <span className="text-sm">Financeiro</span>}
-                </button>
-
                 {/* Item 4.1: Estoque */}
                 <button
                   onClick={() => { setActiveClientId(null); setActiveTab('estoque'); }}
@@ -870,6 +856,20 @@ export default function App() {
                 >
                   <Package className="w-5 h-5 shrink-0" />
                   {isSidebarExpanded && <span className="text-sm">Controle de Estoque</span>}
+                </button>
+
+                {/* Item 4: Financeiro */}
+                <button
+                  onClick={() => { setActiveClientId(null); setActiveTab('finance'); }}
+                  className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all cursor-pointer ${
+                    activeTab === 'finance'
+                      ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/25'
+                      : 'themed-sidebar-inactive-btn'
+                  } ${!isSidebarExpanded && 'justify-center'}`}
+                  title="Financeiro"
+                >
+                  <DollarSign className="w-5 h-5 shrink-0" />
+                  {isSidebarExpanded && <span className="text-sm">Financeiro</span>}
                 </button>
 
                 {/* Item 4.2: Assistente IA */}
@@ -1535,25 +1535,6 @@ export default function App() {
                       <span className="text-[9px] sm:text-[10px] truncate max-w-full font-bold">Voltar</span>
                     </button>
 
-                    {/* Tab 3: Finance */}
-                    <button
-                      onClick={() => { setActiveClientId(null); setActiveTab('finance'); }}
-                      className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-all shrink-0 min-w-[56px] sm:min-w-[64px] ${
-                        activeTab === 'finance' 
-                          ? (isDark ? 'text-indigo-400 scale-105 font-bold' : 'text-indigo-600 scale-105 font-bold') 
-                          : 'themed-mobile-inactive'
-                      }`}
-                    >
-                      <div className={`p-1 sm:p-1.5 rounded-xl transition-all ${
-                        activeTab === 'finance' 
-                          ? (isDark ? 'bg-indigo-500/10 text-indigo-400' : 'bg-indigo-50 text-indigo-600') 
-                          : 'bg-transparent'
-                      }`}>
-                        <DollarSign className="w-5 h-5 sm:w-5 sm:h-5" />
-                      </div>
-                      <span className="text-[9px] sm:text-[10px] truncate max-w-full">Finanças</span>
-                    </button>
-
                     {/* Tab 3.1: Estoque */}
                     <button
                       onClick={() => { setActiveClientId(null); setActiveTab('estoque'); }}
@@ -1571,6 +1552,25 @@ export default function App() {
                         <Package className="w-5 h-5 sm:w-5 sm:h-5" />
                       </div>
                       <span className="text-[9px] sm:text-[10px] truncate max-w-full">Estoque</span>
+                    </button>
+
+                    {/* Tab 3: Finance */}
+                    <button
+                      onClick={() => { setActiveClientId(null); setActiveTab('finance'); }}
+                      className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-all shrink-0 min-w-[56px] sm:min-w-[64px] ${
+                        activeTab === 'finance' 
+                          ? (isDark ? 'text-indigo-400 scale-105 font-bold' : 'text-indigo-600 scale-105 font-bold') 
+                          : 'themed-mobile-inactive'
+                      }`}
+                    >
+                      <div className={`p-1 sm:p-1.5 rounded-xl transition-all ${
+                        activeTab === 'finance' 
+                          ? (isDark ? 'bg-indigo-500/10 text-indigo-400' : 'bg-indigo-50 text-indigo-600') 
+                          : 'bg-transparent'
+                      }`}>
+                        <DollarSign className="w-5 h-5 sm:w-5 sm:h-5" />
+                      </div>
+                      <span className="text-[9px] sm:text-[10px] truncate max-w-full">Finanças</span>
                     </button>
 
                     {/* Tab 3.2: Genda AI */}
