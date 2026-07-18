@@ -6,11 +6,6 @@
 
 Organize sua agenda, acompanhe seu financeiro e ofereça uma experiência profissional aos seus clientes.
 
-[![Laravel](https://img.shields.io/badge/Laravel-13-FF2D20?style=for-the-badge&logo=laravel&logoColor=white)](https://laravel.com/)
-[![Livewire](https://img.shields.io/badge/Livewire-3-FB70A9?style=for-the-badge)](https://livewire.laravel.com/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-38BDF8?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
-[![License](https://img.shields.io/badge/License-Private-6C63FF?style=for-the-badge)]()
-
 </div>
 
 ---
