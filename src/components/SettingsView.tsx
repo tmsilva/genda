@@ -9,6 +9,7 @@ import {
 import { ProfessionalProfile, Service, MessageTemplate, ThemeOption, WorkingDay } from '../types';
 import { THEME_OPTIONS } from '../data';
 import { formatPhone } from '../utils';
+import Logo from './Logo';
 
 interface SettingsViewProps {
   profile: ProfessionalProfile;
@@ -1208,11 +1209,10 @@ export default function SettingsView({
               </div>
 
               <div className={`flex flex-col items-center justify-center py-10 rounded-2xl border ${isDark ? 'bg-zinc-950/40 border-zinc-800' : 'bg-slate-50 border-slate-100'}`}>
-                <div className={`w-20 h-20 rounded-3xl flex items-center justify-center mb-6 shadow-sm border ${isDark ? 'bg-indigo-600 border-indigo-500' : 'bg-indigo-600 border-indigo-700'}`}>
-                  <Sparkles className="w-10 h-10 text-white" />
+                <div className="mb-6 flex justify-center w-full">
+                  <Logo variant="full" size="xl" lightMode={!isDark} />
                 </div>
                 
-                <h4 className={`text-2xl font-bold font-display ${isDark ? 'text-zinc-100' : 'text-slate-900'}`}>Genda</h4>
                 <div className="flex items-center gap-2 mt-2 mb-6">
                   <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${isDark ? 'bg-indigo-500/20 text-indigo-400' : 'bg-indigo-100 text-indigo-700'}`}>
                     Versão Beta
