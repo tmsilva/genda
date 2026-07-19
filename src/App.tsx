@@ -97,6 +97,7 @@ export default function App() {
     return localStorage.getItem('genda_stock') ? JSON.parse(localStorage.getItem('genda_stock')!) : [];
   });
 
+  
   useEffect(() => {
     localStorage.setItem('genda_stock', JSON.stringify(stock));
   }, [stock]);
@@ -156,6 +157,26 @@ export default function App() {
 
   // Theme configuration derived from state
   const isDark = profile.isDarkMode ?? true;
+
+  useEffect(() => {
+    const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+    if (metaThemeColor) {
+      if (profile.themeColor === 'roxo') {
+        metaThemeColor.setAttribute('content', isDark ? '#1e1b4b' : '#312e81');
+      } else if (profile.themeColor === 'azul') {
+        metaThemeColor.setAttribute('content', isDark ? '#0f172a' : '#1e3a8a');
+      } else if (profile.themeColor === 'verde') {
+        metaThemeColor.setAttribute('content', isDark ? '#064e3b' : '#065f46');
+      } else {
+        metaThemeColor.setAttribute('content', isDark ? '#09090b' : '#18181b');
+      }
+    }
+    
+    // Add PWA classes to body
+    document.body.classList.add('overscroll-none');
+    document.body.style.overscrollBehaviorY = 'none';
+  }, [profile.themeColor, isDark]);
+
   const baseTheme = THEME_OPTIONS.find((t) => t.id === profile.themeId) || THEME_OPTIONS[0];
   const currentTheme = {
     ...baseTheme,
@@ -519,6 +540,21 @@ export default function App() {
     setClients(prev => prev.filter(c => c.id !== id));
     if (auth.currentUser) {
       await syncClientDelete(auth.currentUser.uid, id);
+    }
+  };
+
+  
+  const getPageTitle = () => {
+    switch (activeTab) {
+      case 'dashboard': return 'Painel';
+      case 'agenda': return 'Agenda';
+      case 'clients': return 'Clientes';
+      case 'services': return 'Serviços';
+      case 'finance': return 'Financeiro';
+      case 'estoque': return 'Controle de Estoque';
+      case 'ai': return 'Genda AI';
+      case 'settings': return 'Ajustes';
+      default: return profile.name;
     }
   };
 
@@ -1061,7 +1097,7 @@ export default function App() {
                          e.stopPropagation();
                          handleSendNotifReminderToWhatsApp();
                        }}
-                       className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-1 px-3 rounded-lg flex items-center gap-1 cursor-pointer transition-all"
+                       className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-1 px-3 rounded-lg flex items-center gap-1 cursor-pointer transition-all active:scale-95"
                      >
                        <Send className="w-3 h-3" />
                        Enviar Lembrete ao Cliente
@@ -1083,7 +1119,7 @@ export default function App() {
 
             {/* UPPER BRAND HEADER ROW */}
             <div className={`${isDark ? 'bg-zinc-900/50 border-zinc-800' : 'bg-white border-slate-100'} border-b shadow-sm sticky top-0 z-30 backdrop-blur-md`}>
-              <div className="max-w-none mx-auto px-4 md:px-8 py-3 flex items-center justify-between">
+              <div className="max-w-none mx-auto px-4 md:px-8 py-3 pt-safe flex items-center justify-between">
                 
                 {/* Brand Logo & Professional Name info */}
                 <div className="flex items-center gap-2.5">
@@ -1101,11 +1137,19 @@ export default function App() {
                     <Logo variant="icon" className="w-9 h-9 shadow-md rounded-xl" />
                   )}
                   <div className="text-left">
-                    <span className={`font-display font-extrabold ${isDark ? 'text-white' : 'text-slate-950'} text-sm sm:text-base leading-tight block max-w-[100px] sm:max-w-[200px] md:max-w-none truncate`}>
+                    {/* Desktop Title */}
+                    <span className={`hidden md:block font-display font-extrabold ${isDark ? 'text-white' : 'text-slate-950'} text-sm sm:text-base leading-tight max-w-[100px] sm:max-w-[200px] md:max-w-none truncate`}>
                       {profile.name}
                     </span>
-                    <span className={`text-[9px] sm:text-[10px] font-mono ${isDark ? 'text-zinc-500' : 'text-slate-400'} block -mt-0.5 truncate max-w-[100px] sm:max-w-[200px] md:max-w-none`}>
+                    <span className={`hidden md:block text-[9px] sm:text-[10px] font-mono ${isDark ? 'text-zinc-500' : 'text-slate-400'} -mt-0.5 truncate max-w-[100px] sm:max-w-[200px] md:max-w-none`}>
                       {profile.category} • Agenda Genda
+                    </span>
+                    {/* Mobile Title */}
+                    <span className={`md:hidden font-display font-extrabold ${isDark ? 'text-white' : 'text-slate-950'} text-base leading-tight block truncate`}>
+                      {getPageTitle()}
+                    </span>
+                    <span className={`md:hidden text-[10px] font-mono ${isDark ? 'text-zinc-500' : 'text-slate-400'} block -mt-0.5 truncate`}>
+                      {profile.name}
                     </span>
                   </div>
                 </div>
@@ -1169,7 +1213,7 @@ export default function App() {
                                       onClick={() => {
                                         setNotifications(prev => prev.map(n => ({ ...n, read: true })));
                                       }}
-                                      className={`p-1.5 rounded-lg text-[10px] font-semibold flex items-center gap-1 cursor-pointer transition-all ${
+                                      className={`p-1.5 rounded-lg text-[10px] font-semibold flex items-center gap-1 cursor-pointer transition-all active:scale-95 ${
                                         isDark
                                           ? 'hover:bg-zinc-900 text-zinc-400 hover:text-white'
                                           : 'hover:bg-slate-50 text-slate-500 hover:text-slate-900'
@@ -1182,7 +1226,7 @@ export default function App() {
                                       onClick={() => {
                                         setNotifications([]);
                                       }}
-                                      className={`p-1.5 rounded-lg text-[10px] font-semibold flex items-center gap-1 cursor-pointer transition-all ${
+                                      className={`p-1.5 rounded-lg text-[10px] font-semibold flex items-center gap-1 cursor-pointer transition-all active:scale-95 ${
                                         isDark
                                           ? 'hover:bg-zinc-900 text-rose-400 hover:text-rose-300'
                                           : 'hover:bg-rose-50 text-rose-600 hover:text-rose-700'
@@ -1509,8 +1553,9 @@ export default function App() {
               </AnimatePresence>
             </main>
 
-            {/* PERSISTENT BOTTOM NAVIGATION TAB BAR */}
-            <div className="fixed bottom-0 left-0 right-0 z-40 themed-mobile-bar backdrop-blur-md border-t shadow-lg px-2 sm:px-6 py-2 flex items-center justify-between sm:justify-center gap-1 sm:gap-4 rounded-t-2xl md:hidden">
+            
+                        {/* PERSISTENT BOTTOM NAVIGATION TAB BAR */}
+            <div className="fixed bottom-0 left-0 right-0 z-40 themed-mobile-bar backdrop-blur-md border-t shadow-[0_-4px_20px_-10px_rgba(0,0,0,0.1)] px-2 sm:px-6 py-2 flex items-center justify-between gap-1 sm:gap-4 md:hidden pb-safe">
               <AnimatePresence mode="wait">
                 {mobileNavPage === 0 ? (
                   <motion.div 
@@ -1519,12 +1564,12 @@ export default function App() {
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: 20 }}
                     transition={{ duration: 0.2 }}
-                    className="flex-1 flex items-center justify-between sm:justify-center gap-1 sm:gap-4 w-full"
+                    className="flex-1 flex items-center justify-between gap-1 sm:gap-4 w-full"
                   >
                     {/* Tab 0: Dashboard */}
                     <button
                       onClick={() => { setActiveClientId(null); setActiveTab('dashboard'); }}
-                      className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-all shrink-0 min-w-[56px] sm:min-w-[64px] ${
+                      className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-all active:scale-95 shrink-0 min-w-[56px] sm:min-w-[64px] ${
                         activeTab === 'dashboard' 
                           ? (isDark ? 'text-indigo-400 scale-105 font-bold' : 'text-indigo-600 scale-105 font-bold') 
                           : 'themed-mobile-inactive'
@@ -1543,7 +1588,7 @@ export default function App() {
                     {/* Tab 1: Agenda */}
                     <button
                       onClick={() => { setActiveClientId(null); setActiveTab('agenda'); }}
-                      className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-all shrink-0 min-w-[56px] sm:min-w-[64px] ${
+                      className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-all active:scale-95 shrink-0 min-w-[56px] sm:min-w-[64px] ${
                         activeTab === 'agenda' 
                           ? (isDark ? 'text-indigo-400 scale-105 font-bold' : 'text-indigo-600 scale-105 font-bold') 
                           : 'themed-mobile-inactive'
@@ -1562,7 +1607,7 @@ export default function App() {
                     {/* Tab 2: Clients */}
                     <button
                       onClick={() => { setActiveClientId(null); setActiveTab('clients'); }}
-                      className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-all shrink-0 min-w-[56px] sm:min-w-[64px] ${
+                      className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-all active:scale-95 shrink-0 min-w-[56px] sm:min-w-[64px] ${
                         activeTab === 'clients' 
                           ? (isDark ? 'text-indigo-400 scale-105 font-bold' : 'text-indigo-600 scale-105 font-bold') 
                           : 'themed-mobile-inactive'
@@ -1578,10 +1623,60 @@ export default function App() {
                       <span className="text-[9px] sm:text-[10px] truncate max-w-full">Clientes</span>
                     </button>
 
-                    {/* Tab 2.5: Services */}
+                    {/* Tab 3: Finance */}
+                    <button
+                      onClick={() => { setActiveClientId(null); setActiveTab('finance'); }}
+                      className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-all active:scale-95 shrink-0 min-w-[56px] sm:min-w-[64px] ${
+                        activeTab === 'finance' 
+                          ? (isDark ? 'text-indigo-400 scale-105 font-bold' : 'text-indigo-600 scale-105 font-bold') 
+                          : 'themed-mobile-inactive'
+                      }`}
+                    >
+                      <div className={`p-1 sm:p-1.5 rounded-xl transition-all ${
+                        activeTab === 'finance' 
+                          ? (isDark ? 'bg-indigo-500/10 text-indigo-400' : 'bg-indigo-50 text-indigo-600') 
+                          : 'bg-transparent'
+                      }`}>
+                        <DollarSign className="w-5 h-5 sm:w-5 sm:h-5" />
+                      </div>
+                      <span className="text-[9px] sm:text-[10px] truncate max-w-full">Finance</span>
+                    </button>
+
+                    {/* Next Page Arrow */}
+                    <button
+                      onClick={() => setMobileNavPage(1)}
+                      className="flex flex-col items-center justify-center gap-1 cursor-pointer transition-all active:scale-95 shrink-0 min-w-[40px] sm:min-w-[48px] text-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400"
+                    >
+                      <div className="p-1 sm:p-1.5 rounded-xl transition-all bg-indigo-500/10 text-indigo-500 flex items-center justify-center h-[28px] w-[28px] sm:h-[32px] sm:w-[32px]">
+                        <ChevronRight className="w-5 h-5 sm:w-5 sm:h-5" />
+                      </div>
+                      <span className="text-[9px] sm:text-[10px] truncate max-w-full font-bold">Mais</span>
+                    </button>
+                  </motion.div>
+                ) : (
+                  <motion.div 
+                    key="page1"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    transition={{ duration: 0.2 }}
+                    className="flex-1 flex items-center justify-between gap-1 sm:gap-4 w-full"
+                  >
+                    {/* Prev Page Arrow */}
+                    <button
+                      onClick={() => setMobileNavPage(0)}
+                      className="flex flex-col items-center justify-center gap-1 cursor-pointer transition-all active:scale-95 shrink-0 min-w-[40px] sm:min-w-[48px] text-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400"
+                    >
+                      <div className="p-1 sm:p-1.5 rounded-xl transition-all bg-indigo-500/10 text-indigo-500 flex items-center justify-center h-[28px] w-[28px] sm:h-[32px] sm:w-[32px]">
+                        <ChevronLeft className="w-5 h-5 sm:w-5 sm:h-5" />
+                      </div>
+                      <span className="text-[9px] sm:text-[10px] truncate max-w-full font-bold">Voltar</span>
+                    </button>
+
+                    {/* Tab 4: Serviços */}
                     <button
                       onClick={() => { setActiveClientId(null); setActiveTab('services'); }}
-                      className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-all shrink-0 min-w-[56px] sm:min-w-[64px] ${
+                      className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-all active:scale-95 shrink-0 min-w-[56px] sm:min-w-[64px] ${
                         activeTab === 'services' 
                           ? (isDark ? 'text-indigo-400 scale-105 font-bold' : 'text-indigo-600 scale-105 font-bold') 
                           : 'themed-mobile-inactive'
@@ -1597,41 +1692,10 @@ export default function App() {
                       <span className="text-[9px] sm:text-[10px] truncate max-w-full">Serviços</span>
                     </button>
 
-                    {/* Next Page Arrow */}
-                    <button
-                      onClick={() => setMobileNavPage(1)}
-                      className="flex flex-col items-center justify-center gap-1 cursor-pointer transition-all shrink-0 min-w-[40px] sm:min-w-[48px] text-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400"
-                    >
-                      <div className="p-1 sm:p-1.5 rounded-xl transition-all bg-indigo-500/10 text-indigo-500 flex items-center justify-center h-[28px] w-[28px] sm:h-[32px] sm:w-[32px]">
-                        <ChevronRight className="w-5 h-5 sm:w-5 sm:h-5" />
-                      </div>
-                      <span className="text-[9px] sm:text-[10px] truncate max-w-full font-bold">Mais</span>
-                    </button>
-                  </motion.div>
-                ) : (
-                  <motion.div 
-                    key="page1"
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    transition={{ duration: 0.2 }}
-                    className="flex-1 flex items-center justify-between sm:justify-center gap-1 sm:gap-4 w-full"
-                  >
-                    {/* Prev Page Arrow */}
-                    <button
-                      onClick={() => setMobileNavPage(0)}
-                      className="flex flex-col items-center justify-center gap-1 cursor-pointer transition-all shrink-0 min-w-[40px] sm:min-w-[48px] text-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400"
-                    >
-                      <div className="p-1 sm:p-1.5 rounded-xl transition-all bg-indigo-500/10 text-indigo-500 flex items-center justify-center h-[28px] w-[28px] sm:h-[32px] sm:w-[32px]">
-                        <ChevronLeft className="w-5 h-5 sm:w-5 sm:h-5" />
-                      </div>
-                      <span className="text-[9px] sm:text-[10px] truncate max-w-full font-bold">Voltar</span>
-                    </button>
-
-                    {/* Tab 3.1: Estoque */}
+                    {/* Tab 5: Estoque */}
                     <button
                       onClick={() => { setActiveClientId(null); setActiveTab('estoque'); }}
-                      className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-all shrink-0 min-w-[56px] sm:min-w-[64px] ${
+                      className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-all active:scale-95 shrink-0 min-w-[56px] sm:min-w-[64px] ${
                         activeTab === 'estoque' 
                           ? (isDark ? 'text-indigo-400 scale-105 font-bold' : 'text-indigo-600 scale-105 font-bold') 
                           : 'themed-mobile-inactive'
@@ -1646,30 +1710,11 @@ export default function App() {
                       </div>
                       <span className="text-[9px] sm:text-[10px] truncate max-w-full">Estoque</span>
                     </button>
-
-                    {/* Tab 3: Finance */}
-                    <button
-                      onClick={() => { setActiveClientId(null); setActiveTab('finance'); }}
-                      className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-all shrink-0 min-w-[56px] sm:min-w-[64px] ${
-                        activeTab === 'finance' 
-                          ? (isDark ? 'text-indigo-400 scale-105 font-bold' : 'text-indigo-600 scale-105 font-bold') 
-                          : 'themed-mobile-inactive'
-                      }`}
-                    >
-                      <div className={`p-1 sm:p-1.5 rounded-xl transition-all ${
-                        activeTab === 'finance' 
-                          ? (isDark ? 'bg-indigo-500/10 text-indigo-400' : 'bg-indigo-50 text-indigo-600') 
-                          : 'bg-transparent'
-                      }`}>
-                        <DollarSign className="w-5 h-5 sm:w-5 sm:h-5" />
-                      </div>
-                      <span className="text-[9px] sm:text-[10px] truncate max-w-full">Finanças</span>
-                    </button>
-
-                    {/* Tab 3.2: Genda AI */}
+                    
+                    {/* Tab 6: Genda AI */}
                     <button
                       onClick={() => { setActiveClientId(null); setActiveTab('ai'); }}
-                      className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-all shrink-0 min-w-[56px] sm:min-w-[64px] ${
+                      className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-all active:scale-95 shrink-0 min-w-[56px] sm:min-w-[64px] ${
                         activeTab === 'ai' 
                           ? (isDark ? 'text-indigo-400 scale-105 font-bold' : 'text-indigo-600 scale-105 font-bold') 
                           : 'themed-mobile-inactive'
@@ -1677,7 +1722,7 @@ export default function App() {
                     >
                       <div className={`p-1 sm:p-1.5 rounded-xl transition-all ${
                         activeTab === 'ai' 
-                          ? (isDark ? 'bg-indigo-500/10 text-indigo-400' : 'bg-indigo-50 text-indigo-600') 
+                          ? (isDark ? 'bg-indigo-500 text-white' : 'bg-indigo-50 text-indigo-600') 
                           : 'bg-transparent'
                       }`}>
                         <Bot className="w-5 h-5 sm:w-5 sm:h-5" />
@@ -1685,10 +1730,10 @@ export default function App() {
                       <span className="text-[9px] sm:text-[10px] truncate max-w-full">Genda AI</span>
                     </button>
 
-                    {/* Tab 4: Settings */}
+                    {/* Tab 7: Ajustes */}
                     <button
                       onClick={() => { setActiveClientId(null); setActiveTab('settings'); }}
-                      className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-all shrink-0 min-w-[56px] sm:min-w-[64px] ${
+                      className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-all active:scale-95 shrink-0 min-w-[56px] sm:min-w-[64px] ${
                         activeTab === 'settings' 
                           ? (isDark ? 'text-indigo-400 scale-105 font-bold' : 'text-indigo-600 scale-105 font-bold') 
                           : 'themed-mobile-inactive'
@@ -1818,7 +1863,7 @@ export default function App() {
               <div className="flex gap-2.5 pt-2">
                 <button
                   onClick={() => setShowLogoutConfirm(false)}
-                  className={`flex-1 py-2 px-4 rounded-xl border text-xs font-semibold cursor-pointer transition-all ${
+                  className={`flex-1 py-2 px-4 rounded-xl border text-xs font-semibold cursor-pointer transition-all active:scale-95 ${
                     isDark
                       ? 'border-zinc-700 text-zinc-350 hover:bg-zinc-800'
                       : 'border-slate-200 text-slate-700 hover:bg-slate-50'
@@ -1831,7 +1876,7 @@ export default function App() {
                     setShowLogoutConfirm(false);
                     handleLogout();
                   }}
-                  className="flex-1 py-2 px-4 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-semibold cursor-pointer transition-all shadow-sm"
+                  className="flex-1 py-2 px-4 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-semibold cursor-pointer transition-all active:scale-95 shadow-sm"
                 >
                   Sair
                 </button>
