@@ -14,7 +14,7 @@ import {
 } from './types';
 import { 
   THEME_OPTIONS, DEFAULT_SERVICES, DEFAULT_CLIENTS, 
-  getInitialAppointments, DEFAULT_TEMPLATES, DEFAULT_PROFILE, DEFAULT_STOCK_ITEMS 
+  getInitialAppointments, DEFAULT_TEMPLATES, DEFAULT_PROFILE 
 } from './data';
 import { getWhatsAppNumber } from './utils';
 
@@ -41,7 +41,9 @@ import {
   syncAppointment, 
   syncAppointmentDelete, 
   syncTemplate, 
-  clearAllCloudData 
+  clearAllCloudData,
+  syncStockItem,
+  syncStockItemDelete
 } from './firebaseSync';
 
 export default function App() {
@@ -199,6 +201,8 @@ export default function App() {
           const localServices = localServicesStr ? JSON.parse(localServicesStr) : [];
           const localTemplatesStr = localStorage.getItem('genda_message_templates');
           const localTemplates = localTemplatesStr ? JSON.parse(localTemplatesStr) : [];
+          const localStockStr = localStorage.getItem('genda_stock');
+          const localStock = localStockStr ? JSON.parse(localStockStr) : [];
 
           if (cloudData) {
             // There is data in the cloud (existing account with data)!
@@ -214,6 +218,9 @@ export default function App() {
             if (cloudData.templates && cloudData.templates.length > 0) {
               setMessageTemplates(cloudData.templates);
             }
+            if (cloudData.stock && cloudData.stock.length > 0) {
+              setStock(cloudData.stock);
+            }
             setIsOnboarded(true);
             setActiveTab('dashboard');
           } else {
@@ -228,6 +235,7 @@ export default function App() {
               };
               const initialServices = localServices.length > 0 ? localServices : DEFAULT_SERVICES;
               const initialTemplates = localTemplates.length > 0 ? localTemplates : DEFAULT_TEMPLATES;
+              const initialStock = localStock.length > 0 ? localStock : [];
 
               await uploadInitialDataToCloud(
                 currentUser.uid,
@@ -235,7 +243,8 @@ export default function App() {
                 initialServices,
                 localClients,
                 localAppts,
-                initialTemplates
+                initialTemplates,
+                initialStock
               );
 
               setProfile(initialProfile);
@@ -243,6 +252,7 @@ export default function App() {
               setClients(localClients);
               setAppointments(localAppts);
               setMessageTemplates(initialTemplates);
+              setStock(initialStock);
               setIsOnboarded(true);
               setActiveTab('dashboard');
             } else {
@@ -294,7 +304,8 @@ export default function App() {
         services,
         clients,
         appointments,
-        messageTemplates
+        messageTemplates,
+        stock
       );
       setIsOnboarded(true);
       setSyncConflict(null);
@@ -400,6 +411,69 @@ export default function App() {
         } else if (appt.status === 'completed') {
           notifTitle = 'Atendimento Concluído';
           notifBody = `${client ? client.name.split(' ')[0] : 'Cliente'} - ${service ? service.name : 'serviço'} concluído com sucesso`;
+          
+          // Deduct materials from stock
+          if (service) {
+            let updatedStock = [...stock];
+            let materialsToDeduct: { stockItemId: string; quantity: number }[] = [];
+
+            const collectMaterials = (sId: string) => {
+              const s = services.find(x => x.id === sId);
+              if (!s) return;
+              if (s.stockMaterials && s.stockMaterials.length > 0) {
+                s.stockMaterials.forEach(sm => {
+                  materialsToDeduct.push({ stockItemId: sm.stockItemId, quantity: sm.quantity });
+                });
+              }
+              if (s.isPackage && s.packageItems) {
+                s.packageItems.forEach(subId => collectMaterials(subId));
+              }
+            };
+
+            collectMaterials(service.id);
+
+            if (materialsToDeduct.length > 0) {
+              const lowStockNotifications: AppNotification[] = [];
+              updatedStock = updatedStock.map(item => {
+                const totalToDeduct = materialsToDeduct
+                  .filter(m => m.stockItemId === item.id)
+                  .reduce((sum, m) => sum + m.quantity, 0);
+                if (totalToDeduct > 0) {
+                  const newQty = Math.max(0, item.quantity - totalToDeduct);
+                  if (newQty <= item.minQuantity && item.quantity > item.minQuantity) {
+                    lowStockNotifications.push({
+                      id: 'notif_stock_' + item.id + '_' + Date.now(),
+                      title: 'Alerta de Estoque Baixo',
+                      body: `O material "${item.name}" atingiu o limite mínimo (${newQty} ${item.unit} restantes).`,
+                      timestamp: now().format(),
+                      read: false
+                    });
+                  }
+                  return {
+                    ...item,
+                    quantity: newQty,
+                    lastUpdated: now().format()
+                  };
+                }
+                return item;
+              });
+
+              setStock(updatedStock);
+              if (auth.currentUser) {
+                // Sync updated stock to cloud
+                const changedItems = updatedStock.filter(uItem => {
+                  const original = stock.find(oItem => oItem.id === uItem.id);
+                  return !original || original.quantity !== uItem.quantity;
+                });
+                for (const item of changedItems) {
+                  syncStockItem(auth.currentUser.uid, item);
+                }
+              }
+              if (lowStockNotifications.length > 0) {
+                setNotifications(prev => [...lowStockNotifications, ...prev]);
+              }
+            }
+          }
         }
       } else if (oldAppt.time !== appt.time || oldAppt.date !== appt.date) {
         notifTitle = 'Agendamento Alterado';
@@ -452,6 +526,22 @@ export default function App() {
     setProfile(prof);
     if (auth.currentUser) {
       await syncProfile(auth.currentUser.uid, prof);
+    }
+  };
+
+  const handleUpdateStock = async (newStock: StockItem[]) => {
+    const previousStock = stock;
+    setStock(newStock);
+    if (auth.currentUser) {
+      // Find deleted stock and delete them in Firestore
+      const deleted = previousStock.filter(prev => !newStock.some(current => current.id === prev.id));
+      for (const s of deleted) {
+        await syncStockItemDelete(auth.currentUser.uid, s.id);
+      }
+      // Sync active stock
+      for (const s of newStock) {
+        await syncStockItem(auth.currentUser.uid, s);
+      }
     }
   };
 
@@ -514,7 +604,8 @@ export default function App() {
             srvs,
             [],
             [],
-            messageTemplates
+            messageTemplates,
+            []
           );
         }
       } catch (err: any) {
@@ -538,7 +629,8 @@ export default function App() {
         srvs,
         [],
         [],
-        messageTemplates
+        messageTemplates,
+        []
       );
     }
   };
@@ -549,7 +641,7 @@ export default function App() {
     setClients(DEFAULT_CLIENTS);
     setAppointments(getInitialAppointments());
     setMessageTemplates(DEFAULT_TEMPLATES);
-    setStock(DEFAULT_STOCK_ITEMS);
+    setStock([]);
     setIsOnboarded(true);
     setActiveTab('dashboard');
   };
@@ -579,14 +671,14 @@ export default function App() {
     setAppointments(getInitialAppointments());
     setMessageTemplates(DEFAULT_TEMPLATES);
     setNotifications([]);
-    setStock(DEFAULT_STOCK_ITEMS);
+    setStock([]);
   };
 
   const handleClearAllData = async () => {
     let deleteError: any = null;
     if (auth.currentUser) {
       try {
-        await clearAllCloudData(auth.currentUser.uid, services, clients, appointments);
+        await clearAllCloudData(auth.currentUser.uid, services, clients, appointments, stock);
       } catch (err) {
         console.error("Erro ao limpar dados na nuvem", err);
       }
@@ -617,7 +709,7 @@ export default function App() {
     setAppointments(getInitialAppointments());
     setMessageTemplates(DEFAULT_TEMPLATES);
     setNotifications([]);
-    setStock(DEFAULT_STOCK_ITEMS);
+    setStock([]);
 
     if (deleteError) {
       throw deleteError;
@@ -1331,6 +1423,7 @@ export default function App() {
                       onUpdateServices={handleUpdateServices}
                       profile={profile}
                       isDark={isDark}
+                      stock={stock}
                     />
                   </motion.div>
                 )}
@@ -1390,7 +1483,7 @@ export default function App() {
                   >
                     <EstoqueView 
                       stock={stock}
-                      onUpdateStock={setStock}
+                      onUpdateStock={handleUpdateStock}
                       isDark={isDark}
                     />
                   </motion.div>

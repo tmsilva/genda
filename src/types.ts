@@ -11,6 +11,11 @@ export interface WorkingDay {
   lunchEnd?: string; // "HH:MM"
 }
 
+export interface ServiceStockMaterial {
+  stockItemId: string;
+  quantity: number;
+}
+
 export interface Service {
   id: string;
   name: string;
@@ -18,6 +23,7 @@ export interface Service {
   price: number;
   color: string; // CSS color class name or hex code
   materials?: string; // Optional materials used
+  stockMaterials?: ServiceStockMaterial[];
   isPackage?: boolean;
   packageItems?: string[]; // Array of service IDs included
 }

@@ -67,7 +67,27 @@ service cloud.firestore {
           && data.body is string && data.body.size() <= 2000;
     }
 
+    // Helper to validate StockItem structure
+    function isValidStockItem(data) {
+      return data.id is string && data.id.size() <= 128
+          && data.name is string && data.name.size() <= 100
+          && data.quantity is number
+          && data.minQuantity is number
+          && data.unit is string;
+    }
+    
     match /users/{userId} {
+      
+      match /stock/{stockId} {
+        allow get: if isOwner(userId) && isValidId(stockId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidId(stockId)
+           && isValidStockItem(request.resource.data);
+        allow update: if isOwner(userId) && isValidId(stockId)
+           && isValidStockItem(request.resource.data);
+        allow delete: if isOwner(userId) && isValidId(stockId);
+      }
+
       
       match /profile/{profileId} {
         allow get: if isOwner(userId) && isValidId(profileId);

@@ -65,7 +65,18 @@ export default function EstoqueView({ stock, onUpdateStock, isDark = false }: Es
 
   const handleSaveItem = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formName.trim()) return;
+    if (!formName.trim()) {
+      triggerAlert('O nome do material é obrigatório!', 'error');
+      return;
+    }
+    if (formQuantity < 0) {
+      triggerAlert('A quantidade em estoque não pode ser negativa!', 'error');
+      return;
+    }
+    if (formMinQuantity < 0) {
+      triggerAlert('A quantidade mínima não pode ser negativa!', 'error');
+      return;
+    }
 
     const itemData: StockItem = {
       id: editingItem ? editingItem.id : Math.random().toString(36).substr(2, 9),

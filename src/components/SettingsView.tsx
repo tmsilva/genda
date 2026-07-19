@@ -4,7 +4,7 @@ import {
   User, Briefcase, Clock, Clipboard, Sparkles, Smartphone, 
   ShieldCheck, LogOut, ChevronRight, Check, Plus, Trash2, 
   Download, Upload, RefreshCw, MessageSquare, AlertCircle, Save, X, Cloud, CloudOff, Mail, Lock,
-  Sun, Moon
+  Sun, Moon, Info
 } from 'lucide-react';
 import { ProfessionalProfile, Service, MessageTemplate, ThemeOption, WorkingDay } from '../types';
 import { THEME_OPTIONS } from '../data';
@@ -28,7 +28,7 @@ interface SettingsViewProps {
   onRegisterEmail?: (email: string, password: string, displayName: string) => Promise<void>;
 }
 
-type SettingsSection = 'profile' | 'hours' | 'templates' | 'theme' | 'backup';
+type SettingsSection = 'profile' | 'hours' | 'templates' | 'theme' | 'backup' | 'feedback' | 'about';
 
 export default function SettingsView({
   profile,
@@ -59,7 +59,11 @@ export default function SettingsView({
   const [authError, setAuthError] = useState('');
   const [isAuthLoading, setIsAuthLoading] = useState(false);
   const [showEmailForm, setShowEmailForm] = useState(false);
-  
+
+  // Feedback States
+  const [feedbackSubject, setFeedbackSubject] = useState('');
+  const [feedbackBody, setFeedbackBody] = useState('');
+
   const handleEmailAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setAuthError('');
@@ -252,6 +256,19 @@ export default function SettingsView({
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [alertMessage, setAlertMessage] = useState<{ text: string; type: 'success' | 'error' | 'info' } | null>(null);
 
+  const handleSendFeedback = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!feedbackSubject.trim() || !feedbackBody.trim()) {
+      triggerAlert('Por favor, preencha o assunto e a mensagem.', 'error');
+      return;
+    }
+    const mailtoUrl = `mailto:thiagomsy@gmail.com?subject=${encodeURIComponent(feedbackSubject)}&body=${encodeURIComponent(feedbackBody)}`;
+    window.location.href = mailtoUrl;
+    setFeedbackSubject('');
+    setFeedbackBody('');
+    triggerAlert('Abrindo cliente de e-mail...', 'success');
+  };
+
   const triggerAlert = (text: string, type: 'success' | 'error' | 'info' = 'info') => {
     setAlertMessage({ text, type });
     setTimeout(() => {
@@ -388,6 +405,28 @@ export default function SettingsView({
           >
             <Smartphone className="w-4 h-4 shrink-0" />
             <span className="leading-tight">Backup & Sincronização</span>
+          </button>
+          <button
+            onClick={() => setActiveSection('feedback')}
+            className={`w-full p-2.5 rounded-xl text-left flex items-center gap-2 transition-all cursor-pointer text-xs whitespace-normal ${
+              activeSection === 'feedback' 
+                ? (isDark ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-900 text-white shadow-sm') 
+                : (isDark ? 'hover:bg-zinc-800 text-zinc-400 hover:text-white' : 'hover:bg-slate-50 text-slate-700')
+            }`}
+          >
+            <MessageSquare className="w-4 h-4 shrink-0" />
+            <span className="leading-tight">Reportar Erro</span>
+          </button>
+          <button
+            onClick={() => setActiveSection('about')}
+            className={`w-full p-2.5 rounded-xl text-left flex items-center gap-2 transition-all cursor-pointer text-xs whitespace-normal ${
+              activeSection === 'about' 
+                ? (isDark ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-900 text-white shadow-sm') 
+                : (isDark ? 'hover:bg-zinc-800 text-zinc-400 hover:text-white' : 'hover:bg-slate-50 text-slate-700')
+            }`}
+          >
+            <Info className="w-4 h-4 shrink-0" />
+            <span className="leading-tight">Sobre</span>
           </button>
         </div>
 
@@ -1084,6 +1123,135 @@ export default function SettingsView({
                 <p>Nenhum dado cadastrado nesta agenda é transmitido a terceiros. A infraestrutura atende aos requisitos de privacidade e guarda de dados.</p>
               </div>
 
+            </motion.div>
+          )}
+
+          {/* FEEDBACK SECTION */}
+          {activeSection === 'feedback' && (
+            <motion.div
+              key="feedback"
+              initial={{ opacity: 0, x: 10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -10 }}
+              className="space-y-6 text-xs text-slate-700 h-full flex flex-col"
+            >
+              <div>
+                <h3 className={`font-display font-bold text-lg ${isDark ? 'text-zinc-100' : 'text-slate-900'}`}>Reportar Erro / Feedback</h3>
+                <p className={`${isDark ? 'text-zinc-400' : 'text-slate-500'} mt-1`}>
+                  Encontrou algum erro ou tem alguma sugestão para o Genda? Envie-nos uma mensagem!
+                </p>
+              </div>
+
+              <form onSubmit={handleSendFeedback} className="space-y-4 flex-1">
+                <div>
+                  <label className={`block text-xs font-semibold mb-1 ${isDark ? 'text-zinc-300' : 'text-slate-700'}`}>
+                    Assunto
+                  </label>
+                  <input
+                    type="text"
+                    value={feedbackSubject}
+                    onChange={(e) => setFeedbackSubject(e.target.value)}
+                    placeholder="Ex: Erro ao agendar cliente"
+                    className={`w-full p-2.5 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all ${
+                      isDark 
+                        ? 'bg-zinc-900 border-zinc-800 text-white placeholder:text-zinc-600' 
+                        : 'bg-white border-slate-200 text-slate-900 placeholder:text-slate-400'
+                    }`}
+                    required
+                  />
+                </div>
+                <div className="flex-1 flex flex-col min-h-[200px]">
+                  <label className={`block text-xs font-semibold mb-1 ${isDark ? 'text-zinc-300' : 'text-slate-700'}`}>
+                    Mensagem (Erro ou Sugestão)
+                  </label>
+                  <textarea
+                    value={feedbackBody}
+                    onChange={(e) => setFeedbackBody(e.target.value)}
+                    placeholder="Descreva o que aconteceu em detalhes..."
+                    className={`flex-1 w-full p-2.5 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all resize-none ${
+                      isDark 
+                        ? 'bg-zinc-900 border-zinc-800 text-white placeholder:text-zinc-600' 
+                        : 'bg-white border-slate-200 text-slate-900 placeholder:text-slate-400'
+                    }`}
+                    required
+                  />
+                </div>
+
+                <div className="pt-2">
+                  <button
+                    type="submit"
+                    className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold transition-all shadow-sm"
+                  >
+                    <MessageSquare className="w-4 h-4" />
+                    Enviar via Cliente de E-mail
+                  </button>
+                  <p className={`text-[10px] text-center mt-2 ${isDark ? 'text-zinc-500' : 'text-slate-400'}`}>
+                    Esta ação abrirá o aplicativo de e-mail padrão do seu dispositivo.
+                  </p>
+                </div>
+              </form>
+            </motion.div>
+          )}
+
+          {/* ABOUT SECTION */}
+          {activeSection === 'about' && (
+            <motion.div
+              key="about"
+              initial={{ opacity: 0, x: 10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -10 }}
+              className="space-y-6 text-xs text-slate-700 h-full flex flex-col"
+            >
+              <div>
+                <h3 className={`font-display font-bold text-lg ${isDark ? 'text-zinc-100' : 'text-slate-900'}`}>Sobre o Genda</h3>
+                <p className={`${isDark ? 'text-zinc-400' : 'text-slate-500'} mt-1`}>Informações sobre a plataforma</p>
+              </div>
+
+              <div className={`flex flex-col items-center justify-center py-10 rounded-2xl border ${isDark ? 'bg-zinc-950/40 border-zinc-800' : 'bg-slate-50 border-slate-100'}`}>
+                <div className={`w-20 h-20 rounded-3xl flex items-center justify-center mb-6 shadow-sm border ${isDark ? 'bg-indigo-600 border-indigo-500' : 'bg-indigo-600 border-indigo-700'}`}>
+                  <Sparkles className="w-10 h-10 text-white" />
+                </div>
+                
+                <h4 className={`text-2xl font-bold font-display ${isDark ? 'text-zinc-100' : 'text-slate-900'}`}>Genda</h4>
+                <div className="flex items-center gap-2 mt-2 mb-6">
+                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${isDark ? 'bg-indigo-500/20 text-indigo-400' : 'bg-indigo-100 text-indigo-700'}`}>
+                    Versão Beta
+                  </span>
+                  <span className={`${isDark ? 'text-zinc-500' : 'text-slate-400'} text-[10px]`}>
+                    v0.9.5
+                  </span>
+                </div>
+                
+                <p className={`text-center max-w-sm px-4 leading-relaxed ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
+                  Um sistema completo de agendamentos e controle de negócios desenvolvido para profissionais independentes.
+                </p>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-auto pt-4">
+                <div className={`p-4 rounded-xl border ${isDark ? 'bg-zinc-900/50 border-zinc-800' : 'bg-white border-slate-100'} space-y-2`}>
+                  <div className="flex items-center gap-2 mb-3">
+                    <ShieldCheck className={`w-4 h-4 ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`} />
+                    <span className={`font-semibold ${isDark ? 'text-zinc-200' : 'text-slate-800'}`}>Segurança e Privacidade</span>
+                  </div>
+                  <p className={`${isDark ? 'text-zinc-500' : 'text-slate-500'} leading-relaxed`}>
+                    O Genda utiliza infraestrutura robusta para garantir a segurança e alta disponibilidade dos seus dados.
+                  </p>
+                </div>
+                
+                <div className={`p-4 rounded-xl border ${isDark ? 'bg-zinc-900/50 border-zinc-800' : 'bg-white border-slate-100'} space-y-2`}>
+                  <div className="flex items-center gap-2 mb-3">
+                    <Info className={`w-4 h-4 ${isDark ? 'text-indigo-400' : 'text-indigo-600'}`} />
+                    <span className={`font-semibold ${isDark ? 'text-zinc-200' : 'text-slate-800'}`}>Aviso de Fase Beta</span>
+                  </div>
+                  <p className={`${isDark ? 'text-zinc-500' : 'text-slate-500'} leading-relaxed`}>
+                    O sistema está em fase Beta. Novas funcionalidades estão sendo adicionadas e você pode ocasionalmente encontrar instabilidades.
+                  </p>
+                </div>
+              </div>
+
+              <div className={`text-center pt-4 border-t ${isDark ? 'border-zinc-800/50 text-zinc-600' : 'border-slate-100 text-slate-400'} text-[10px]`}>
+                &copy; {new Date().getFullYear()} Genda. Todos os direitos reservados.
+              </div>
             </motion.div>
           )}
 

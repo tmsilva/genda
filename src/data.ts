@@ -126,20 +126,28 @@ export const THEME_OPTIONS: ThemeOption[] = [
 ];
 
 export const DEFAULT_SERVICES: Service[] = [
-  { id: 's1', name: 'Corte de Cabelo Masculino', duration: 30, price: 50, color: '#0ea5e9' }, // sky-500
-  { id: 's2', name: 'Barba Terapia', duration: 30, price: 40, color: '#10b981' }, // emerald-500
-  { id: 's3', name: 'Manicure Completa', duration: 45, price: 60, color: '#ec4899' }, // pink-500
-  { id: 's4', name: 'Consultoria Individual', duration: 60, price: 150, color: '#8b5cf6' }, // violet-500
-  { id: 's_pkg_1', name: 'Pacote Premium (Corte + Barba + Sobrancelha)', duration: 80, price: 95, color: '#f59e0b', isPackage: true, packageItems: ['s1', 's2'] },
+  { 
+    id: 's1', 
+    name: 'Corte de Cabelo Masculino', 
+    duration: 30, 
+    price: 50, 
+    color: '#0ea5e9',
+    stockMaterials: []
+  }, // sky-500
+  { 
+    id: 's2', 
+    name: 'Barba Terapia', 
+    duration: 30, 
+    price: 40, 
+    color: '#10b981',
+    stockMaterials: []
+  }, // emerald-500
+  { id: 's3', name: 'Manicure Completa', duration: 45, price: 60, color: '#ec4899', stockMaterials: [] }, // pink-500
+  { id: 's4', name: 'Consultoria Individual', duration: 60, price: 150, color: '#8b5cf6', stockMaterials: [] }, // violet-500
+  { id: 's_pkg_1', name: 'Pacote Premium (Corte + Barba + Sobrancelha)', duration: 80, price: 95, color: '#f59e0b', isPackage: true, packageItems: ['s1', 's2'], stockMaterials: [] },
 ];
 
-export const DEFAULT_STOCK_ITEMS: StockItem[] = [
-  { id: 'st1', name: 'Navalha Descartável', quantity: 45, minQuantity: 10, unit: 'un', lastUpdated: '2026-07-15T12:00:00.000Z' },
-  { id: 'st2', name: 'Loção Pós-Barba de Mentol', quantity: 2, minQuantity: 3, unit: 'un', lastUpdated: '2026-07-14T10:30:00.000Z' },
-  { id: 'st3', name: 'Toalhas Brancas de Algodão', quantity: 30, minQuantity: 5, unit: 'un', lastUpdated: '2026-07-16T09:00:00.000Z' },
-  { id: 'st4', name: 'Shampoo de Cabelo Premium', quantity: 15, minQuantity: 4, unit: 'un', lastUpdated: '2026-07-16T11:00:00.000Z' },
-  { id: 'st5', name: 'Gel Modelador Extra Forte', quantity: 0, minQuantity: 5, unit: 'un', lastUpdated: '2026-07-10T14:20:00.000Z' },
-];
+export const DEFAULT_STOCK_ITEMS: StockItem[] = [];
 
 export const DEFAULT_CLIENTS: Client[] = [
   {

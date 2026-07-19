@@ -1,6 +1,6 @@
 import { doc, getDoc, getDocs, collection, setDoc, deleteDoc, writeBatch } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from './firebase';
-import { ProfessionalProfile, Service, Client, Appointment, MessageTemplate } from './types';
+import { ProfessionalProfile, Service, Client, Appointment, MessageTemplate, StockItem } from './types';
 
 // Fetch all cloud data for a user UID
 export async function fetchAllCloudData(uid: string) {
@@ -30,7 +30,12 @@ export async function fetchAllCloudData(uid: string) {
     const templatesSnapshot = await getDocs(templatesColRef);
     const templates = templatesSnapshot.docs.map(d => d.data() as MessageTemplate);
 
-    if (!profile && services.length === 0 && clients.length === 0 && appointments.length === 0) {
+    // 6. Fetch Stock
+    const stockColRef = collection(db, 'users', uid, 'stock');
+    const stockSnapshot = await getDocs(stockColRef);
+    const stock = stockSnapshot.docs.map(d => d.data() as StockItem);
+
+    if (!profile && services.length === 0 && clients.length === 0 && appointments.length === 0 && stock.length === 0) {
       return null;
     }
 
@@ -39,7 +44,8 @@ export async function fetchAllCloudData(uid: string) {
       services,
       clients,
       appointments,
-      templates
+      templates,
+      stock
     };
   } catch (error) {
     handleFirestoreError(error, OperationType.GET, `users/${uid}`);
@@ -54,7 +60,8 @@ export async function uploadInitialDataToCloud(
   services: Service[],
   clients: Client[],
   appointments: Appointment[],
-  templates: MessageTemplate[]
+  templates: MessageTemplate[],
+  stock: StockItem[]
 ) {
   const batch = writeBatch(db);
 
@@ -85,6 +92,12 @@ export async function uploadInitialDataToCloud(
     templates.forEach(t => {
       const tRef = doc(db, 'users', uid, 'templates', t.id);
       batch.set(tRef, t);
+    });
+
+    // Save Stock
+    stock.forEach(st => {
+      const stRef = doc(db, 'users', uid, 'stock', st.id);
+      batch.set(stRef, st);
     });
 
     await batch.commit();
@@ -181,12 +194,35 @@ export async function syncTemplate(uid: string, template: MessageTemplate) {
   }
 }
 
+// Sync single StockItem
+export async function syncStockItem(uid: string, item: StockItem) {
+  const path = `users/${uid}/stock/${item.id}`;
+  try {
+    const ref = doc(db, 'users', uid, 'stock', item.id);
+    await setDoc(ref, item);
+  } catch (error) {
+    handleFirestoreError(error, OperationType.WRITE, path);
+  }
+}
+
+// Delete single StockItem
+export async function syncStockItemDelete(uid: string, itemId: string) {
+  const path = `users/${uid}/stock/${itemId}`;
+  try {
+    const ref = doc(db, 'users', uid, 'stock', itemId);
+    await deleteDoc(ref);
+  } catch (error) {
+    handleFirestoreError(error, OperationType.DELETE, path);
+  }
+}
+
 // Clear all cloud data
 export async function clearAllCloudData(
   uid: string,
   services: Service[],
   clients: Client[],
-  appointments: Appointment[]
+  appointments: Appointment[],
+  stock: StockItem[]
 ) {
   const batch = writeBatch(db);
 
@@ -211,6 +247,12 @@ export async function clearAllCloudData(
     appointments.forEach(a => {
       const aRef = doc(db, 'users', uid, 'appointments', a.id);
       batch.delete(aRef);
+    });
+
+    // Delete stock
+    stock.forEach(st => {
+      const stRef = doc(db, 'users', uid, 'stock', st.id);
+      batch.delete(stRef);
     });
 
     await batch.commit();

@@ -1,9 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
-  Clipboard, Plus, Search, Edit2, Trash2, AlertCircle, Sparkles, Check, Clock, DollarSign, X, Palette
+  Clipboard, Plus, Search, Edit2, Trash2, AlertCircle, Sparkles, Check, Clock, DollarSign, X, Palette, Package as PackageIcon
 } from 'lucide-react';
-import { Service, ProfessionalProfile } from '../types';
+import { Service, ProfessionalProfile, StockItem, ServiceStockMaterial } from '../types';
 import { formatPrice } from '../utils';
 
 interface ServicesViewProps {
@@ -11,9 +11,10 @@ interface ServicesViewProps {
   onUpdateServices: (s: Service[]) => void;
   profile?: ProfessionalProfile;
   isDark?: boolean;
+  stock?: StockItem[];
 }
 
-export default function ServicesView({ services, onUpdateServices, profile, isDark = false }: ServicesViewProps) {
+export default function ServicesView({ services, onUpdateServices, profile, isDark = false, stock = [] }: ServicesViewProps) {
   const discountPercent = profile?.packageDiscount !== undefined ? profile.packageDiscount : 10;
   const discountMultiplier = (100 - discountPercent) / 100;
 
@@ -40,12 +41,38 @@ export default function ServicesView({ services, onUpdateServices, profile, isDa
   const [formDuration, setFormDuration] = useState(30);
   const [formPrice, setFormPrice] = useState(50);
   const [formColor, setFormColor] = useState('#0ea5e9');
-  const [formMaterials, setFormMaterials] = useState('');
+  const [formStockMaterials, setFormStockMaterials] = useState<ServiceStockMaterial[]>([]);
   const [formIsPackage, setFormIsPackage] = useState(false);
   const [formPackageItems, setFormPackageItems] = useState<string[]>([]);
 
+  // State to add a single material in the form
+  const [selectedStockItemId, setSelectedStockItemId] = useState('');
+  const [selectedStockItemQty, setSelectedStockItemQty] = useState(1);
+
   // Colors preset palette
   const COLOR_PALETTE = ['#0ea5e9', '#10b981', '#ec4899', '#8b5cf6', '#f59e0b', '#ef4444'];
+
+  const handleAddStockMaterial = () => {
+    if (!selectedStockItemId) {
+      triggerAlert('Selecione um material do estoque.', 'error');
+      return;
+    }
+    if (selectedStockItemQty <= 0) {
+      triggerAlert('A quantidade deve ser maior que zero.', 'error');
+      return;
+    }
+    if (formStockMaterials.some(m => m.stockItemId === selectedStockItemId)) {
+      triggerAlert('Este material já foi adicionado a este serviço.', 'error');
+      return;
+    }
+    setFormStockMaterials(prev => [...prev, { stockItemId: selectedStockItemId, quantity: selectedStockItemQty }]);
+    setSelectedStockItemId('');
+    setSelectedStockItemQty(1);
+  };
+
+  const handleRemoveStockMaterial = (stockItemId: string) => {
+    setFormStockMaterials(prev => prev.filter(m => m.stockItemId !== stockItemId));
+  };
 
   // Handle opening form for Create
   const handleOpenCreate = () => {
@@ -54,7 +81,9 @@ export default function ServicesView({ services, onUpdateServices, profile, isDa
     setFormDuration(30);
     setFormPrice(50);
     setFormColor('#0ea5e9');
-    setFormMaterials('');
+    setFormStockMaterials([]);
+    setSelectedStockItemId('');
+    setSelectedStockItemQty(1);
     setFormIsPackage(false);
     setFormPackageItems([]);
     setShowFormModal(true);
@@ -67,7 +96,9 @@ export default function ServicesView({ services, onUpdateServices, profile, isDa
     setFormDuration(service.duration);
     setFormPrice(service.price);
     setFormColor(service.color || '#0ea5e9');
-    setFormMaterials(service.materials || '');
+    setFormStockMaterials(service.stockMaterials || []);
+    setSelectedStockItemId('');
+    setSelectedStockItemQty(1);
     setFormIsPackage(service.isPackage || false);
     setFormPackageItems(service.packageItems || []);
     setShowFormModal(true);
@@ -95,7 +126,7 @@ export default function ServicesView({ services, onUpdateServices, profile, isDa
       duration: formDuration,
       price: formPrice,
       color: formColor,
-      materials: formMaterials.trim() || undefined,
+      stockMaterials: formStockMaterials,
       isPackage: formIsPackage,
       packageItems: formIsPackage ? formPackageItems : undefined,
     };
@@ -236,7 +267,9 @@ export default function ServicesView({ services, onUpdateServices, profile, isDa
               </div>
 
               {/* Secondary Info */}
-              {((service.isPackage && service.packageItems && service.packageItems.length > 0) || service.materials) && (
+              {((service.isPackage && service.packageItems && service.packageItems.length > 0) || 
+                (service.stockMaterials && service.stockMaterials.length > 0) || 
+                service.materials) && (
                 <div className="pl-6 pt-2 mt-1 border-t border-dashed border-slate-100 dark:border-zinc-800/60">
                   <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-2">
                     {service.isPackage && service.packageItems && service.packageItems.length > 0 && (
@@ -255,7 +288,27 @@ export default function ServicesView({ services, onUpdateServices, profile, isDa
                         </ul>
                       </>
                     )}
-                    {service.materials && (
+                    {service.stockMaterials && service.stockMaterials.length > 0 && (
+                      <>
+                        <span className={`text-[10px] font-semibold ${isDark ? 'text-zinc-350' : 'text-slate-650'}`}>
+                          Materiais:
+                        </span>
+                        <div className="flex flex-wrap gap-1">
+                          {service.stockMaterials.map((sm, index) => {
+                            const item = stock.find(i => i.id === sm.stockItemId);
+                            return (
+                              <span key={index} className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-mono ${
+                                isDark ? 'bg-zinc-850 text-zinc-300 border border-zinc-700/50' : 'bg-slate-50 text-slate-700 border border-slate-150'
+                              }`}>
+                                <PackageIcon className="w-2.5 h-2.5 opacity-65" />
+                                {item ? `${item.name} (${sm.quantity} ${item.unit})` : 'Item não encontrado'}
+                              </span>
+                            );
+                          })}
+                        </div>
+                      </>
+                    )}
+                    {(!service.stockMaterials || service.stockMaterials.length === 0) && service.materials && (
                       <>
                         <span className={`text-[10px] font-semibold ${isDark ? 'text-zinc-300' : 'text-slate-600'}`}>
                           Materiais:
@@ -495,21 +548,102 @@ export default function ServicesView({ services, onUpdateServices, profile, isDa
                   )}
                 </div>
 
-                <div>
-                  <label className={`block font-semibold ${isDark ? 'text-zinc-300' : 'text-slate-700'} mb-1.5`}>
-                    Materiais Utilizados <span className={`text-[10px] ${isDark ? 'text-zinc-500' : 'text-slate-400'}`}>(Opcional)</span>
+                <div className="space-y-2.5">
+                  <label className={`block font-semibold ${isDark ? 'text-zinc-300' : 'text-slate-700'}`}>
+                    Materiais do Estoque Utilizados
                   </label>
-                  <textarea
-                    placeholder="Ex: Descartáveis, Toalha higienizada, Creme hidratante pós-barba..."
-                    value={formMaterials}
-                    onChange={(e) => setFormMaterials(e.target.value)}
-                    rows={2}
-                    className={`w-full ${
-                      isDark 
-                        ? 'bg-zinc-950 border-zinc-800 text-zinc-200 placeholder-zinc-650 focus:border-zinc-700' 
-                        : 'bg-slate-50 border-slate-200 text-slate-800 placeholder-slate-400 focus:border-slate-800'
-                    } rounded-xl px-3 py-2 text-xs resize-none focus:outline-none`}
-                  />
+                  
+                  {stock.length === 0 ? (
+                    <div className={`p-3 rounded-xl text-center text-xs border ${
+                      isDark ? 'bg-zinc-950/40 border-zinc-800/80 text-zinc-400' : 'bg-slate-50 border-slate-150 text-slate-500'
+                    }`}>
+                      <AlertCircle className="w-4 h-4 mx-auto mb-1 text-amber-500" />
+                      Nenhum item cadastrado no estoque. Cadastre materiais na aba <strong>Controle de Estoque</strong> primeiro.
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {/* Selection Panel */}
+                      <div className="flex gap-2">
+                        <select
+                          value={selectedStockItemId}
+                          onChange={(e) => setSelectedStockItemId(e.target.value)}
+                          className={`flex-1 min-w-0 ${
+                            isDark 
+                              ? 'bg-zinc-950 border-zinc-800 text-zinc-100 focus:border-zinc-700' 
+                              : 'bg-slate-50 border-slate-200 text-slate-800 focus:border-slate-800'
+                          } rounded-xl px-2.5 py-2 text-xs focus:outline-none`}
+                        >
+                          <option value="">-- Selecione um Item --</option>
+                          {stock.map((item) => (
+                            <option key={item.id} value={item.id}>
+                              {item.name} ({item.quantity} {item.unit} disp.)
+                            </option>
+                          ))}
+                        </select>
+
+                        <div className="w-18 shrink-0 relative">
+                          <input
+                            type="number"
+                            min="0.01"
+                            step="any"
+                            value={selectedStockItemQty}
+                            onChange={(e) => setSelectedStockItemQty(Math.max(0.01, Number(e.target.value)))}
+                            className={`w-full text-center ${
+                              isDark 
+                                ? 'bg-zinc-950 border-zinc-800 text-zinc-100 focus:border-zinc-700' 
+                                : 'bg-slate-50 border-slate-200 text-slate-800 focus:border-slate-800'
+                            } rounded-xl py-2 text-xs font-mono focus:outline-none`}
+                          />
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={handleAddStockMaterial}
+                          className={`px-3 py-2 shrink-0 rounded-xl ${
+                            isDark ? 'bg-indigo-600 hover:bg-indigo-700 text-white' : 'bg-slate-900 hover:bg-slate-800 text-white'
+                          } font-bold text-xs transition-all active:scale-95`}
+                          title="Adicionar Material"
+                        >
+                          <Plus className="w-4 h-4" />
+                        </button>
+                      </div>
+
+                      {/* Attached Materials List */}
+                      <div className={`border ${isDark ? 'border-zinc-800 bg-zinc-950/20' : 'border-slate-100 bg-slate-50/50'} rounded-xl max-h-36 overflow-y-auto`}>
+                        {formStockMaterials.length === 0 ? (
+                          <div className={`p-3 text-center text-[11px] italic ${isDark ? 'text-zinc-500' : 'text-slate-400'}`}>
+                            Nenhum material de estoque associado a este serviço ainda.
+                          </div>
+                        ) : (
+                          <div className="divide-y divide-slate-100 dark:divide-zinc-800/60">
+                            {formStockMaterials.map((sm, idx) => {
+                              const item = stock.find(i => i.id === sm.stockItemId);
+                              return (
+                                <div key={idx} className="flex items-center justify-between p-2 text-xs">
+                                  <span className={`font-medium truncate ${isDark ? 'text-zinc-300' : 'text-slate-700'}`}>
+                                    {item ? item.name : 'Item excluído'}
+                                  </span>
+                                  <div className="flex items-center gap-2 shrink-0">
+                                    <span className={`font-mono text-[11px] ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
+                                      {sm.quantity} {item ? item.unit : ''}
+                                    </span>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleRemoveStockMaterial(sm.stockItemId)}
+                                      className="p-1 hover:text-rose-500 text-slate-400 transition-colors"
+                                      title="Remover"
+                                    >
+                                      <X className="w-3.5 h-3.5" />
+                                    </button>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className={`flex gap-3 pt-3.5 border-t ${isDark ? 'border-zinc-800' : 'border-slate-100'}`}>
