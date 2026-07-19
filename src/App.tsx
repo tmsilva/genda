@@ -28,6 +28,7 @@ import SettingsView from './components/SettingsView';
 import EstoqueView from './components/EstoqueView';
 import AIAssistantView from './components/AIAssistantView';
 import Logo from './components/Logo';
+import InstallPWA from './components/InstallPWA';
 import { auth, loginWithGoogle, logoutUser, loginWithEmail, registerWithEmail } from './firebase';
 import { onAuthStateChanged, User as FirebaseUser, deleteUser } from 'firebase/auth';
 import { 
@@ -140,10 +141,58 @@ export default function App() {
     if (isNotificationsOpen) {
       document.addEventListener('mousedown', handleClickOutside);
     }
-    return () => {
+  return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [isNotificationsOpen]);
+
+  // Swipe Gestures Logic
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+  const [touchEndX, setTouchEndX] = useState<number | null>(null);
+  const [touchStartY, setTouchStartY] = useState<number | null>(null);
+  const [touchEndY, setTouchEndY] = useState<number | null>(null);
+
+  const minSwipeDistance = 50;
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEndX(null);
+    setTouchEndY(null);
+    setTouchStartX(e.targetTouches[0].clientX);
+    setTouchStartY(e.targetTouches[0].clientY);
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    setTouchEndX(e.targetTouches[0].clientX);
+    setTouchEndY(e.targetTouches[0].clientY);
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStartX || !touchEndX || !touchStartY || !touchEndY) return;
+    
+    const distanceX = touchStartX - touchEndX;
+    const distanceY = touchStartY - touchEndY;
+    const isLeftSwipe = distanceX > minSwipeDistance;
+    const isRightSwipe = distanceX < -minSwipeDistance;
+    
+    // Ensure horizontal swipe is more pronounced than vertical swipe
+    if (Math.abs(distanceX) > Math.abs(distanceY)) {
+      if (isLeftSwipe || isRightSwipe) {
+        const tabs: Array<'dashboard' | 'agenda' | 'clients' | 'finance' | 'services' | 'estoque' | 'ai' | 'settings'> = [
+          'dashboard', 'agenda', 'clients', 'finance', 'services', 'estoque', 'ai', 'settings'
+        ];
+        const currentIndex = tabs.indexOf(activeTab);
+        
+        if (isLeftSwipe && currentIndex < tabs.length - 1) {
+          setActiveTab(tabs[currentIndex + 1]);
+          if (currentIndex + 1 >= 4) setMobileNavPage(1);
+        }
+        if (isRightSwipe && currentIndex > 0) {
+          setActiveTab(tabs[currentIndex - 1]);
+          if (currentIndex - 1 < 4) setMobileNavPage(0);
+        }
+      }
+    }
+  };
 
   // Auto-dismiss simulated push notification after 8 seconds
   useEffect(() => {
@@ -854,7 +903,7 @@ export default function App() {
   };
 
   if (authLoading) {
-    return (
+  return (
       <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center gap-4">
         <Logo variant="full" size="xl" />
         <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin mt-4" />
@@ -1048,7 +1097,7 @@ export default function App() {
             </aside>
 
             {/* Main content wrapper */}
-            <div className="flex-1 flex flex-col min-w-0 h-full overflow-y-auto pb-24 md:pb-6 relative">
+            <div className="flex-1 flex flex-col min-w-0 h-full overflow-y-auto pb-24 md:pb-6 relative" onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}>
             
              {/* SIMULATED IN-APP PUSH NOTIFICATION POPUP */}
              <AnimatePresence>
@@ -1886,6 +1935,7 @@ export default function App() {
         )}
       </AnimatePresence>
 
+      <InstallPWA isDark={isDark} />
     </div>
   );
 }
