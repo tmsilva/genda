@@ -1,4 +1,6 @@
-import React, { useEffect, useState } from 'react';
+const fs = require('fs');
+
+const code = `import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Download, X } from 'lucide-react';
 
@@ -88,21 +90,21 @@ export default function InstallPWA({ isDark = true }: InstallPWAProps) {
           transition={{ type: 'spring', damping: 25, stiffness: 200 }}
           className="fixed bottom-[88px] left-4 right-4 md:left-auto md:right-8 md:bottom-8 md:w-96 z-50"
         >
-          <div className={`p-4 rounded-3xl shadow-xl flex flex-col gap-4 border ${
+          <div className={\`p-4 rounded-3xl shadow-xl flex flex-col gap-4 border \${
             isDark 
               ? 'bg-zinc-900 border-zinc-800 text-zinc-100' 
               : 'bg-white border-slate-100 text-slate-900'
-          }`}>
+          }\`}>
             <div className="flex justify-between items-start gap-3">
               <div className="flex gap-3">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
+                <div className={\`w-10 h-10 rounded-full flex items-center justify-center shrink-0 \${
                   isDark ? 'bg-indigo-500/20 text-indigo-400' : 'bg-indigo-100 text-indigo-600'
-                }`}>
+                }\`}>
                   <Download className="w-5 h-5" />
                 </div>
                 <div className="flex flex-col">
                   <h3 className="font-bold text-sm">Instalar Aplicativo</h3>
-                  <p className={`text-xs mt-0.5 leading-relaxed ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
+                  <p className={\`text-xs mt-0.5 leading-relaxed \${isDark ? 'text-zinc-400' : 'text-slate-500'}\`}>
                     {isIOS 
                       ? 'Adicione o Genda à sua tela inicial: toque em Compartilhar e depois "Adicionar à Tela de Início".'
                       : 'Adicione o Genda à sua tela inicial para acesso rápido, uso offline e melhor experiência.'}
@@ -112,9 +114,9 @@ export default function InstallPWA({ isDark = true }: InstallPWAProps) {
               
               <button 
                 onClick={handleDismiss}
-                className={`p-1.5 rounded-full transition-colors shrink-0 ${
+                className={\`p-1.5 rounded-full transition-colors shrink-0 \${
                   isDark ? 'hover:bg-zinc-800 text-zinc-500' : 'hover:bg-slate-100 text-slate-400'
-                }`}
+                }\`}
                 title="Agora não"
               >
                 <X className="w-4 h-4" />
@@ -124,9 +126,9 @@ export default function InstallPWA({ isDark = true }: InstallPWAProps) {
             <div className="flex gap-2 justify-end">
               <button
                 onClick={handleDismiss}
-                className={`px-4 py-2 text-sm font-semibold rounded-full transition-colors ${
+                className={\`px-4 py-2 text-sm font-semibold rounded-full transition-colors \${
                   isDark ? 'text-zinc-300 hover:bg-zinc-800' : 'text-slate-600 hover:bg-slate-100'
-                }`}
+                }\`}
               >
                 Depois
               </button>
@@ -145,3 +147,6 @@ export default function InstallPWA({ isDark = true }: InstallPWAProps) {
     </AnimatePresence>
   );
 }
+`;
+
+fs.writeFileSync('src/components/InstallPWA.tsx', code);
