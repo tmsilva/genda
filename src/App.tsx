@@ -177,9 +177,12 @@ export default function App() {
     // Ensure horizontal swipe is more pronounced than vertical swipe
     if (Math.abs(distanceX) > Math.abs(distanceY)) {
       if (isLeftSwipe || isRightSwipe) {
-        const tabs: Array<'dashboard' | 'agenda' | 'clients' | 'finance' | 'services' | 'estoque' | 'ai' | 'settings'> = [
+        const allTabs: Array<'dashboard' | 'agenda' | 'clients' | 'finance' | 'services' | 'estoque' | 'ai' | 'settings'> = [
           'dashboard', 'agenda', 'clients', 'finance', 'services', 'estoque', 'ai', 'settings'
         ];
+        const tabs = user?.email === 'thiagomsy@gmail.com' 
+          ? allTabs 
+          : allTabs.filter(t => t !== 'ai');
         const currentIndex = tabs.indexOf(activeTab);
         
         if (isLeftSwipe && currentIndex < tabs.length - 1) {
@@ -1050,18 +1053,20 @@ export default function App() {
                 </button>
 
                 {/* Item 4.2: Assistente IA */}
-                <button
-                  onClick={() => { setActiveClientId(null); setActiveTab('ai'); }}
-                  className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all cursor-pointer ${
-                    activeTab === 'ai'
-                      ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/25'
-                      : 'themed-sidebar-inactive-btn'
-                  } ${!isSidebarExpanded && 'justify-center'}`}
-                  title="Genda AI"
-                >
-                  <Bot className="w-5 h-5 shrink-0" />
-                  {isSidebarExpanded && <span className="text-sm">Genda AI</span>}
-                </button>
+                {user?.email === 'thiagomsy@gmail.com' && (
+                  <button
+                    onClick={() => { setActiveClientId(null); setActiveTab('ai'); }}
+                    className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all cursor-pointer ${
+                      activeTab === 'ai'
+                        ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/25'
+                        : 'themed-sidebar-inactive-btn'
+                    } ${!isSidebarExpanded && 'justify-center'}`}
+                    title="Genda AI"
+                  >
+                    <Bot className="w-5 h-5 shrink-0" />
+                    {isSidebarExpanded && <span className="text-sm">Genda AI</span>}
+                  </button>
+                )}
 
                 {/* Item 5: Ajustes */}
                 <button
@@ -1761,23 +1766,25 @@ export default function App() {
                     </button>
                     
                     {/* Tab 6: Genda AI */}
-                    <button
-                      onClick={() => { setActiveClientId(null); setActiveTab('ai'); }}
-                      className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-all active:scale-95 shrink-0 min-w-[56px] sm:min-w-[64px] ${
-                        activeTab === 'ai' 
-                          ? (isDark ? 'text-indigo-400 scale-105 font-bold' : 'text-indigo-600 scale-105 font-bold') 
-                          : 'themed-mobile-inactive'
-                      }`}
-                    >
-                      <div className={`p-1 sm:p-1.5 rounded-xl transition-all ${
-                        activeTab === 'ai' 
-                          ? (isDark ? 'bg-indigo-500 text-white' : 'bg-indigo-50 text-indigo-600') 
-                          : 'bg-transparent'
-                      }`}>
-                        <Bot className="w-5 h-5 sm:w-5 sm:h-5" />
-                      </div>
-                      <span className="text-[9px] sm:text-[10px] truncate max-w-full">Genda AI</span>
-                    </button>
+                    {user?.email === 'thiagomsy@gmail.com' && (
+                      <button
+                        onClick={() => { setActiveClientId(null); setActiveTab('ai'); }}
+                        className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-all active:scale-95 shrink-0 min-w-[56px] sm:min-w-[64px] ${
+                          activeTab === 'ai' 
+                            ? (isDark ? 'text-indigo-400 scale-105 font-bold' : 'text-indigo-600 scale-105 font-bold') 
+                            : 'themed-mobile-inactive'
+                        }`}
+                      >
+                        <div className={`p-1 sm:p-1.5 rounded-xl transition-all ${
+                          activeTab === 'ai' 
+                            ? (isDark ? 'bg-indigo-500 text-white' : 'bg-indigo-50 text-indigo-600') 
+                            : 'bg-transparent'
+                        }`}>
+                          <Bot className="w-5 h-5 sm:w-5 sm:h-5" />
+                        </div>
+                        <span className="text-[9px] sm:text-[10px] truncate max-w-full">Genda AI</span>
+                      </button>
+                    )}
 
                     {/* Tab 7: Ajustes */}
                     <button
