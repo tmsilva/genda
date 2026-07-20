@@ -1168,7 +1168,7 @@ export default function App() {
 
             {/* UPPER BRAND HEADER ROW */}
             <div className={`${isDark ? 'bg-zinc-900/50 border-zinc-800' : 'bg-white border-slate-100'} border-b shadow-sm sticky top-0 z-30 backdrop-blur-md`}>
-              <div className="max-w-none mx-auto px-4 md:px-8 py-3 pt-safe flex items-center justify-between">
+              <div className="max-w-none mx-auto px-4 md:px-8 pb-3 pt-[max(env(safe-area-inset-top),1rem)] sm:pt-[max(env(safe-area-inset-top),1.25rem)] flex items-center justify-between">
                 
                 {/* Brand Logo & Professional Name info */}
                 <div className="flex items-center gap-2.5">
