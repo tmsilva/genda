@@ -390,23 +390,19 @@ export default function Onboarding({
       <div className={`absolute bottom-0 right-0 w-96 h-96 ${ts.glow2} rounded-full blur-3xl pointer-events-none -z-10 transition-all duration-500`} />
 
 
-      {/* Top Bar with Logo */}
-      <div className="flex items-center justify-between w-full max-w-4xl mx-auto py-2">
-        <Logo variant="full" size="sm" />
-
-        {step > 0 && step < 6 && (
-          <button 
-            onClick={onQuickStart}
-            className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium px-3 py-1.5 rounded-lg border border-slate-700/60 transition-all cursor-pointer"
-          >
-            Pular e Usar Demo ⚡
-          </button>
-        )}
-      </div>
-
       {/* Card Form Area */}
       <div className="flex-1 flex items-center justify-center my-6 md:my-10">
         <div className={`w-full max-w-lg ${ts.cardBg} backdrop-blur-md rounded-2xl shadow-2xl overflow-hidden p-6 md:p-8 relative transition-all duration-500`}>
+          {step > 0 && step < 6 && (
+            <div className="flex justify-end mb-2">
+              <button 
+                onClick={onQuickStart}
+                className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium px-3 py-1.5 rounded-lg border border-slate-700/60 transition-all cursor-pointer"
+              >
+                Pular e Usar Demo ⚡
+              </button>
+            </div>
+          )}
           
           <AnimatePresence mode="wait">
             {/* SCREEN 1.1 - WELCOME */}

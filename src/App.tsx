@@ -1188,7 +1188,7 @@ export default function App() {
                       }}
                     />
                   ) : (
-                    <Logo variant="icon" className="w-9 h-9 shadow-md rounded-xl" />
+                    <Logo variant="icon" className="w-9 h-9 shadow-md rounded-xl" lightMode={!isDark} />
                   )}
                   <div className="text-left">
                     {/* Desktop Title */}
