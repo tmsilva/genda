@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { 
   Calendar, Plus, Clock, User, Briefcase, DollarSign, 
   ChevronLeft, ChevronRight, Share2, Edit2, Trash2, 
-  Check, Phone, CheckCircle2, AlertCircle, X, Bell, RefreshCw, Send, Search
+  Check, Phone, CheckCircle2, AlertCircle, X, Bell, RefreshCw, Send, Search, Repeat
 } from 'lucide-react';
 import { Appointment, Client, Service, ThemeOption, RecurrenceType, PaymentStatus, AppointmentStatus, MessageTemplate } from '../types';
 import { formatPhone, getWhatsAppNumber, formatPrice } from '../utils';
@@ -83,6 +83,17 @@ export default function ScheduleView({
     }, 3500);
   };
 
+  // Helper for formatting recurrence label
+  const getRecurrenceLabel = (type: RecurrenceType, customDays?: number) => {
+    switch (type) {
+      case 'weekly': return 'Semanal';
+      case 'biweekly': return 'Quinzenal';
+      case 'monthly': return 'Mensal';
+      case 'custom': return `a cada ${customDays || 7} dias`;
+      default: return '';
+    }
+  };
+
   // Creation/Edit Form State
   const [formAppointmentId, setFormAppointmentId] = useState<string | null>(null);
   const [formClientId, setFormClientId] = useState('');
@@ -92,6 +103,8 @@ export default function ScheduleView({
   const [formDuration, setFormDuration] = useState(30);
   const [formPrice, setFormPrice] = useState(50);
   const [formRecurrence, setFormRecurrence] = useState<RecurrenceType>('none');
+  const [formCustomIntervalDays, setFormCustomIntervalDays] = useState<number>(7);
+  const [formRecurrenceCount, setFormRecurrenceCount] = useState<number>(4);
   const [formReminder, setFormReminder] = useState(true);
 
   // Custom Blocked Slots State
@@ -240,6 +253,8 @@ export default function ScheduleView({
     }
     
     setFormRecurrence('none');
+    setFormCustomIntervalDays(7);
+    setFormRecurrenceCount(4);
     setFormReminder(true);
     setFormPaymentStatus('pending');
     setFormPaymentMethod('pix');
@@ -255,7 +270,9 @@ export default function ScheduleView({
     setFormTime(appt.time);
     setFormDuration(appt.duration);
     setFormPrice(appt.price);
-    setFormRecurrence(appt.isRecurring);
+    setFormRecurrence(appt.isRecurring || 'none');
+    setFormCustomIntervalDays(appt.customIntervalDays || 7);
+    setFormRecurrenceCount(1);
     setFormReminder(appt.isReminderEnabled);
     setFormPaymentStatus(appt.paymentStatus);
     setFormPaymentMethod(appt.paymentMethod || 'pix');
@@ -286,28 +303,95 @@ export default function ScheduleView({
       return;
     }
 
-    const apptData: Appointment = {
-      id: formAppointmentId || 'appt_' + Date.now(),
-      clientId: formClientId,
-      serviceId: formServiceId,
-      date: formDate,
-      time: formTime,
-      duration: formDuration,
-      price: formPrice,
-      isRecurring: formRecurrence,
-      isReminderEnabled: formReminder,
-      paymentStatus: formPaymentStatus,
-      paymentMethod: formPaymentStatus === 'paid' ? formPaymentMethod : undefined,
-      paymentDate: formPaymentStatus === 'paid' ? formDate : undefined,
-      status: 'scheduled',
-    };
-
     if (formAppointmentId) {
+      // Editing existing single appointment
+      const apptData: Appointment = {
+        id: formAppointmentId,
+        clientId: formClientId,
+        serviceId: formServiceId,
+        date: formDate,
+        time: formTime,
+        duration: formDuration,
+        price: formPrice,
+        isRecurring: formRecurrence,
+        customIntervalDays: formRecurrence === 'custom' ? formCustomIntervalDays : undefined,
+        isReminderEnabled: formReminder,
+        paymentStatus: formPaymentStatus,
+        paymentMethod: formPaymentStatus === 'paid' ? formPaymentMethod : undefined,
+        paymentDate: formPaymentStatus === 'paid' ? formDate : undefined,
+        status: 'scheduled',
+      };
+
       onUpdateAppointment(apptData);
       triggerAlert('Agendamento atualizado com sucesso!', 'success');
     } else {
-      onAddAppointment(apptData);
-      triggerAlert('Agendamento realizado com sucesso!', 'success');
+      // Creating NEW appointment(s)
+      if (formRecurrence === 'none') {
+        const apptData: Appointment = {
+          id: 'appt_' + Date.now(),
+          clientId: formClientId,
+          serviceId: formServiceId,
+          date: formDate,
+          time: formTime,
+          duration: formDuration,
+          price: formPrice,
+          isRecurring: 'none',
+          isReminderEnabled: formReminder,
+          paymentStatus: formPaymentStatus,
+          paymentMethod: formPaymentStatus === 'paid' ? formPaymentMethod : undefined,
+          paymentDate: formPaymentStatus === 'paid' ? formDate : undefined,
+          status: 'scheduled',
+        };
+
+        onAddAppointment(apptData);
+        triggerAlert('Agendamento realizado com sucesso!', 'success');
+      } else {
+        // Generating multiple recurring instances based on count & interval
+        const count = Math.max(1, Math.min(52, formRecurrenceCount));
+        const groupId = 'grp_' + Date.now();
+        const baseDate = parseDate(formDate + 'T00:00:00');
+        const customDays = Math.max(1, formCustomIntervalDays);
+
+        for (let i = 0; i < count; i++) {
+          let nextDateStr = formDate;
+          if (i > 0) {
+            if (formRecurrence === 'weekly') {
+              nextDateStr = baseDate.add(i * 7, 'day').format('YYYY-MM-DD');
+            } else if (formRecurrence === 'biweekly') {
+              nextDateStr = baseDate.add(i * 14, 'day').format('YYYY-MM-DD');
+            } else if (formRecurrence === 'monthly') {
+              nextDateStr = baseDate.add(i, 'month').format('YYYY-MM-DD');
+            } else if (formRecurrence === 'custom') {
+              nextDateStr = baseDate.add(i * customDays, 'day').format('YYYY-MM-DD');
+            }
+          }
+
+          const apptData: Appointment = {
+            id: 'appt_' + Date.now() + '_' + i,
+            clientId: formClientId,
+            serviceId: formServiceId,
+            date: nextDateStr,
+            time: formTime,
+            duration: formDuration,
+            price: formPrice,
+            isRecurring: formRecurrence,
+            customIntervalDays: formRecurrence === 'custom' ? customDays : undefined,
+            recurrenceGroupId: groupId,
+            recurrenceIndex: i + 1,
+            recurrenceTotal: count,
+            isReminderEnabled: formReminder,
+            paymentStatus: i === 0 ? formPaymentStatus : 'pending',
+            paymentMethod: i === 0 && formPaymentStatus === 'paid' ? formPaymentMethod : undefined,
+            paymentDate: i === 0 && formPaymentStatus === 'paid' ? formDate : undefined,
+            status: 'scheduled',
+          };
+
+          onAddAppointment(apptData);
+        }
+
+        const label = getRecurrenceLabel(formRecurrence, customDays);
+        triggerAlert(`${count} agendamentos recorrentes (${label}) criados com sucesso!`, 'success');
+      }
     }
 
     setShowCreateModal(false);
@@ -685,21 +769,37 @@ export default function ScheduleView({
             </button>
           </div>
 
-          {/* Quick Tab Selectors */}
-          <div className={`flex self-center sm:self-auto ${isDark ? 'bg-zinc-800 border-zinc-700/60' : 'bg-slate-100 border-slate-200/40'} p-0.5 rounded-xl border text-xs font-medium`}>
-            {(['day', 'week', 'month'] as const).map((t) => (
-              <button
-                key={t}
-                onClick={() => setActiveTab(t)}
-                className={`px-2.5 py-1.5 sm:px-3 rounded-lg transition-all capitalize cursor-pointer ${
-                  activeTab === t 
-                    ? (isDark ? 'bg-zinc-700 text-white shadow-sm' : 'bg-white text-slate-900 shadow-sm') 
-                    : (isDark ? 'text-zinc-400 hover:text-zinc-200' : 'text-slate-500 hover:text-slate-800')
-                }`}
-              >
-                {t === 'day' ? 'Dia' : t === 'week' ? 'Semana' : 'Mês'}
-              </button>
-            ))}
+          {/* Today Button & Quick Tab Selectors */}
+          <div className="flex items-center gap-2 self-center sm:self-auto">
+            <button
+              type="button"
+              onClick={() => setSelectedDate(getTodayStr())}
+              className={`px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 active:scale-95 ${
+                selectedDate === getTodayStr()
+                  ? (isDark ? 'bg-indigo-600/20 text-indigo-400 border-indigo-500/40' : 'bg-indigo-50 text-indigo-700 border-indigo-200')
+                  : (isDark ? 'bg-zinc-800 text-zinc-300 border-zinc-700 hover:bg-zinc-700' : 'bg-slate-100 text-slate-700 border-slate-200/60 hover:bg-slate-200/60')
+              }`}
+              title="Ir para a data de hoje"
+            >
+              <Calendar className="w-3.5 h-3.5" />
+              <span>Hoje</span>
+            </button>
+
+            <div className={`flex ${isDark ? 'bg-zinc-800 border-zinc-700/60' : 'bg-slate-100 border-slate-200/40'} p-0.5 rounded-xl border text-xs font-medium`}>
+              {(['day', 'week', 'month'] as const).map((t) => (
+                <button
+                  key={t}
+                  onClick={() => setActiveTab(t)}
+                  className={`px-2.5 py-1.5 sm:px-3 rounded-lg transition-all capitalize cursor-pointer ${
+                    activeTab === t 
+                      ? (isDark ? 'bg-zinc-700 text-white shadow-sm' : 'bg-white text-slate-900 shadow-sm') 
+                      : (isDark ? 'text-zinc-400 hover:text-zinc-200' : 'text-slate-500 hover:text-slate-800')
+                  }`}
+                >
+                  {t === 'day' ? 'Dia' : t === 'week' ? 'Semana' : 'Mês'}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -866,7 +966,12 @@ export default function ScheduleView({
 
                             <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 self-start sm:self-auto mt-1 sm:mt-0">
                               {booking.isRecurring !== 'none' && (
-                                <span className={`p-1 rounded ${isDark ? 'bg-zinc-800 text-zinc-300 border-zinc-700' : 'bg-white text-slate-600 border'} text-[9px] font-mono`}>Recorrente</span>
+                                <span className={`px-2 py-0.5 rounded-md border flex items-center gap-1 ${
+                                  isDark ? 'bg-indigo-950/60 text-indigo-300 border-indigo-800/40' : 'bg-indigo-50 text-indigo-700 border-indigo-200'
+                                } text-[9px] font-semibold font-mono shrink-0`}>
+                                  <Repeat className="w-2.5 h-2.5 shrink-0" />
+                                  <span>Recorrente ({getRecurrenceLabel(booking.isRecurring, booking.customIntervalDays)})</span>
+                                </span>
                               )}
                               <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
                                 booking.paymentStatus === 'paid' 
@@ -1032,6 +1137,9 @@ export default function ScheduleView({
                             style={{ backgroundColor: `${s.color}08`, borderColor: s.color, color: s.color }}
                           >
                             {s.isPackage && <span className="text-amber-500 text-[9px] font-extrabold shrink-0">★</span>}
+                            {appt.isRecurring && appt.isRecurring !== 'none' && (
+                              <Repeat className="w-2.5 h-2.5 shrink-0 text-indigo-600 dark:text-indigo-400" title={`Recorrente (${getRecurrenceLabel(appt.isRecurring, appt.customIntervalDays)})`} />
+                            )}
                             <span className="font-mono">{appt.time}</span>
                             <span>-</span>
                             <span className="max-w-[80px] truncate text-slate-800">{c.name.split(' ')[0]}</span>
@@ -1124,10 +1232,10 @@ export default function ScheduleView({
 
       {/* MODAL 3.2 — CRIAR NOVO AGENDAMENTO */}
       {showCreateModal && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white border border-slate-100 rounded-2xl max-w-md w-full overflow-hidden shadow-2xl">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className={`${isDark ? 'bg-zinc-900 border-zinc-800 text-zinc-100 shadow-black/80' : 'bg-white border-slate-100 text-slate-700'} border rounded-2xl max-w-md w-full overflow-hidden shadow-2xl transition-all`}>
             {/* Header */}
-            <div className="bg-slate-900 px-5 py-4 flex items-center justify-between text-white">
+            <div className={`${isDark ? 'bg-zinc-950 border-b border-zinc-800' : 'bg-slate-900'} px-5 py-4 flex items-center justify-between text-white`}>
               <div>
                 <h3 className="font-display font-bold text-base">
                   {formAppointmentId ? 'Editar Agendamento' : 'Novo Agendamento'}
@@ -1145,33 +1253,33 @@ export default function ScheduleView({
             </div>
 
             {/* Form */}
-            <form onSubmit={handleSaveAppointment} className="p-5 space-y-4 text-xs text-slate-700">
+            <form onSubmit={handleSaveAppointment} className={`p-5 space-y-4 text-xs ${isDark ? 'text-zinc-300' : 'text-slate-700'}`}>
               
               {/* Select Client with quick add */}
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label className="block font-semibold text-slate-700">Cliente *</label>
+                  <label className={`block font-semibold ${isDark ? 'text-zinc-200' : 'text-slate-700'}`}>Cliente *</label>
                   <button
                     type="button"
                     onClick={() => setShowFastClientModal(true)}
-                    className="text-indigo-500 hover:underline font-bold text-[10px] cursor-pointer"
+                    className="text-indigo-400 hover:underline font-bold text-[10px] cursor-pointer"
                   >
                     + Novo Cliente Rápido
                   </button>
                 </div>
                 <div className="relative">
-                  <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
+                  <span className={`absolute inset-y-0 left-0 pl-3 flex items-center ${isDark ? 'text-zinc-500' : 'text-slate-400'}`}>
                     <User className="w-4 h-4" />
                   </span>
                   <select
                     value={formClientId}
                     onChange={(e) => setFormClientId(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2 focus:outline-none focus:border-slate-800 transition-all appearance-none"
+                    className={`w-full ${isDark ? 'bg-zinc-800 border-zinc-700 text-zinc-100 focus:border-zinc-500' : 'bg-slate-50 border-slate-200 text-slate-800 focus:border-slate-800'} rounded-xl pl-10 pr-4 py-2 focus:outline-none transition-all appearance-none`}
                     required
                   >
-                    <option value="">-- Selecione o Cliente --</option>
+                    <option value="" className={isDark ? 'bg-zinc-900 text-zinc-100' : 'bg-white text-slate-800'}>-- Selecione o Cliente --</option>
                     {clients.map(c => (
-                      <option key={c.id} value={c.id}>{c.name} {c.phone}</option>
+                      <option key={c.id} value={c.id} className={isDark ? 'bg-zinc-900 text-zinc-100' : 'bg-white text-slate-800'}>{c.name} {c.phone}</option>
                     ))}
                   </select>
                 </div>
@@ -1203,20 +1311,20 @@ export default function ScheduleView({
 
               {/* Select Service */}
               <div>
-                <label className="block font-semibold text-slate-700 mb-1.5">Serviço *</label>
+                <label className={`block font-semibold ${isDark ? 'text-zinc-200' : 'text-slate-700'} mb-1.5`}>Serviço *</label>
                 <div className="relative">
-                  <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
+                  <span className={`absolute inset-y-0 left-0 pl-3 flex items-center ${isDark ? 'text-zinc-500' : 'text-slate-400'}`}>
                     <Briefcase className="w-4 h-4" />
                   </span>
                   <select
                     value={formServiceId}
                     onChange={(e) => handleServiceChange(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2 focus:outline-none focus:border-slate-800 transition-all appearance-none"
+                    className={`w-full ${isDark ? 'bg-zinc-800 border-zinc-700 text-zinc-100 focus:border-zinc-500' : 'bg-slate-50 border-slate-200 text-slate-800 focus:border-slate-800'} rounded-xl pl-10 pr-4 py-2 focus:outline-none transition-all appearance-none`}
                     required
                   >
-                    <option value="">-- Selecione o Serviço --</option>
+                    <option value="" className={isDark ? 'bg-zinc-900 text-zinc-100' : 'bg-white text-slate-800'}>-- Selecione o Serviço --</option>
                     {services.map(s => (
-                      <option key={s.id} value={s.id}>{s.name} (R$ {formatPrice(s.price)})</option>
+                      <option key={s.id} value={s.id} className={isDark ? 'bg-zinc-900 text-zinc-100' : 'bg-white text-slate-800'}>{s.name} (R$ {formatPrice(s.price)})</option>
                     ))}
                   </select>
                 </div>
@@ -1225,83 +1333,143 @@ export default function ScheduleView({
               {/* Date & Time fields */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1.5">Data</label>
+                  <label className={`block font-semibold ${isDark ? 'text-zinc-200' : 'text-slate-700'} mb-1.5`}>Data</label>
                   <input
                     type="date"
                     value={formDate}
                     onChange={(e) => setFormDate(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 font-mono focus:outline-none"
+                    className={`w-full ${isDark ? 'bg-zinc-800 border-zinc-700 text-zinc-100' : 'bg-slate-50 border-slate-200 text-slate-800'} rounded-xl px-3 py-1.5 font-mono focus:outline-none`}
                     required
                   />
                 </div>
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1.5">Horário</label>
+                  <label className={`block font-semibold ${isDark ? 'text-zinc-200' : 'text-slate-700'} mb-1.5`}>Horário</label>
                   <input
                     type="time"
                     value={formTime}
                     onChange={(e) => setFormTime(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 font-mono focus:outline-none"
+                    className={`w-full ${isDark ? 'bg-zinc-800 border-zinc-700 text-zinc-100' : 'bg-slate-50 border-slate-200 text-slate-800'} rounded-xl px-3 py-1.5 font-mono focus:outline-none`}
                     required
                   />
                 </div>
               </div>
 
               {/* Overrides: Duration & Price */}
-              <div className="grid grid-cols-2 gap-3 bg-slate-50 p-3 rounded-xl border border-slate-100">
+              <div className={`grid grid-cols-2 gap-3 ${isDark ? 'bg-zinc-800/50 border-zinc-700/60' : 'bg-slate-50 border-slate-100'} p-3 rounded-xl border`}>
                 <div>
-                  <label className="block font-medium text-slate-500 mb-1">Duração (minutos)</label>
+                  <label className={`block font-medium ${isDark ? 'text-zinc-400' : 'text-slate-500'} mb-1`}>Duração (minutos)</label>
                   <input
                     type="number"
                     value={formDuration}
                     onChange={(e) => setFormDuration(Number(e.target.value))}
-                    className="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1 text-center font-mono focus:outline-none"
+                    className={`w-full ${isDark ? 'bg-zinc-900 border-zinc-700 text-zinc-100' : 'bg-white border-slate-200 text-slate-800'} border rounded-lg px-2.5 py-1 text-center font-mono focus:outline-none`}
                   />
                 </div>
                 <div>
-                  <label className="block font-medium text-slate-500 mb-1">Preço Cobrado (R$)</label>
+                  <label className={`block font-medium ${isDark ? 'text-zinc-400' : 'text-slate-500'} mb-1`}>Preço Cobrado (R$)</label>
                   <input
                     type="number"
                     value={formPrice}
                     onChange={(e) => setFormPrice(Number(e.target.value))}
-                    className="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1 text-center font-mono focus:outline-none"
+                    className={`w-full ${isDark ? 'bg-zinc-900 border-zinc-700 text-zinc-100' : 'bg-white border-slate-200 text-slate-800'} border rounded-lg px-2.5 py-1 text-center font-mono focus:outline-none`}
                   />
                 </div>
               </div>
 
-              {/* Recurrence & Lembrete 24h & Payment Status */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-semibold text-slate-700 mb-1.5">Recorrência</label>
-                  <select
-                    value={formRecurrence}
-                    onChange={(e) => setFormRecurrence(e.target.value as RecurrenceType)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 focus:outline-none appearance-none"
-                  >
-                    <option value="none">Não recorrente</option>
-                    <option value="weekly">Semanal</option>
-                    <option value="biweekly">Quinzenal</option>
-                    <option value="monthly">Mensal</option>
-                  </select>
+              {/* Recurrence & Lembrete 24h */}
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className={`block font-semibold ${isDark ? 'text-zinc-200' : 'text-slate-700'} mb-1.5`}>Recorrência</label>
+                    <select
+                      value={formRecurrence}
+                      onChange={(e) => setFormRecurrence(e.target.value as RecurrenceType)}
+                      className={`w-full ${isDark ? 'bg-zinc-800 border-zinc-700 text-zinc-100' : 'bg-slate-50 border-slate-200 text-slate-800'} rounded-xl px-3 py-1.5 focus:outline-none appearance-none`}
+                    >
+                      <option value="none" className={isDark ? 'bg-zinc-900 text-zinc-100' : 'bg-white text-slate-800'}>Não recorrente</option>
+                      <option value="weekly" className={isDark ? 'bg-zinc-900 text-zinc-100' : 'bg-white text-slate-800'}>Semanal (a cada 7 dias)</option>
+                      <option value="biweekly" className={isDark ? 'bg-zinc-900 text-zinc-100' : 'bg-white text-slate-800'}>Quinzenal (a cada 14 dias)</option>
+                      <option value="monthly" className={isDark ? 'bg-zinc-900 text-zinc-100' : 'bg-white text-slate-800'}>Mensal (a cada 1 mês)</option>
+                      <option value="custom" className={isDark ? 'bg-zinc-900 text-zinc-100' : 'bg-white text-slate-800'}>Personalizado (intervalo em dias)</option>
+                    </select>
+                  </div>
+
+                  <div className="flex items-center gap-2 pt-5 pl-2">
+                    <input
+                      type="checkbox"
+                      id="reminder-check"
+                      checked={formReminder}
+                      onChange={(e) => setFormReminder(e.target.checked)}
+                      className="rounded text-indigo-600 focus:ring-indigo-500"
+                    />
+                    <label htmlFor="reminder-check" className={`font-semibold ${isDark ? 'text-zinc-200' : 'text-slate-700'} select-none flex items-center gap-1`}>
+                      <Bell className="w-3.5 h-3.5 text-indigo-500" />
+                      Lembrete 24h?
+                    </label>
+                  </div>
                 </div>
 
-                <div className="flex items-center gap-2 pt-5 pl-2">
-                  <input
-                    type="checkbox"
-                    id="reminder-check"
-                    checked={formReminder}
-                    onChange={(e) => setFormReminder(e.target.checked)}
-                    className="rounded text-indigo-600 focus:ring-indigo-500"
-                  />
-                  <label htmlFor="reminder-check" className="font-semibold text-slate-700 select-none flex items-center gap-1">
-                    <Bell className="w-3.5 h-3.5 text-indigo-500" />
-                    Lembrete 24h?
-                  </label>
-                </div>
+                {/* Extra Recurrence Options when active */}
+                {formRecurrence !== 'none' && (
+                  <div className={`p-3.5 rounded-xl border space-y-3 ${isDark ? 'bg-indigo-950/30 border-indigo-900/50 text-zinc-200' : 'bg-indigo-50/60 border-indigo-100 text-slate-800'}`}>
+                    <div className="flex items-center gap-2 text-xs font-bold text-indigo-500 dark:text-indigo-400">
+                      <Repeat className="w-4 h-4" />
+                      <span>Configuração de Recorrência</span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      {/* Custom Interval in Days */}
+                      {formRecurrence === 'custom' && (
+                        <div className={!formAppointmentId ? 'col-span-1' : 'col-span-2'}>
+                          <label className={`block text-[11px] font-medium ${isDark ? 'text-zinc-300' : 'text-slate-600'} mb-1`}>
+                            Intervalo (em dias)
+                          </label>
+                          <input
+                            type="number"
+                            min={1}
+                            max={365}
+                            value={formCustomIntervalDays}
+                            onChange={(e) => setFormCustomIntervalDays(Math.max(1, Number(e.target.value)))}
+                            className={`w-full ${isDark ? 'bg-zinc-800 border-zinc-700 text-zinc-100' : 'bg-white border-slate-200 text-slate-800'} border rounded-lg px-2.5 py-1.5 font-mono text-center focus:outline-none`}
+                          />
+                        </div>
+                      )}
+
+                      {/* Quantity of appointments to create (only when creating new) */}
+                      {!formAppointmentId && (
+                        <div className={formRecurrence === 'custom' ? 'col-span-1' : 'col-span-2'}>
+                          <label className={`block text-[11px] font-medium ${isDark ? 'text-zinc-300' : 'text-slate-600'} mb-1`}>
+                            Qtd. de agendamentos a criar
+                          </label>
+                          <input
+                            type="number"
+                            min={1}
+                            max={52}
+                            value={formRecurrenceCount}
+                            onChange={(e) => setFormRecurrenceCount(Math.max(1, Math.min(52, Number(e.target.value))))}
+                            className={`w-full ${isDark ? 'bg-zinc-800 border-zinc-700 text-zinc-100' : 'bg-white border-slate-200 text-slate-800'} border rounded-lg px-2.5 py-1.5 font-mono text-center focus:outline-none`}
+                          />
+                        </div>
+                      )}
+                    </div>
+
+                    {!formAppointmentId && (
+                      <p className={`text-[10px] leading-relaxed ${isDark ? 'text-indigo-300/80' : 'text-indigo-900/70'}`}>
+                        Serão criados <strong>{formRecurrenceCount}</strong> agendamentos automáticos com intervalo {
+                          formRecurrence === 'weekly' ? 'de 7 dias (Semanal)' :
+                          formRecurrence === 'biweekly' ? 'de 14 dias (Quinzenal)' :
+                          formRecurrence === 'monthly' ? 'de 1 mês (Mensal)' :
+                          `de ${formCustomIntervalDays} dias (Personalizado)`
+                        } a partir de <strong>{formDate ? formDate.split('-').reverse().join('/') : ''}</strong> às <strong>{formTime}</strong>.
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Payment details */}
-              <div className="border-t border-slate-100 pt-3.5">
-                <label className="block font-semibold text-slate-700 mb-1.5">Status de Pagamento</label>
+              <div className={`border-t ${isDark ? 'border-zinc-800' : 'border-slate-100'} pt-3.5`}>
+                <label className={`block font-semibold ${isDark ? 'text-zinc-200' : 'text-slate-700'} mb-1.5`}>Status de Pagamento</label>
                 <div className="grid grid-cols-3 gap-2">
                   {(['pending', 'paid'] as const).map((status) => (
                     <button
@@ -1311,9 +1479,9 @@ export default function ScheduleView({
                       className={`py-1.5 rounded-lg text-center font-medium border cursor-pointer transition-all ${
                         formPaymentStatus === status
                           ? status === 'paid'
-                            ? 'bg-emerald-50 border-emerald-500 text-emerald-800'
-                            : 'bg-amber-50 border-amber-500 text-amber-800'
-                          : 'bg-slate-50 border-slate-200 text-slate-500'
+                            ? isDark ? 'bg-emerald-950/60 border-emerald-500 text-emerald-300' : 'bg-emerald-50 border-emerald-500 text-emerald-800'
+                            : isDark ? 'bg-amber-950/60 border-amber-500 text-amber-300' : 'bg-amber-50 border-amber-500 text-amber-800'
+                          : isDark ? 'bg-zinc-800 border-zinc-700 text-zinc-400' : 'bg-slate-50 border-slate-200 text-slate-500'
                       }`}
                     >
                       {status === 'paid' ? 'Pago' : 'Pendente'}
@@ -1325,8 +1493,8 @@ export default function ScheduleView({
                     onClick={() => setFormPaymentStatus('installments')}
                     className={`py-1.5 rounded-lg text-center font-medium border cursor-pointer transition-all ${
                       formPaymentStatus === 'installments'
-                        ? 'bg-purple-50 border-purple-500 text-purple-800'
-                        : 'bg-slate-50 border-slate-200 text-slate-500'
+                        ? isDark ? 'bg-purple-950/60 border-purple-500 text-purple-300' : 'bg-purple-50 border-purple-500 text-purple-800'
+                        : isDark ? 'bg-zinc-800 border-zinc-700 text-zinc-400' : 'bg-slate-50 border-slate-200 text-slate-500'
                     }`}
                   >
                     Parcelado
@@ -1336,16 +1504,16 @@ export default function ScheduleView({
                 {formPaymentStatus === 'paid' && (
                   <div className="mt-3 grid grid-cols-2 gap-2">
                     <div>
-                      <label className="block text-[10px] text-slate-400 mb-1">Método de Recebimento</label>
+                      <label className={`block text-[10px] ${isDark ? 'text-zinc-400' : 'text-slate-400'} mb-1`}>Método de Recebimento</label>
                       <select
                         value={formPaymentMethod}
                         onChange={(e) => setFormPaymentMethod(e.target.value)}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-lg p-1.5"
+                        className={`w-full ${isDark ? 'bg-zinc-800 border-zinc-700 text-zinc-100' : 'bg-slate-50 border-slate-200 text-slate-800'} border rounded-lg p-1.5 focus:outline-none`}
                       >
-                        <option value="pix">PIX</option>
-                        <option value="money">Dinheiro</option>
-                        <option value="credit">Cartão de Crédito</option>
-                        <option value="debit">Cartão de Débito</option>
+                        <option value="pix" className={isDark ? 'bg-zinc-900 text-zinc-100' : 'bg-white text-slate-800'}>PIX</option>
+                        <option value="money" className={isDark ? 'bg-zinc-900 text-zinc-100' : 'bg-white text-slate-800'}>Dinheiro</option>
+                        <option value="credit" className={isDark ? 'bg-zinc-900 text-zinc-100' : 'bg-white text-slate-800'}>Cartão de Crédito</option>
+                        <option value="debit" className={isDark ? 'bg-zinc-900 text-zinc-100' : 'bg-white text-slate-800'}>Cartão de Débito</option>
                       </select>
                     </div>
                   </div>
@@ -1357,13 +1525,13 @@ export default function ScheduleView({
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
-                  className="flex-1 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 font-semibold text-slate-600 cursor-pointer text-center"
+                  className={`flex-1 py-2.5 rounded-xl border ${isDark ? 'border-zinc-700 text-zinc-300 hover:bg-zinc-800' : 'border-slate-200 text-slate-600 hover:bg-slate-50'} font-semibold cursor-pointer text-center transition-all`}
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 font-semibold text-white cursor-pointer text-center"
+                  className={`flex-1 py-2.5 rounded-xl ${isDark ? 'bg-indigo-600 hover:bg-indigo-500' : 'bg-slate-900 hover:bg-slate-800'} font-semibold text-white cursor-pointer text-center transition-all shadow-md`}
                 >
                   {formAppointmentId ? 'Salvar Edição' : 'Reservar Horário'}
                 </button>
@@ -1377,27 +1545,27 @@ export default function ScheduleView({
       {/* FAST NEW CLIENT INNER MODAL */}
       {showFastClientModal && (
         <div className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white border border-slate-100 rounded-2xl max-w-sm w-full p-5 space-y-4">
-            <h4 className="font-display font-bold text-slate-900 text-sm flex items-center gap-2">
+          <div className={`${isDark ? 'bg-zinc-900 border-zinc-800 text-zinc-100 shadow-black/80' : 'bg-white border-slate-100 text-slate-900'} border rounded-2xl max-w-sm w-full p-5 space-y-4 shadow-2xl`}>
+            <h4 className={`font-display font-bold ${isDark ? 'text-white' : 'text-slate-900'} text-sm flex items-center gap-2`}>
               <User className="w-4 h-4 text-indigo-500" />
               Cadastro Rápido de Cliente
             </h4>
 
             <div className="space-y-3 text-xs">
               <div>
-                <label className="block text-slate-500 mb-1">Nome Completo *</label>
+                <label className={`block ${isDark ? 'text-zinc-400' : 'text-slate-500'} mb-1`}>Nome Completo *</label>
                 <input
                   type="text"
                   value={fastClientName}
                   onChange={(e) => setFastClientName(e.target.value)}
                   placeholder="Ex: José da Silva"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5"
+                  className={`w-full ${isDark ? 'bg-zinc-800 border-zinc-700 text-zinc-100' : 'bg-slate-50 border-slate-200 text-slate-800'} border rounded-xl px-3 py-1.5 focus:outline-none`}
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-slate-500 mb-1">Telefone WhatsApp</label>
+                <label className={`block ${isDark ? 'text-zinc-400' : 'text-slate-500'} mb-1`}>Telefone WhatsApp</label>
                 <div className="flex gap-2">
                   <div className="w-20 shrink-0 relative">
                     <input
@@ -1406,7 +1574,7 @@ export default function ScheduleView({
                       value={fastClientCountryCode}
                       onChange={(e) => setFastClientCountryCode(e.target.value)}
                       placeholder="+55"
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs focus:outline-none text-center font-medium"
+                      className={`w-full ${isDark ? 'bg-zinc-800 border-zinc-700 text-zinc-100' : 'bg-slate-50 border-slate-200 text-slate-800'} border rounded-xl px-2.5 py-1.5 text-xs focus:outline-none text-center font-medium`}
                     />
                     <datalist id="schedule-country-codes">
                       <option value="+55">🇧🇷 Brasil (+55)</option>
@@ -1426,7 +1594,7 @@ export default function ScheduleView({
                     value={fastClientPhone}
                     onChange={(e) => setFastClientPhone(formatPhone(e.target.value))}
                     placeholder="Ex: (11) 98888-8888"
-                    className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5"
+                    className={`flex-1 ${isDark ? 'bg-zinc-800 border-zinc-700 text-zinc-100' : 'bg-slate-50 border-slate-200 text-slate-800'} border rounded-xl px-3 py-1.5 focus:outline-none`}
                   />
                 </div>
               </div>
@@ -1436,7 +1604,7 @@ export default function ScheduleView({
               <button
                 type="button"
                 onClick={() => setShowFastClientModal(false)}
-                className="flex-1 py-1.5 rounded-lg border text-slate-500 text-xs cursor-pointer"
+                className={`flex-1 py-1.5 rounded-lg border ${isDark ? 'border-zinc-700 text-zinc-400 hover:bg-zinc-800' : 'border-slate-200 text-slate-500 hover:bg-slate-50'} text-xs cursor-pointer transition-all`}
               >
                 Voltar
               </button>
@@ -1517,16 +1685,22 @@ export default function ScheduleView({
 
                 <div className={`grid grid-cols-2 gap-3 pt-2.5 border-t ${isDark ? 'border-zinc-800' : 'border-slate-200/50'}`}>
                   <div className="space-y-0.5">
-                    <span className="text-[10px] text-slate-400">Fidelidade</span>
-                    <p className={`font-semibold ${isDark ? 'text-zinc-200' : 'text-slate-800'}`}>
-                      {selectedAppointment.isRecurring === 'none' 
-                        ? 'Sessão Única' 
-                        : selectedAppointment.isRecurring === 'weekly'
-                        ? 'Semanal'
-                        : selectedAppointment.isRecurring === 'biweekly'
-                        ? 'Quinzenal'
-                        : 'Mensal'}
-                    </p>
+                    <span className="text-[10px] text-slate-400">Recorrência</span>
+                    <div className={`font-semibold text-xs flex items-center gap-1 flex-wrap ${isDark ? 'text-zinc-200' : 'text-slate-800'}`}>
+                      {selectedAppointment.isRecurring === 'none' ? (
+                        'Sessão Única'
+                      ) : (
+                        <>
+                          <Repeat className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+                          <span>Recorrente ({getRecurrenceLabel(selectedAppointment.isRecurring, selectedAppointment.customIntervalDays)})</span>
+                          {selectedAppointment.recurrenceIndex && selectedAppointment.recurrenceTotal && (
+                            <span className="text-[10px] text-indigo-500 font-mono font-bold">
+                              ({selectedAppointment.recurrenceIndex}/{selectedAppointment.recurrenceTotal})
+                            </span>
+                          )}
+                        </>
+                      )}
+                    </div>
                   </div>
 
                   <div className="space-y-0.5">

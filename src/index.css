@@ -40,6 +40,19 @@
   animation: ring-pulse 2s infinite;
 }
 
+/* Styling for selects and options in dark mode */
+.dark-mode select option,
+.dark select option,
+select option {
+  background-color: var(--theme-card-bg, #18181b);
+  color: var(--theme-text-primary, #ffffff);
+}
+
+.dark-mode select,
+.dark select {
+  color-scheme: dark;
+}
+
 /* --- THEME CUSTOM PROPERTIES FOR DARK MODE --- */
 :root {
   --theme-card-bg: #ffffff;

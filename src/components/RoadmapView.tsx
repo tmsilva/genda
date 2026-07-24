@@ -32,12 +32,29 @@ const ROADMAP_ITEMS: RoadmapItem[] = [
     description: 'Permita que seus clientes realizem agendamentos através de um link exclusivo do seu perfil, escolhendo serviço, data e horário disponível, tudo sincronizado automaticamente com sua agenda.'
   },
   {
-    id: 'lista-espera',
-    icon: Hourglass,
-    title: 'Lista de Espera Inteligente',
-    category: 'Agenda & Otimização',
+    id: 'lembretes-inteligentes',
+    icon: Bell,
+    title: 'Lembretes Inteligentes',
+    category: 'Comunicação',
     badgeText: 'Em desenvolvimento',
-    description: 'Quando ocorrer um cancelamento, o Genda notificará automaticamente clientes interessados naquele horário, preenchendo vagas de forma rápida e reduzindo horários ociosos.'
+    description: 'O Genda identificará automaticamente clientes que costumam retornar em determinado período e sugerirá o envio de lembretes personalizados.',
+    quote: 'Seu cliente costuma retornar a cada 30 dias. Deseja enviar um lembrete?'
+  },
+  {
+    id: 'controle-faltas',
+    icon: UserX,
+    title: 'Controle de Faltas',
+    category: 'Gestão & Proteção',
+    badgeText: 'Em desenvolvimento',
+    description: 'Acompanhe o histórico de comparecimento dos clientes. O sistema poderá identificar clientes recorrentes em faltas e sugerir cobrança antecipada para novos agendamentos.'
+  },
+  {
+    id: 'sinal-pix',
+    icon: QrCode,
+    title: 'Sinal via PIX',
+    category: 'Financeiro & Pagamentos',
+    badgeText: 'Em desenvolvimento',
+    description: 'Permita solicitar um valor antecipado para confirmação do agendamento. O horário será reservado somente após a confirmação automática do pagamento.'
   },
   {
     id: 'reagendamento-inteligente',
@@ -48,47 +65,12 @@ const ROADMAP_ITEMS: RoadmapItem[] = [
     description: 'Caso um cliente precise cancelar um atendimento, ele poderá escolher outro horário disponível sem precisar entrar em contato diretamente com o profissional.'
   },
   {
-    id: 'programa-fidelidade',
-    icon: Gift,
-    title: 'Programa de Fidelidade',
-    category: 'Fidelização',
+    id: 'lista-espera',
+    icon: Hourglass,
+    title: 'Lista de Espera Inteligente',
+    category: 'Agenda & Otimização',
     badgeText: 'Em desenvolvimento',
-    description: 'Crie programas de recompensa para incentivar o retorno dos clientes.',
-    examplesTitle: 'Mecanismos de recompensa:',
-    examples: ['A cada 10 atendimentos, ganhe 1 gratuito.', 'Acumule pontos e troque por benefícios.']
-  },
-  {
-    id: 'cashback',
-    icon: Coins,
-    title: 'Cashback',
-    category: 'Fidelização & Financeiro',
-    badgeText: 'Em desenvolvimento',
-    description: 'Ofereça créditos para que seus clientes utilizem em futuros agendamentos, aumentando a fidelização.'
-  },
-  {
-    id: 'lembretes-inteligentes',
-    icon: Bell,
-    title: 'Lembretes Inteligentes',
-    category: 'Comunicação',
-    badgeText: 'Em desenvolvimento',
-    description: 'O Genda identificará automaticamente clientes que costumam retornar em determinado período e sugerirá o envio de lembretes personalizados.',
-    quote: 'Seu cliente costuma retornar a cada 30 dias. Deseja enviar um lembrete?'
-  },
-  {
-    id: 'inteligencia-artificial',
-    icon: Bot,
-    title: 'Inteligência Artificial',
-    category: 'IA & Gestão',
-    badgeText: 'Em desenvolvimento',
-    description: 'Receba recomendações inteligentes baseadas nos dados do seu negócio.',
-    bulletTitle: 'Insights automáticos:',
-    bulletPoints: [
-      'Melhor horário para promoções.',
-      'Serviços mais vendidos.',
-      'Sugestões de vendas adicionais.',
-      'Clientes com maior chance de retorno.',
-      'Horários ociosos.'
-    ]
+    description: 'Quando ocorrer um cancelamento, o Genda notificará automaticamente clientes interessados naquele horário, preenchendo vagas de forma rápida e reduzindo horários ociosos.'
   },
   {
     id: 'metas',
@@ -117,6 +99,60 @@ const ROADMAP_ITEMS: RoadmapItem[] = [
     description: 'Veja quais clientes mais frequentam seu negócio e quais geram maior receita.'
   },
   {
+    id: 'tempo-inteligente-servicos',
+    icon: Timer,
+    title: 'Tempo Inteligente dos Serviços',
+    category: 'IA & Otimização',
+    badgeText: 'Em desenvolvimento',
+    description: 'O sistema aprenderá automaticamente quanto tempo cada serviço realmente leva para ser concluído, permitindo previsões cada vez mais precisas e uma agenda mais eficiente.'
+  },
+  {
+    id: 'multi-profissional',
+    icon: Users,
+    title: 'Multi Profissional',
+    category: 'Equipes & Gestão',
+    badgeText: 'Em desenvolvimento',
+    description: 'Ideal para equipes. Cada profissional poderá possuir:',
+    bulletTitle: 'Controles individuais por profissional:',
+    bulletPoints: ['Agenda individual', 'Horários próprios', 'Comissão', 'Metas', 'Serviços específicos']
+  },
+  {
+    id: 'controle-comissoes',
+    icon: Receipt,
+    title: 'Controle de Comissões',
+    category: 'Financeiro & Equipes',
+    badgeText: 'Em desenvolvimento',
+    description: 'Calcule automaticamente as comissões dos colaboradores com base nos atendimentos realizados.'
+  },
+  {
+    id: 'multiempresa',
+    icon: Building2,
+    title: 'Multiempresa',
+    category: 'Expansão & Estrutura',
+    badgeText: 'Em desenvolvimento',
+    description: 'Gerencie diversas empresas utilizando apenas uma conta.',
+    bulletTitle: 'Cada empresa possuirá:',
+    bulletPoints: ['Agenda própria', 'Financeiro independente', 'Clientes', 'Serviços', 'Configurações']
+  },
+  {
+    id: 'programa-fidelidade',
+    icon: Gift,
+    title: 'Programa de Fidelidade',
+    category: 'Fidelização',
+    badgeText: 'Em desenvolvimento',
+    description: 'Crie programas de recompensa para incentivar o retorno dos clientes.',
+    examplesTitle: 'Mecanismos de recompensa:',
+    examples: ['A cada 10 atendimentos, ganhe 1 gratuito.', 'Acumule pontos e troque por benefícios.']
+  },
+  {
+    id: 'cashback',
+    icon: Coins,
+    title: 'Cashback',
+    category: 'Fidelização & Financeiro',
+    badgeText: 'Em desenvolvimento',
+    description: 'Ofereça créditos para que seus clientes utilizem em futuros agendamentos, aumentando a fidelização.'
+  },
+  {
     id: 'crm-inteligente',
     icon: Tag,
     title: 'CRM Inteligente',
@@ -138,56 +174,20 @@ const ROADMAP_ITEMS: RoadmapItem[] = [
     examples: ['Clientes aniversariantes', 'Clientes inativos', 'Clientes VIP', 'Clientes que utilizam determinado serviço']
   },
   {
-    id: 'controle-faltas',
-    icon: UserX,
-    title: 'Controle de Faltas',
-    category: 'Gestão & Proteção',
+    id: 'inteligencia-artificial',
+    icon: Bot,
+    title: 'Inteligência Artificial',
+    category: 'IA & Gestão',
     badgeText: 'Em desenvolvimento',
-    description: 'Acompanhe o histórico de comparecimento dos clientes. O sistema poderá identificar clientes recorrentes em faltas e sugerir cobrança antecipada para novos agendamentos.'
-  },
-  {
-    id: 'sinal-pix',
-    icon: QrCode,
-    title: 'Sinal via PIX',
-    category: 'Financeiro & Pagamentos',
-    badgeText: 'Em desenvolvimento',
-    description: 'Permita solicitar um valor antecipado para confirmação do agendamento. O horário será reservado somente após a confirmação automática do pagamento.'
-  },
-  {
-    id: 'multiempresa',
-    icon: Building2,
-    title: 'Multiempresa',
-    category: 'Expansão & Estrutura',
-    badgeText: 'Em desenvolvimento',
-    description: 'Gerencie diversas empresas utilizando apenas uma conta.',
-    bulletTitle: 'Cada empresa possuirá:',
-    bulletPoints: ['Agenda própria', 'Financeiro independente', 'Clientes', 'Serviços', 'Configurações']
-  },
-  {
-    id: 'multi-profissional',
-    icon: Users,
-    title: 'Multi Profissional',
-    category: 'Equipes & Gestão',
-    badgeText: 'Em desenvolvimento',
-    description: 'Ideal para equipes. Cada profissional poderá possuir:',
-    bulletTitle: 'Controles individuais por profissional:',
-    bulletPoints: ['Agenda individual', 'Horários próprios', 'Comissão', 'Metas', 'Serviços específicos']
-  },
-  {
-    id: 'controle-comissoes',
-    icon: Receipt,
-    title: 'Controle de Comissões',
-    category: 'Financeiro & Equipes',
-    badgeText: 'Em desenvolvimento',
-    description: 'Calcule automaticamente as comissões dos colaboradores com base nos atendimentos realizados.'
-  },
-  {
-    id: 'tempo-inteligente-servicos',
-    icon: Timer,
-    title: 'Tempo Inteligente dos Serviços',
-    category: 'IA & Otimização',
-    badgeText: 'Em desenvolvimento',
-    description: 'O sistema aprenderá automaticamente quanto tempo cada serviço realmente leva para ser concluído, permitindo previsões cada vez mais precisas e uma agenda mais eficiente.'
+    description: 'Receba recomendações inteligentes baseadas nos dados do seu negócio.',
+    bulletTitle: 'Insights automáticos:',
+    bulletPoints: [
+      'Melhor horário para promoções.',
+      'Serviços mais vendidos.',
+      'Sugestões de vendas adicionais.',
+      'Clientes com maior chance de retorno.',
+      'Horários ociosos.'
+    ]
   }
 ];
 
@@ -343,6 +343,16 @@ export default function RoadmapView({ isDark = false }: RoadmapViewProps) {
                   </div>
 
                   <div className="flex items-center gap-3 shrink-0">
+                    {item.title === 'Agendamento Online' && (
+                      <span className={`px-2.5 py-1 rounded-full text-[10px] sm:text-xs font-semibold border ${
+                        isDark 
+                          ? 'bg-amber-950/50 text-amber-300 border-amber-800/60' 
+                          : 'bg-amber-50 text-amber-700 border-amber-200'
+                      }`}>
+                        Em desenvolvimento
+                      </span>
+                    )}
+
                     {/* Expand/Collapse Chevron */}
                     <div className={`p-1.5 rounded-lg transition-transform duration-300 ${
                       isOpen 

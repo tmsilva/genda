@@ -1,6 +1,6 @@
 export type PaymentStatus = 'paid' | 'pending' | 'installments';
 export type AppointmentStatus = 'scheduled' | 'completed' | 'cancelled';
-export type RecurrenceType = 'none' | 'weekly' | 'biweekly' | 'monthly';
+export type RecurrenceType = 'none' | 'weekly' | 'biweekly' | 'monthly' | 'custom';
 
 export interface WorkingDay {
   dayOfWeek: number; // 0 = Sunday, 1 = Monday, etc.
@@ -55,6 +55,10 @@ export interface Appointment {
   duration: number; // in minutes (overridable)
   price: number; // in BRL (overridable)
   isRecurring: RecurrenceType;
+  customIntervalDays?: number;
+  recurrenceGroupId?: string;
+  recurrenceIndex?: number;
+  recurrenceTotal?: number;
   isReminderEnabled: boolean;
   paymentStatus: PaymentStatus;
   installmentCount?: number;
