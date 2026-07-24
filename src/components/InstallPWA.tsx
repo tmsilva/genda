@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Download, X } from 'lucide-react';
+import { Download, X, Bell, CheckCircle2, Smartphone } from 'lucide-react';
 
 interface InstallPWAProps {
   isDark?: boolean;
@@ -20,9 +20,12 @@ export default function InstallPWA({ isDark = true }: InstallPWAProps) {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [showPrompt, setShowPrompt] = useState(false);
   const [isIOS, setIsIOS] = useState(false);
+  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>(() => {
+    return typeof window !== 'undefined' && 'Notification' in window ? Notification.permission : 'default';
+  });
 
   useEffect(() => {
-    // Check if already installed
+    // Check if already installed in standalone mode
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone === true;
     if (isStandalone) return;
 
@@ -35,10 +38,9 @@ export default function InstallPWA({ isDark = true }: InstallPWAProps) {
     
     if (isIOSDevice) {
       setIsIOS(true);
-      // Delay showing prompt slightly on iOS so it's not too aggressive
       const timer = setTimeout(() => {
         setShowPrompt(true);
-      }, 3000);
+      }, 2500);
       return () => clearTimeout(timer);
     }
 
@@ -55,20 +57,37 @@ export default function InstallPWA({ isDark = true }: InstallPWAProps) {
     };
   }, []);
 
-  const handleInstall = async () => {
-    if (!deferredPrompt) return;
-    
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    
-    if (outcome === 'accepted') {
-      console.log('User accepted the install prompt');
-    } else {
-      console.log('User dismissed the install prompt');
+  const requestNotificationPermission = async () => {
+    if ('Notification' in window) {
+      try {
+        const permission = await Notification.requestPermission();
+        setNotificationPermission(permission);
+        return permission;
+      } catch (err) {
+        console.warn('Erro ao solicitar permissão de notificação:', err);
+      }
     }
-    
-    setDeferredPrompt(null);
-    setShowPrompt(false);
+    return 'default';
+  };
+
+  const handleInstallAndNotify = async () => {
+    // Explicitly request notification permission first
+    await requestNotificationPermission();
+
+    // Trigger PWA install prompt if available
+    if (deferredPrompt) {
+      try {
+        await deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+          console.log('User accepted the PWA install prompt');
+        }
+      } catch (err) {
+        console.error('Error during PWA install prompt:', err);
+      }
+      setDeferredPrompt(null);
+      setShowPrompt(false);
+    }
   };
 
   const handleDismiss = () => {
@@ -88,24 +107,26 @@ export default function InstallPWA({ isDark = true }: InstallPWAProps) {
           transition={{ type: 'spring', damping: 25, stiffness: 200 }}
           className="fixed bottom-[88px] left-4 right-4 md:left-auto md:right-8 md:bottom-8 md:w-96 z-50"
         >
-          <div className={`p-4 rounded-3xl shadow-xl flex flex-col gap-4 border ${
+          <div className={`p-5 rounded-3xl shadow-2xl flex flex-col gap-4 border ${
             isDark 
               ? 'bg-zinc-900 border-zinc-800 text-zinc-100' 
-              : 'bg-white border-slate-100 text-slate-900'
+              : 'bg-white border-slate-200 text-slate-900'
           }`}>
             <div className="flex justify-between items-start gap-3">
               <div className="flex gap-3">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
+                <div className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 ${
                   isDark ? 'bg-indigo-500/20 text-indigo-400' : 'bg-indigo-100 text-indigo-600'
                 }`}>
-                  <Download className="w-5 h-5" />
+                  <Smartphone className="w-6 h-6" />
                 </div>
                 <div className="flex flex-col">
-                  <h3 className="font-bold text-sm">Instalar Aplicativo</h3>
-                  <p className={`text-xs mt-0.5 leading-relaxed ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
+                  <h3 className="font-bold text-sm flex items-center gap-1.5">
+                    Instalar o Genda no Celular
+                  </h3>
+                  <p className={`text-xs mt-1 leading-relaxed ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
                     {isIOS 
-                      ? 'Adicione o Genda à sua tela inicial: toque em Compartilhar e depois "Adicionar à Tela de Início".'
-                      : 'Adicione o Genda à sua tela inicial para acesso rápido, uso offline e melhor experiência.'}
+                      ? 'Instale no iPhone e ative os lembretes: toque no botão Compartilhar e selecione "Adicionar à Tela de Início".'
+                      : 'Tenha o app na tela inicial com acesso rápido, lembretes de agendamento por notificação e uso offline.'}
                   </p>
                 </div>
               </div>
@@ -120,24 +141,51 @@ export default function InstallPWA({ isDark = true }: InstallPWAProps) {
                 <X className="w-4 h-4" />
               </button>
             </div>
-            
-            <div className="flex gap-2 justify-end">
+
+            {/* Notification Permission Bar */}
+            <div className={`p-2.5 rounded-xl text-xs flex items-center justify-between gap-2 ${
+              isDark ? 'bg-zinc-800/80 border border-zinc-700/60' : 'bg-slate-50 border border-slate-200'
+            }`}>
+              <div className="flex items-center gap-2">
+                <Bell className="w-4 h-4 text-indigo-500 shrink-0" />
+                <span className="font-medium text-[11px] text-slate-600 dark:text-zinc-300">
+                  {notificationPermission === 'granted'
+                    ? 'Notificações ativadas com sucesso'
+                    : 'Permitir notificações de lembretes'}
+                </span>
+              </div>
+              {notificationPermission === 'granted' ? (
+                <span className="text-[10px] font-semibold text-emerald-500 flex items-center gap-1 shrink-0">
+                  <CheckCircle2 className="w-3.5 h-3.5" /> Ativo
+                </span>
+              ) : (
+                <button
+                  type="button"
+                  onClick={requestNotificationPermission}
+                  className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer shrink-0"
+                >
+                  Permitir
+                </button>
+              )}
+            </div>
+
+            <div className="flex gap-2 justify-end pt-1">
               <button
                 onClick={handleDismiss}
-                className={`px-4 py-2 text-sm font-semibold rounded-full transition-colors ${
-                  isDark ? 'text-zinc-300 hover:bg-zinc-800' : 'text-slate-600 hover:bg-slate-100'
+                className={`px-4 py-2 text-xs font-semibold rounded-full transition-colors ${
+                  isDark ? 'text-zinc-400 hover:bg-zinc-800' : 'text-slate-600 hover:bg-slate-100'
                 }`}
               >
                 Depois
               </button>
-              {!isIOS && (
-                <button
-                  onClick={handleInstall}
-                  className="px-4 py-2 text-sm font-bold bg-indigo-600 hover:bg-indigo-700 text-white rounded-full transition-transform active:scale-95"
-                >
-                  Instalar
-                </button>
-              )}
+
+              <button
+                onClick={handleInstallAndNotify}
+                className="px-5 py-2.5 text-xs font-bold bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white rounded-full transition-all shadow-md shadow-indigo-600/30 flex items-center gap-2 cursor-pointer"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>{isIOS ? 'Ativar Notificações' : 'Instalar & Notificar'}</span>
+              </button>
             </div>
           </div>
         </motion.div>

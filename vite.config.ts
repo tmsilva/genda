@@ -11,33 +11,51 @@ export default defineConfig(() => {
       tailwindcss(),
       VitePWA({
         registerType: 'autoUpdate',
-        includeAssets: ['favicon.ico', 'Logo.png', 'Logo-white.png'],
+        injectRegister: 'auto',
+        devOptions: {
+          enabled: true,
+        },
+        includeAssets: ['favicon.ico', 'favicon.png', 'Logo.png', 'Logo-white.png'],
         manifest: {
-          name: 'Genda',
+          id: '/',
+          start_url: '/',
+          scope: '/',
+          name: 'Genda - Gestão & Agendamentos',
           short_name: 'Genda',
           description: 'Um sistema completo de agendamentos e controle de negócios desenvolvido para profissionais independentes.',
           theme_color: '#0f172a',
           background_color: '#0f172a',
           display: 'standalone',
           orientation: 'portrait',
+          categories: ['business', 'productivity', 'utilities'],
           icons: [
             {
-              src: 'pwa-192x192.png',
+              src: 'Logo.png',
               sizes: '192x192',
-              type: 'image/png'
+              type: 'image/png',
+              purpose: 'any'
             },
             {
-              src: 'pwa-512x512.png',
+              src: 'Logo.png',
               sizes: '512x512',
               type: 'image/png',
               purpose: 'any maskable'
+            },
+            {
+              src: 'Logo-white.png',
+              sizes: '512x512',
+              type: 'image/png',
+              purpose: 'any'
             }
           ]
         },
         workbox: {
-          globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+          globPatterns: ['**/*.{js,css,html,ico,png,svg,json}'],
           maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
-          navigateFallbackDenylist: [/^\/api/]
+          navigateFallbackDenylist: [/^\/api/],
+          cleanupOutdatedCaches: true,
+          clientsClaim: true,
+          skipWaiting: true
         }
       })
     ],
