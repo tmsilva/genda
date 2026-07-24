@@ -13,12 +13,14 @@ export default function Logo({
   className = '',
   lightMode = false,
 }: LogoProps) {
-  // Use Logo.png for light theme, Logo-white.png for dark theme
-  const logoSrc = lightMode ? '/Logo.png' : '/Logo-white.png';
+  // Use /favicon.png for icon variant, otherwise Logo.png for light theme and Logo-white.png for dark theme
+  const logoSrc = variant === 'icon'
+    ? '/favicon.png'
+    : (lightMode ? '/Logo.png' : '/Logo-white.png');
 
   const sizeClasses = {
     sm: variant === 'icon' ? 'h-7 w-7' : variant === 'compact' ? 'h-7' : 'h-9',
-    md: variant === 'icon' ? 'h-9 w-9' : variant === 'compact' ? 'h-9' : 'h-12',
+    md: variant === 'icon' ? 'h-8 w-8' : variant === 'compact' ? 'h-9' : 'h-12',
     lg: variant === 'icon' ? 'h-12 w-12' : variant === 'compact' ? 'h-11' : 'h-16',
     xl: variant === 'icon' ? 'h-16 w-16' : variant === 'compact' ? 'h-14' : 'h-24',
   };

@@ -27,6 +27,7 @@ import FinanceView from './components/FinanceView';
 import SettingsView from './components/SettingsView';
 import EstoqueView from './components/EstoqueView';
 import AIAssistantView from './components/AIAssistantView';
+import RoadmapView from './components/RoadmapView';
 import Logo from './components/Logo';
 import InstallPWA from './components/InstallPWA';
 import { auth, loginWithGoogle, logoutUser, loginWithEmail, registerWithEmail } from './firebase';
@@ -93,7 +94,7 @@ export default function App() {
     return cached ? JSON.parse(cached) : DEFAULT_TEMPLATES;
   });
 
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'agenda' | 'clients' | 'services' | 'finance' | 'estoque' | 'ai' | 'settings'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'agenda' | 'clients' | 'services' | 'finance' | 'estoque' | 'ai' | 'settings' | 'roadmap'>('dashboard');
   const [stock, setStock] = useState<StockItem[]>(() => {
     return localStorage.getItem('genda_stock') ? JSON.parse(localStorage.getItem('genda_stock')!) : [];
   });
@@ -177,8 +178,8 @@ export default function App() {
     // Ensure horizontal swipe is more pronounced than vertical swipe
     if (Math.abs(distanceX) > Math.abs(distanceY)) {
       if (isLeftSwipe || isRightSwipe) {
-        const allTabs: Array<'dashboard' | 'agenda' | 'clients' | 'finance' | 'services' | 'estoque' | 'ai' | 'settings'> = [
-          'dashboard', 'agenda', 'clients', 'finance', 'services', 'estoque', 'ai', 'settings'
+        const allTabs: Array<'dashboard' | 'agenda' | 'clients' | 'finance' | 'services' | 'estoque' | 'roadmap' | 'ai' | 'settings'> = [
+          'dashboard', 'agenda', 'clients', 'finance', 'services', 'estoque', 'roadmap', 'ai', 'settings'
         ];
         const tabs = user?.email === 'thiagomsy@gmail.com' 
           ? allTabs 
@@ -953,13 +954,13 @@ export default function App() {
               } themed-sidebar shadow-xl`}
             >
               {/* Sidebar Header with Logo & Toggle Button */}
-              <div className="p-4 flex items-center justify-between border-b themed-sidebar-border">
-                <div className="flex items-center gap-2 overflow-hidden">
-                  <Logo variant={isSidebarExpanded ? 'compact' : 'icon'} lightMode={!isDark} />
+              <div className="p-4 flex items-center justify-between border-b themed-sidebar-border gap-2">
+                <div className="flex items-center gap-2 overflow-hidden shrink-0">
+                  <Logo variant={isSidebarExpanded ? 'compact' : 'icon'} size="sm" lightMode={!isDark} />
                 </div>
                 <button
                   onClick={() => setIsSidebarExpanded(!isSidebarExpanded)}
-                  className="p-1.5 rounded-lg themed-sidebar-toggle-btn transition-all cursor-pointer"
+                  className="p-1.5 rounded-lg themed-sidebar-toggle-btn transition-all cursor-pointer shrink-0"
                   title={isSidebarExpanded ? 'Recolher Menu' : 'Expandir Menu'}
                 >
                   {isSidebarExpanded ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
@@ -1067,6 +1068,22 @@ export default function App() {
                     {isSidebarExpanded && <span className="text-sm">Genda AI</span>}
                   </button>
                 )}
+
+                {/* Item: Em breve */}
+                <button
+                  onClick={() => { setActiveClientId(null); setActiveTab('roadmap'); }}
+                  className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all cursor-pointer ${
+                    activeTab === 'roadmap'
+                      ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/25'
+                      : 'themed-sidebar-inactive-btn'
+                  } ${!isSidebarExpanded && 'justify-center'}`}
+                  title="O que está por vir ✨"
+                >
+                  <Sparkles className="w-5 h-5 shrink-0 text-amber-400" />
+                  {isSidebarExpanded && (
+                    <span className="text-sm truncate">Em breve</span>
+                  )}
+                </button>
 
                 {/* Item 5: Ajustes */}
                 <button
@@ -1604,6 +1621,18 @@ export default function App() {
                     />
                   </motion.div>
                 )}
+
+                {activeTab === 'roadmap' && (
+                  <motion.div
+                    key="roadmap"
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -15 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <RoadmapView isDark={isDark} />
+                  </motion.div>
+                )}
               </AnimatePresence>
             </main>
 
@@ -1785,6 +1814,25 @@ export default function App() {
                         <span className="text-[9px] sm:text-[10px] truncate max-w-full">Genda AI</span>
                       </button>
                     )}
+
+                    {/* Tab: Em breve */}
+                    <button
+                      onClick={() => { setActiveClientId(null); setActiveTab('roadmap'); }}
+                      className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-all active:scale-95 shrink-0 min-w-[56px] sm:min-w-[64px] ${
+                        activeTab === 'roadmap' 
+                          ? (isDark ? 'text-indigo-400 scale-105 font-bold' : 'text-indigo-600 scale-105 font-bold') 
+                          : 'themed-mobile-inactive'
+                      }`}
+                    >
+                      <div className={`p-1 sm:p-1.5 rounded-xl transition-all ${
+                        activeTab === 'roadmap' 
+                          ? (isDark ? 'bg-indigo-500/10 text-indigo-400' : 'bg-indigo-50 text-indigo-600') 
+                          : 'bg-transparent'
+                      }`}>
+                        <Sparkles className="w-5 h-5 sm:w-5 sm:h-5 text-amber-400" />
+                      </div>
+                      <span className="text-[9px] sm:text-[10px] truncate max-w-full">Em breve</span>
+                    </button>
 
                     {/* Tab 7: Ajustes */}
                     <button
