@@ -6,15 +6,15 @@ import {
   Calendar, Users, DollarSign, Settings, Smartphone, 
   Bell, ArrowRight, X, Send, Sparkles, CheckCircle,
   Cloud, CloudOff, RefreshCw, Clipboard, Trash2, Check, BellOff, Download, Upload,
-  ChevronLeft, ChevronRight, Menu, Package, Bot, LogOut
+  ChevronLeft, ChevronRight, Menu, Package, Bot, LogOut, Globe
 } from 'lucide-react';
 import { 
   ProfessionalProfile, Service, Client, Appointment, 
-  MessageTemplate, ThemeOption, AppNotification, StockItem 
+  MessageTemplate, ThemeOption, AppNotification, StockItem, OnlineBookingConfig 
 } from './types';
 import { 
   THEME_OPTIONS, DEFAULT_SERVICES, DEFAULT_CLIENTS, 
-  getInitialAppointments, DEFAULT_TEMPLATES, DEFAULT_PROFILE 
+  getInitialAppointments, DEFAULT_TEMPLATES, DEFAULT_PROFILE, DEFAULT_ONLINE_BOOKING_CONFIG 
 } from './data';
 import { getWhatsAppNumber } from './utils';
 
@@ -28,6 +28,8 @@ import SettingsView from './components/SettingsView';
 import EstoqueView from './components/EstoqueView';
 import AIAssistantView from './components/AIAssistantView';
 import RoadmapView from './components/RoadmapView';
+import { OnlineBookingView } from './components/OnlineBookingView';
+import { PublicBookingView } from './components/PublicBookingView';
 import Logo from './components/Logo';
 import InstallPWA from './components/InstallPWA';
 import { auth, loginWithGoogle, logoutUser, loginWithEmail, registerWithEmail } from './firebase';
@@ -94,7 +96,27 @@ export default function App() {
     return cached ? JSON.parse(cached) : DEFAULT_TEMPLATES;
   });
 
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'agenda' | 'clients' | 'services' | 'finance' | 'estoque' | 'ai' | 'settings' | 'roadmap'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'agenda' | 'clients' | 'services' | 'finance' | 'estoque' | 'ai' | 'settings' | 'roadmap' | 'online_booking'>('dashboard');
+  const [onlineBookingConfig, setOnlineBookingConfig] = useState<OnlineBookingConfig>(() => {
+    const cached = localStorage.getItem('genda_online_booking_config');
+    return cached ? JSON.parse(cached) : DEFAULT_ONLINE_BOOKING_CONFIG;
+  });
+  const [isPublicPortalOpen, setIsPublicPortalOpen] = useState(false);
+
+  // Auto-open client booking portal if URL contains 'agendar=' parameter
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('agendar') !== null) {
+        setIsPublicPortalOpen(true);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('genda_online_booking_config', JSON.stringify(onlineBookingConfig));
+  }, [onlineBookingConfig]);
+
   const [stock, setStock] = useState<StockItem[]>(() => {
     return localStorage.getItem('genda_stock') ? JSON.parse(localStorage.getItem('genda_stock')!) : [];
   });
@@ -106,7 +128,7 @@ export default function App() {
 
   const [activeClientId, setActiveClientId] = useState<string | null>(null);
   const [isSidebarExpanded, setIsSidebarExpanded] = useState<boolean>(true);
-  const [mobileNavPage, setMobileNavPage] = useState<0 | 1>(0);
+  const [mobileNavPage, setMobileNavPage] = useState<number>(0);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState<boolean>(false);
 
   // Push Notification / Local Alerts State
@@ -622,6 +644,8 @@ export default function App() {
       case 'estoque': return 'Controle de Estoque';
       case 'ai': return 'Genda AI';
       case 'settings': return 'Ajustes';
+      case 'online_booking': return 'Agendamento Online';
+      case 'roadmap': return 'Em Breve';
       default: return profile.name;
     }
   };
@@ -1036,6 +1060,27 @@ export default function App() {
                   <Calendar className="w-5 h-5 shrink-0" />
                   {isSidebarExpanded && <span className="text-sm">Agenda</span>}
                 </button>
+
+                {/* Item 1.1: Agendamento Online */}
+                {user?.email === 'thiagomsy@gmail.com' && (
+                  <button
+                    onClick={() => { setActiveClientId(null); setActiveTab('online_booking'); }}
+                    className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all cursor-pointer ${
+                      activeTab === 'online_booking'
+                        ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/25'
+                        : 'themed-sidebar-inactive-btn'
+                    } ${!isSidebarExpanded && 'justify-center'}`}
+                    title="Agendamento Online 🌐"
+                  >
+                    <Globe className="w-5 h-5 shrink-0 text-emerald-400" />
+                    {isSidebarExpanded && (
+                      <div className="flex items-center justify-between w-full overflow-hidden">
+                        <span className="text-sm truncate">Agendamento Online</span>
+                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0"></span>
+                      </div>
+                    )}
+                  </button>
+                )}
 
                 {/* Item 2: Clientes */}
                 <button
@@ -1662,6 +1707,29 @@ export default function App() {
                   </motion.div>
                 )}
 
+                {activeTab === 'online_booking' && user?.email === 'thiagomsy@gmail.com' && (
+                  <motion.div
+                    key="online_booking"
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -15 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <OnlineBookingView
+                      config={onlineBookingConfig}
+                      onUpdateConfig={setOnlineBookingConfig}
+                      services={services}
+                      appointments={appointments}
+                      clients={clients}
+                      workingDays={profile.workingDays || []}
+                      profile={profile}
+                      isDark={isDark}
+                      onOpenPublicView={() => setIsPublicPortalOpen(true)}
+                      triggerAlert={(msg) => setPushNotification({ title: 'Agendamento Online', body: msg })}
+                    />
+                  </motion.div>
+                )}
+
                 {activeTab === 'roadmap' && (
                   <motion.div
                     key="roadmap"
@@ -1680,7 +1748,7 @@ export default function App() {
                         {/* PERSISTENT BOTTOM NAVIGATION TAB BAR */}
             <div className="fixed bottom-0 left-0 right-0 z-40 themed-mobile-bar backdrop-blur-md border-t shadow-[0_-4px_20px_-10px_rgba(0,0,0,0.1)] px-2 sm:px-6 py-2 flex items-center justify-between gap-1 sm:gap-4 md:hidden pb-safe">
               <AnimatePresence mode="wait">
-                {mobileNavPage === 0 ? (
+                {mobileNavPage === 0 && (
                   <motion.div 
                     key="page0"
                     initial={{ opacity: 0, x: -20 }}
@@ -1692,7 +1760,7 @@ export default function App() {
                     {/* Tab 0: Dashboard */}
                     <button
                       onClick={() => { setActiveClientId(null); setActiveTab('dashboard'); }}
-                      className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-all active:scale-95 shrink-0 min-w-[56px] sm:min-w-[64px] ${
+                      className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-all active:scale-95 shrink-0 min-w-[48px] sm:min-w-[64px] ${
                         activeTab === 'dashboard' 
                           ? (isDark ? 'text-indigo-400 scale-105 font-bold' : 'text-indigo-600 scale-105 font-bold') 
                           : 'themed-mobile-inactive'
@@ -1711,7 +1779,7 @@ export default function App() {
                     {/* Tab 1: Agenda */}
                     <button
                       onClick={() => { setActiveClientId(null); setActiveTab('agenda'); }}
-                      className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-all active:scale-95 shrink-0 min-w-[56px] sm:min-w-[64px] ${
+                      className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-all active:scale-95 shrink-0 min-w-[48px] sm:min-w-[64px] ${
                         activeTab === 'agenda' 
                           ? (isDark ? 'text-indigo-400 scale-105 font-bold' : 'text-indigo-600 scale-105 font-bold') 
                           : 'themed-mobile-inactive'
@@ -1730,7 +1798,7 @@ export default function App() {
                     {/* Tab 2: Clients */}
                     <button
                       onClick={() => { setActiveClientId(null); setActiveTab('clients'); }}
-                      className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-all active:scale-95 shrink-0 min-w-[56px] sm:min-w-[64px] ${
+                      className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-all active:scale-95 shrink-0 min-w-[48px] sm:min-w-[64px] ${
                         activeTab === 'clients' 
                           ? (isDark ? 'text-indigo-400 scale-105 font-bold' : 'text-indigo-600 scale-105 font-bold') 
                           : 'themed-mobile-inactive'
@@ -1749,7 +1817,7 @@ export default function App() {
                     {/* Tab 3: Finance */}
                     <button
                       onClick={() => { setActiveClientId(null); setActiveTab('finance'); }}
-                      className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-all active:scale-95 shrink-0 min-w-[56px] sm:min-w-[64px] ${
+                      className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-all active:scale-95 shrink-0 min-w-[48px] sm:min-w-[64px] ${
                         activeTab === 'finance' 
                           ? (isDark ? 'text-indigo-400 scale-105 font-bold' : 'text-indigo-600 scale-105 font-bold') 
                           : 'themed-mobile-inactive'
@@ -1762,10 +1830,10 @@ export default function App() {
                       }`}>
                         <DollarSign className="w-5 h-5 sm:w-5 sm:h-5" />
                       </div>
-                      <span className="text-[9px] sm:text-[10px] truncate max-w-full">Finance</span>
+                      <span className="text-[9px] sm:text-[10px] truncate max-w-full">Financeiro</span>
                     </button>
 
-                    {/* Next Page Arrow */}
+                    {/* Next Page Arrow (Mais) */}
                     <button
                       onClick={() => setMobileNavPage(1)}
                       className="flex flex-col items-center justify-center gap-1 cursor-pointer transition-all active:scale-95 shrink-0 min-w-[40px] sm:min-w-[48px] text-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400"
@@ -1776,7 +1844,9 @@ export default function App() {
                       <span className="text-[9px] sm:text-[10px] truncate max-w-full font-bold">Mais</span>
                     </button>
                   </motion.div>
-                ) : (
+                )}
+
+                {mobileNavPage === 1 && (
                   <motion.div 
                     key="page1"
                     initial={{ opacity: 0, x: 20 }}
@@ -1785,7 +1855,7 @@ export default function App() {
                     transition={{ duration: 0.2 }}
                     className="flex-1 flex items-center justify-between gap-1 sm:gap-4 w-full"
                   >
-                    {/* Prev Page Arrow */}
+                    {/* Prev Page Arrow (Voltar) */}
                     <button
                       onClick={() => setMobileNavPage(0)}
                       className="flex flex-col items-center justify-center gap-1 cursor-pointer transition-all active:scale-95 shrink-0 min-w-[40px] sm:min-w-[48px] text-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400"
@@ -1796,10 +1866,31 @@ export default function App() {
                       <span className="text-[9px] sm:text-[10px] truncate max-w-full font-bold">Voltar</span>
                     </button>
 
-                    {/* Tab 4: Serviços */}
+                    {/* Tab: Agendamento Online */}
+                    {user?.email === 'thiagomsy@gmail.com' && (
+                      <button
+                        onClick={() => { setActiveClientId(null); setActiveTab('online_booking'); }}
+                        className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-all active:scale-95 shrink-0 min-w-[44px] sm:min-w-[64px] ${
+                          activeTab === 'online_booking' 
+                            ? (isDark ? 'text-indigo-400 scale-105 font-bold' : 'text-indigo-600 scale-105 font-bold') 
+                            : 'themed-mobile-inactive'
+                        }`}
+                      >
+                        <div className={`p-1 sm:p-1.5 rounded-xl transition-all ${
+                          activeTab === 'online_booking' 
+                            ? (isDark ? 'bg-indigo-500/10 text-indigo-400' : 'bg-indigo-50 text-indigo-600') 
+                            : 'bg-transparent'
+                        }`}>
+                          <Globe className="w-5 h-5 sm:w-5 sm:h-5 text-emerald-400" />
+                        </div>
+                        <span className="text-[9px] sm:text-[10px] truncate max-w-full">Online</span>
+                      </button>
+                    )}
+
+                    {/* Tab: Serviços */}
                     <button
                       onClick={() => { setActiveClientId(null); setActiveTab('services'); }}
-                      className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-all active:scale-95 shrink-0 min-w-[56px] sm:min-w-[64px] ${
+                      className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-all active:scale-95 shrink-0 min-w-[44px] sm:min-w-[64px] ${
                         activeTab === 'services' 
                           ? (isDark ? 'text-indigo-400 scale-105 font-bold' : 'text-indigo-600 scale-105 font-bold') 
                           : 'themed-mobile-inactive'
@@ -1815,10 +1906,10 @@ export default function App() {
                       <span className="text-[9px] sm:text-[10px] truncate max-w-full">Serviços</span>
                     </button>
 
-                    {/* Tab 5: Estoque */}
+                    {/* Tab: Estoque */}
                     <button
                       onClick={() => { setActiveClientId(null); setActiveTab('estoque'); }}
-                      className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-all active:scale-95 shrink-0 min-w-[56px] sm:min-w-[64px] ${
+                      className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-all active:scale-95 shrink-0 min-w-[44px] sm:min-w-[64px] ${
                         activeTab === 'estoque' 
                           ? (isDark ? 'text-indigo-400 scale-105 font-bold' : 'text-indigo-600 scale-105 font-bold') 
                           : 'themed-mobile-inactive'
@@ -1834,26 +1925,57 @@ export default function App() {
                       <span className="text-[9px] sm:text-[10px] truncate max-w-full">Estoque</span>
                     </button>
                     
-                    {/* Tab 6: Genda AI */}
-                    {user?.email === 'thiagomsy@gmail.com' && (
-                      <button
-                        onClick={() => { setActiveClientId(null); setActiveTab('ai'); }}
-                        className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-all active:scale-95 shrink-0 min-w-[56px] sm:min-w-[64px] ${
-                          activeTab === 'ai' 
-                            ? (isDark ? 'text-indigo-400 scale-105 font-bold' : 'text-indigo-600 scale-105 font-bold') 
-                            : 'themed-mobile-inactive'
-                        }`}
-                      >
-                        <div className={`p-1 sm:p-1.5 rounded-xl transition-all ${
-                          activeTab === 'ai' 
-                            ? (isDark ? 'bg-indigo-500 text-white' : 'bg-indigo-50 text-indigo-600') 
-                            : 'bg-transparent'
-                        }`}>
-                          <Bot className="w-5 h-5 sm:w-5 sm:h-5" />
-                        </div>
-                        <span className="text-[9px] sm:text-[10px] truncate max-w-full">Genda AI</span>
-                      </button>
-                    )}
+                    {/* Tab: Genda AI */}
+                    <button
+                      onClick={() => { setActiveClientId(null); setActiveTab('ai'); }}
+                      className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-all active:scale-95 shrink-0 min-w-[44px] sm:min-w-[64px] ${
+                        activeTab === 'ai' 
+                          ? (isDark ? 'text-indigo-400 scale-105 font-bold' : 'text-indigo-600 scale-105 font-bold') 
+                          : 'themed-mobile-inactive'
+                      }`}
+                    >
+                      <div className={`p-1 sm:p-1.5 rounded-xl transition-all ${
+                        activeTab === 'ai' 
+                          ? (isDark ? 'bg-indigo-500 text-white' : 'bg-indigo-50 text-indigo-600') 
+                          : 'bg-transparent'
+                      }`}>
+                        <Bot className="w-5 h-5 sm:w-5 sm:h-5" />
+                      </div>
+                      <span className="text-[9px] sm:text-[10px] truncate max-w-full">Genda AI</span>
+                    </button>
+
+                    {/* Next Page Arrow (Mais) */}
+                    <button
+                      onClick={() => setMobileNavPage(2)}
+                      className="flex flex-col items-center justify-center gap-1 cursor-pointer transition-all active:scale-95 shrink-0 min-w-[40px] sm:min-w-[48px] text-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400"
+                    >
+                      <div className="p-1 sm:p-1.5 rounded-xl transition-all bg-indigo-500/10 text-indigo-500 flex items-center justify-center h-[28px] w-[28px] sm:h-[32px] sm:w-[32px]">
+                        <ChevronRight className="w-5 h-5 sm:w-5 sm:h-5" />
+                      </div>
+                      <span className="text-[9px] sm:text-[10px] truncate max-w-full font-bold">Mais</span>
+                    </button>
+                  </motion.div>
+                )}
+
+                {mobileNavPage === 2 && (
+                  <motion.div 
+                    key="page2"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    transition={{ duration: 0.2 }}
+                    className="flex-1 flex items-center justify-start gap-4 sm:gap-8 w-full"
+                  >
+                    {/* Prev Page Arrow (Voltar) */}
+                    <button
+                      onClick={() => setMobileNavPage(1)}
+                      className="flex flex-col items-center justify-center gap-1 cursor-pointer transition-all active:scale-95 shrink-0 min-w-[40px] sm:min-w-[48px] text-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400"
+                    >
+                      <div className="p-1 sm:p-1.5 rounded-xl transition-all bg-indigo-500/10 text-indigo-500 flex items-center justify-center h-[28px] w-[28px] sm:h-[32px] sm:w-[32px]">
+                        <ChevronLeft className="w-5 h-5 sm:w-5 sm:h-5" />
+                      </div>
+                      <span className="text-[9px] sm:text-[10px] truncate max-w-full font-bold">Voltar</span>
+                    </button>
 
                     {/* Tab: Em breve */}
                     <button
@@ -1874,7 +1996,7 @@ export default function App() {
                       <span className="text-[9px] sm:text-[10px] truncate max-w-full">Em breve</span>
                     </button>
 
-                    {/* Tab 7: Ajustes */}
+                    {/* Tab: Ajustes */}
                     <button
                       onClick={() => { setActiveClientId(null); setActiveTab('settings'); }}
                       className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-all active:scale-95 shrink-0 min-w-[56px] sm:min-w-[64px] ${
@@ -2029,6 +2151,29 @@ export default function App() {
           </div>
         )}
       </AnimatePresence>
+
+      {/* PUBLIC CLIENT BOOKING PORTAL OVERLAY */}
+      {isPublicPortalOpen && (
+        <div className="fixed inset-0 z-[110] overflow-y-auto bg-slate-950/95 backdrop-blur-md animate-fadeIn">
+          <PublicBookingView
+            config={onlineBookingConfig}
+            services={services}
+            appointments={appointments}
+            clients={clients}
+            workingDays={profile.workingDays || []}
+            onAddAppointment={(newAppt) => {
+              handleAddAppointment(newAppt);
+            }}
+            onClose={() => {
+              setIsPublicPortalOpen(false);
+              if (typeof window !== 'undefined' && window.location.search.includes('agendar=')) {
+                window.history.pushState({}, '', window.location.pathname);
+              }
+            }}
+            isEmbedMode={true}
+          />
+        </div>
+      )}
 
       <InstallPWA isDark={isDark} />
     </div>

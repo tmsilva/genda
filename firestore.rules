@@ -139,5 +139,11 @@ service cloud.firestore {
         allow delete: if isOwner(userId) && isValidId(templateId);
       }
     }
+
+    match /establishment_slugs/{slugId} {
+      allow read: if true;
+      allow create, update: if request.resource.data.userId is string && request.resource.data.slug is string;
+      allow delete: if resource.data.userId == request.resource.data.userId;
+    }
   }
 }

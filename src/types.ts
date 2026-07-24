@@ -66,6 +66,7 @@ export interface Appointment {
   paymentDate?: string;
   paymentMethod?: string; // 'money' | 'pix' | 'credit' | 'debit'
   status: AppointmentStatus;
+  source?: 'online' | 'manual';
 }
 
 export interface MessageTemplate {
@@ -118,5 +119,64 @@ export interface AppNotification {
   timestamp: string; // ISO string
   read: boolean;
   appointmentId?: string;
+}
+
+export interface BlockedDate {
+  id: string;
+  date: string; // YYYY-MM-DD
+  reason: string;
+}
+
+export interface OnlineBookingConfig {
+  isEnabled: boolean;
+  slug: string;
+  title: string;
+  description: string;
+  avatarUrl: string;
+  coverImageUrl: string;
+  instagram: string;
+  whatsapp: string;
+  address: string;
+  primaryColor: string;
+  welcomeMessage: string;
+  
+  // Availability
+  minAdvanceHours: number;
+  slotIntervalMinutes: number;
+  blockedDates: BlockedDate[];
+  
+  // Services & Staff
+  enabledServiceIds: string[];
+  staffMembers: {
+    id: string;
+    name: string;
+    role: string;
+    avatarUrl?: string;
+  }[];
+  autoAssignStaff: boolean;
+  
+  // Limits
+  maxBookingsPerDay: number;
+  maxBookingsPerClient: number;
+  blockDelinquents: boolean;
+  blockFrequentNoShows: boolean;
+  
+  // Confirmation & Payment
+  autoApprove: boolean;
+  paymentMode: 'none' | 'deposit' | 'full' | 'custom';
+  depositPercentage: number;
+  customDepositAmount?: number;
+  
+  // Differentiators
+  smartSlotsEnabled: boolean;
+  smartRescheduleEnabled: boolean;
+  crossSellEnabled: boolean;
+  crossSellServiceId?: string;
+  favoritesEnabled: boolean;
+  
+  // SEO
+  seoTitle: string;
+  seoDescription: string;
+  seoOpenGraphImage?: string;
 }
 
