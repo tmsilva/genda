@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import {
   Sparkles, Globe, Hourglass, RefreshCw, Package, Gift, Coins,
   Bell, Bot, Target, TrendingUp, Crown, Tag, Megaphone, UserX,
-  QrCode, Building2, Users, Receipt, Timer, ChevronDown, Search,
+  QrCode, Building2, Users, Receipt, Timer, ChevronDown, ChevronLeft, ChevronRight, Search,
   CheckCircle2, Compass, Lightbulb, Rocket
 } from 'lucide-react';
 
@@ -196,12 +196,20 @@ interface RoadmapViewProps {
 }
 
 export default function RoadmapView({ isDark = false }: RoadmapViewProps) {
+  const ITEMS_PER_PAGE = 6;
+
   // Single open accordion state
   const [openId, setOpenId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [currentPage, setCurrentPage] = useState<number>(1);
 
   const toggleAccordion = (id: string) => {
     setOpenId((prev) => (prev === id ? null : id));
+  };
+
+  const handleSearchChange = (query: string) => {
+    setSearchQuery(query);
+    setCurrentPage(1);
   };
 
   const filteredItems = ROADMAP_ITEMS.filter((item) => {
@@ -213,6 +221,10 @@ export default function RoadmapView({ isDark = false }: RoadmapViewProps) {
       item.category.toLowerCase().includes(query)
     );
   });
+
+  const totalPages = Math.ceil(filteredItems.length / ITEMS_PER_PAGE) || 1;
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const paginatedItems = filteredItems.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
   return (
     <div className="w-full max-w-5xl mx-auto space-y-8 animate-fadeIn pb-12">
@@ -246,7 +258,7 @@ export default function RoadmapView({ isDark = false }: RoadmapViewProps) {
           <input
             type="text"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => handleSearchChange(e.target.value)}
             placeholder="Buscar funcionalidade em breve..."
             className={`w-full pl-10 pr-4 py-2.5 text-sm rounded-2xl border transition-all outline-none ${
               isDark
@@ -256,7 +268,7 @@ export default function RoadmapView({ isDark = false }: RoadmapViewProps) {
           />
           {searchQuery && (
             <button
-              onClick={() => setSearchQuery('')}
+              onClick={() => handleSearchChange('')}
               className={`absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold px-2 py-0.5 rounded-md ${
                 isDark ? 'bg-zinc-800 text-zinc-400 hover:text-zinc-200' : 'bg-slate-100 text-slate-500 hover:text-slate-800'
               }`}
@@ -267,7 +279,7 @@ export default function RoadmapView({ isDark = false }: RoadmapViewProps) {
         </div>
 
         <div className="text-xs font-medium text-slate-500 dark:text-zinc-400 flex items-center gap-2 self-end sm:self-center">
-          <span>Exibindo <strong>{filteredItems.length}</strong> de {ROADMAP_ITEMS.length} itens</span>
+          <span>Exibindo <strong>{paginatedItems.length}</strong> de {filteredItems.length} itens (Página {currentPage} de {totalPages})</span>
         </div>
       </div>
 
@@ -282,7 +294,7 @@ export default function RoadmapView({ isDark = false }: RoadmapViewProps) {
             <p className="text-xs mt-1">Tente pesquisar por outros termos como "agendamento", "PIX", "IA" ou "clientes".</p>
           </div>
         ) : (
-          filteredItems.map((item) => {
+          paginatedItems.map((item) => {
             const IconComponent = item.icon;
             const isOpen = openId === item.id;
 
@@ -423,6 +435,65 @@ export default function RoadmapView({ isDark = false }: RoadmapViewProps) {
           })
         )}
       </div>
+
+      {/* PAGINATION CONTROLS */}
+      {totalPages > 1 && (
+        <div className={`flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-2xl border ${
+          isDark ? 'bg-zinc-900/60 border-zinc-800' : 'bg-white border-slate-200/80 shadow-sm'
+        }`}>
+          <span className="text-xs font-medium text-slate-500 dark:text-zinc-400">
+            Mostrando {startIndex + 1} a {Math.min(startIndex + ITEMS_PER_PAGE, filteredItems.length)} de {filteredItems.length} itens
+          </span>
+
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className={`p-2 rounded-xl border text-xs font-medium flex items-center gap-1 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ${
+                isDark
+                  ? 'bg-zinc-800/80 border-zinc-700 text-zinc-300 hover:bg-zinc-800'
+                  : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+              }`}
+              title="Página anterior"
+            >
+              <ChevronLeft className="w-4 h-4" />
+              <span className="hidden sm:inline">Anterior</span>
+            </button>
+
+            <div className="flex items-center gap-1 px-1">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <button
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  className={`w-8 h-8 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                    currentPage === page
+                      ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-600/30 font-bold scale-105'
+                      : isDark
+                        ? 'text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200'
+                        : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+            </div>
+
+            <button
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className={`p-2 rounded-xl border text-xs font-medium flex items-center gap-1 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ${
+                isDark
+                  ? 'bg-zinc-800/80 border-zinc-700 text-zinc-300 hover:bg-zinc-800'
+                  : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+              }`}
+              title="Próxima página"
+            >
+              <span className="hidden sm:inline">Próxima</span>
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* FOOTER CALLOUT */}
       <div className={`p-6 rounded-2xl border text-center space-y-2 ${

@@ -1,6 +1,6 @@
 import { now, parseDate, getTodayStr } from './dateUtils';
 import dayjs from 'dayjs';
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Calendar, Users, DollarSign, Settings, Smartphone, 
@@ -394,8 +394,23 @@ export default function App() {
   useEffect(() => {
     if (isOnboarded) {
       const timer = setTimeout(() => {
-        // Find first upcoming scheduled appointment to notify about
-        const nextAppt = appointments.find(a => a.status === 'scheduled');
+        // Find upcoming scheduled appointments that haven't passed and are not confirmed/paid
+        const upcomingAppointments = appointments
+          .filter(a => {
+            if (a.status !== 'scheduled') return false;
+            if (a.paymentStatus === 'paid') return false;
+            
+            // Appointment date and time MUST be strictly in the future
+            const apptDateTime = parseDate(`${a.date}T${a.time}:00`);
+            return apptDateTime.isAfter(now());
+          })
+          .sort((a, b) => {
+            const dtA = parseDate(`${a.date}T${a.time}:00`).valueOf();
+            const dtB = parseDate(`${b.date}T${b.time}:00`).valueOf();
+            return dtA - dtB;
+          });
+
+        const nextAppt = upcomingAppointments[0];
         if (nextAppt) {
           const client = clients.find(c => c.id === nextAppt.clientId);
           const service = services.find(s => s.id === nextAppt.serviceId);
@@ -404,7 +419,7 @@ export default function App() {
             const notifBody = `${client.name.split(' ')[0]} - ${service.name} às ${nextAppt.time}`;
             setPushNotification({
               id: notifId,
-              title: 'Lembrete de Atendimento • Amanhã',
+              title: 'Lembrete de Atendimento • Agendado',
               body: notifBody,
               appointmentId: nextAppt.id,
             });
@@ -412,7 +427,7 @@ export default function App() {
             // Also save to notifications history
             const newNotif: AppNotification = {
               id: notifId,
-              title: 'Lembrete de Atendimento • Amanhã',
+              title: 'Lembrete de Atendimento • Agendado',
               body: notifBody,
               timestamp: now().format(),
               read: false,
@@ -424,10 +439,10 @@ export default function App() {
             });
           }
         }
-      }, 5000); // Triggers 5 seconds after startup to amaze reviewers
+      }, 5000); // Triggers 5 seconds after startup
       return () => clearTimeout(timer);
     }
-  }, [isOnboarded]);
+  }, [isOnboarded, appointments, clients, services]);
 
   // Handlers
   const handleLoginGoogle = async () => {
@@ -860,6 +875,14 @@ export default function App() {
     if (!pushNotification) return;
     const appt = appointments.find(a => a.id === pushNotification.appointmentId);
     if (!appt) return;
+
+    // Do not send reminder if appointment is in the past, completed, cancelled, or paid
+    const apptDateTime = parseDate(`${appt.date}T${appt.time}:00`);
+    if (appt.status !== 'scheduled' || appt.paymentStatus === 'paid' || !apptDateTime.isAfter(now())) {
+      setPushNotification(null);
+      return;
+    }
+
     const client = clients.find(c => c.id === appt.clientId);
     const service = services.find(s => s.id === appt.serviceId);
     if (!client || !service) return;
@@ -882,7 +905,24 @@ export default function App() {
     setPushNotification(null);
   };
 
-  const unreadCount = notifications.filter(n => !n.read).length;
+  // Filter active notifications: exclude reminders for past or already completed/cancelled/paid appointments
+  const activeNotifications = useMemo(() => {
+    return notifications.filter(notif => {
+      if (!notif.appointmentId) return true;
+      const appt = appointments.find(a => a.id === notif.appointmentId);
+      if (!appt) return false;
+
+      if (notif.title.toLowerCase().includes('lembrete')) {
+        if (appt.status !== 'scheduled') return false;
+        if (appt.paymentStatus === 'paid') return false;
+        const apptDateTime = parseDate(`${appt.date}T${appt.time}:00`);
+        if (!apptDateTime.isAfter(now())) return false;
+      }
+      return true;
+    });
+  }, [notifications, appointments]);
+
+  const unreadCount = activeNotifications.filter(n => !n.read).length;
 
   const formatNotifTime = (isoString: string) => {
     const d = parseDate(isoString);
@@ -1033,10 +1073,10 @@ export default function App() {
                       ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/25'
                       : 'themed-sidebar-inactive-btn'
                   } ${!isSidebarExpanded && 'justify-center'}`}
-                  title="Estoque de Materiais"
+                  title="Estoque"
                 >
                   <Package className="w-5 h-5 shrink-0" />
-                  {isSidebarExpanded && <span className="text-sm">Controle de Estoque</span>}
+                  {isSidebarExpanded && <span className="text-sm">Estoque</span>}
                 </button>
 
                 {/* Item 4: Financeiro */}
@@ -1278,7 +1318,7 @@ export default function App() {
                                 <p className="text-[10px] text-slate-400">Atividades e notificações recentes</p>
                               </div>
                               <div className="flex items-center gap-1.5">
-                                {notifications.length > 0 && (
+                                {activeNotifications.length > 0 && (
                                   <>
                                     <button
                                       onClick={() => {
@@ -1313,7 +1353,7 @@ export default function App() {
 
                             {/* Dropdown Body - Notifications list */}
                             <div className="max-h-80 overflow-y-auto divide-y divide-slate-100 dark:divide-zinc-850">
-                              {notifications.length === 0 ? (
+                              {activeNotifications.length === 0 ? (
                                 <div className="p-8 text-center space-y-2">
                                   <div className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto ${
                                     isDark ? 'bg-zinc-900 text-zinc-600' : 'bg-slate-50 text-slate-300'
@@ -1330,7 +1370,7 @@ export default function App() {
                                   </div>
                                 </div>
                               ) : (
-                                notifications.map((notif) => (
+                                activeNotifications.map((notif) => (
                                   <div
                                     key={notif.id}
                                     onClick={() => {

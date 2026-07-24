@@ -383,6 +383,15 @@ export default function ScheduleView({
   // Create template text for WhatsApp
   const handleShareReminder = (templateType: 'reminder' | 'confirm' | 'reschedule' | 'thanks') => {
     if (!selectedAppointment) return;
+
+    if (templateType === 'reminder') {
+      const apptDateTime = parseDate(`${selectedAppointment.date}T${selectedAppointment.time}:00`);
+      if (selectedAppointment.status !== 'scheduled' || selectedAppointment.paymentStatus === 'paid' || !apptDateTime.isAfter(now())) {
+        triggerAlert('Lembretes só podem ser enviados para agendamentos futuros que ainda não passaram e não estão pagos/concluídos.', 'error');
+        return;
+      }
+    }
+
     const client = getApptClient(selectedAppointment.clientId);
     const service = getApptService(selectedAppointment.serviceId);
     
