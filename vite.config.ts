@@ -15,7 +15,7 @@ export default defineConfig(() => {
         devOptions: {
           enabled: true,
         },
-        includeAssets: ['favicon.ico', 'favicon.png', 'Logo.png', 'Logo-white.png'],
+        includeAssets: ['favicon.ico', 'favicon.png', 'Logo.png', 'Logo-white.png', 'icons/**/*'],
         manifest: {
           id: '/',
           start_url: '/',
@@ -30,20 +30,45 @@ export default defineConfig(() => {
           categories: ['business', 'productivity', 'utilities'],
           icons: [
             {
-              src: 'Logo.png',
+              src: 'icons/android/launchericon-48x48.png',
+              sizes: '48x48',
+              type: 'image/png'
+            },
+            {
+              src: 'icons/android/launchericon-72x72.png',
+              sizes: '72x72',
+              type: 'image/png'
+            },
+            {
+              src: 'icons/android/launchericon-96x96.png',
+              sizes: '96x96',
+              type: 'image/png'
+            },
+            {
+              src: 'icons/android/launchericon-144x144.png',
+              sizes: '144x144',
+              type: 'image/png'
+            },
+            {
+              src: 'icons/android/launchericon-192x192.png',
               sizes: '192x192',
               type: 'image/png',
               purpose: 'any'
             },
             {
-              src: 'Logo.png',
+              src: 'icons/android/launchericon-512x512.png',
               sizes: '512x512',
               type: 'image/png',
               purpose: 'any maskable'
             },
             {
-              src: 'Logo-white.png',
-              sizes: '512x512',
+              src: 'icons/ios/180.png',
+              sizes: '180x180',
+              type: 'image/png'
+            },
+            {
+              src: 'icons/ios/1024.png',
+              sizes: '1024x1024',
               type: 'image/png',
               purpose: 'any'
             }
