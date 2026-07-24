@@ -1225,6 +1225,21 @@ export default function SettingsView({
                 <p className={`text-center max-w-sm px-4 leading-relaxed ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
                   Um sistema completo de agendamentos e controle de negócios desenvolvido para profissionais independentes.
                 </p>
+
+                <div className="mt-6">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      // Clear dismissal timestamp to trigger InstallPWA prompt
+                      localStorage.removeItem('genda_pwa_dismissed_time');
+                      window.location.reload();
+                    }}
+                    className="px-5 py-2.5 rounded-full bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-bold text-xs flex items-center gap-2 shadow-md shadow-indigo-600/30 transition-all cursor-pointer"
+                  >
+                    <Smartphone className="w-4 h-4" />
+                    <span>Instalar App no Celular</span>
+                  </button>
+                </div>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-auto pt-4">
