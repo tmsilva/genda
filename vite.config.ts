@@ -23,6 +23,7 @@ export default defineConfig(() => {
           name: 'Genda - Gestão & Agendamentos',
           short_name: 'Genda',
           description: 'Um sistema completo de agendamentos e controle de negócios desenvolvido para profissionais independentes.',
+          version: '0.9.5',
           theme_color: '#0f172a',
           background_color: '#0f172a',
           display: 'standalone',
@@ -73,7 +74,7 @@ export default defineConfig(() => {
               purpose: 'any'
             }
           ]
-        },
+        } as any,
         workbox: {
           globPatterns: ['**/*.{js,css,html,ico,png,svg,json}'],
           maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,

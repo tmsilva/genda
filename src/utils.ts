@@ -49,4 +49,10 @@ export const formatPrice = (value: number | undefined | null): string => {
   return value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 };
 
+/**
+ * Current Application Version (synced with PWA manifest & package.json)
+ */
+export const APP_VERSION = '0.9.5';
+
+
 

@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { ProfessionalProfile, Service, MessageTemplate, ThemeOption, WorkingDay } from '../types';
 import { THEME_OPTIONS } from '../data';
-import { formatPhone } from '../utils';
+import { formatPhone, APP_VERSION } from '../utils';
 import Logo from './Logo';
 
 interface SettingsViewProps {
@@ -1218,7 +1218,7 @@ export default function SettingsView({
                     Versão Beta
                   </span>
                   <span className={`${isDark ? 'text-zinc-500' : 'text-slate-400'} text-[10px]`}>
-                    v0.9.5
+                    v{APP_VERSION}
                   </span>
                 </div>
                 
