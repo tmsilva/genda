@@ -81,6 +81,16 @@ export interface ProfessionalProfile {
   category: string;
   avatarUrl?: string;
   whatsapp?: string;
+  coverImageUrl?: string;
+  welcomeMessage?: string;
+  staffMembers?: {
+    id: string;
+    name: string;
+    role: string;
+    avatarUrl?: string;
+  }[];
+  seoTitle?: string;
+  seoDescription?: string;
   workingDays: WorkingDay[];
   themeId: string;
   isOfflineModeEnabled: boolean;
@@ -130,16 +140,12 @@ export interface BlockedDate {
 export interface OnlineBookingConfig {
   isEnabled: boolean;
   slug: string;
-  title: string;
   category?: string;
   description: string;
   avatarUrl: string;
-  coverImageUrl: string;
   instagram: string;
-  whatsapp: string;
   address: string;
   primaryColor: string;
-  welcomeMessage: string;
   
   // Availability
   minAdvanceHours: number;
@@ -148,12 +154,6 @@ export interface OnlineBookingConfig {
   
   // Services & Staff
   enabledServiceIds: string[];
-  staffMembers: {
-    id: string;
-    name: string;
-    role: string;
-    avatarUrl?: string;
-  }[];
   autoAssignStaff: boolean;
   
   // Limits
@@ -176,8 +176,6 @@ export interface OnlineBookingConfig {
   favoritesEnabled: boolean;
   
   // SEO
-  seoTitle: string;
-  seoDescription: string;
   seoOpenGraphImage?: string;
 }
 

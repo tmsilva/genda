@@ -1056,20 +1056,30 @@ export default function App() {
           <PublicBookingView
             config={publicPortalData ? {
               ...publicPortalData.config,
-              title: publicPortalData.profile.name || publicPortalData.config.title,
+              title: publicPortalData.profile.name || 'Agendamento Online',
               category: publicPortalData.profile.category || publicPortalData.config.category || '',
-              whatsapp: publicPortalData.profile.whatsapp || publicPortalData.config.whatsapp,
+              whatsapp: publicPortalData.profile.whatsapp || '',
               instagram: publicPortalData.profile.instagram || publicPortalData.config.instagram || '',
               avatarUrl: publicPortalData.profile.avatarUrl || publicPortalData.config.avatarUrl || '',
-              address: publicPortalData.profile.address || publicPortalData.config.address,
+              address: publicPortalData.profile.address || publicPortalData.config.address || '',
+              welcomeMessage: publicPortalData.profile.welcomeMessage || '',
+              coverImageUrl: publicPortalData.profile.coverImageUrl || '',
+              staffMembers: publicPortalData.profile.staffMembers || [],
+              seoTitle: publicPortalData.profile.seoTitle || '',
+              seoDescription: publicPortalData.profile.seoDescription || '',
             } : {
               ...onlineBookingConfig,
-              title: profile.name || onlineBookingConfig.title,
+              title: profile.name || 'Agendamento Online',
               category: profile.category || onlineBookingConfig.category || '',
-              whatsapp: profile.whatsapp || onlineBookingConfig.whatsapp,
+              whatsapp: profile.whatsapp || '',
               instagram: profile.instagram || onlineBookingConfig.instagram || '',
               avatarUrl: profile.avatarUrl || onlineBookingConfig.avatarUrl || '',
-              address: profile.address || onlineBookingConfig.address,
+              address: profile.address || onlineBookingConfig.address || '',
+              welcomeMessage: profile.welcomeMessage || '',
+              coverImageUrl: profile.coverImageUrl || '',
+              staffMembers: profile.staffMembers || [],
+              seoTitle: profile.seoTitle || '',
+              seoDescription: profile.seoDescription || '',
             }}
             services={publicPortalData ? publicPortalData.services : services}
             appointments={appointments}
@@ -1835,6 +1845,7 @@ export default function App() {
                       clients={clients}
                       workingDays={profile.workingDays || []}
                       profile={profile}
+                      onUpdateProfile={setProfile}
                       isDark={isDark}
                       onOpenPublicView={() => {
                         setIsPortalOpenedFromAdmin(true);

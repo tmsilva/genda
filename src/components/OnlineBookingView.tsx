@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { OnlineBookingConfig, Service, Appointment, Client, WorkingDay, ProfessionalProfile, BlockedDate } from '../types';
 import { formatPrice, formatPhoneWithCountryCode } from '../utils';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, deleteDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 
 interface OnlineBookingViewProps {
@@ -19,6 +19,7 @@ interface OnlineBookingViewProps {
   clients: Client[];
   workingDays: WorkingDay[];
   profile: ProfessionalProfile;
+  onUpdateProfile: (newProfile: ProfessionalProfile) => void;
   isDark: boolean;
   onOpenPublicView: () => void;
   triggerAlert: (msg: string, type: 'success' | 'error' | 'info') => void;
@@ -32,6 +33,7 @@ export const OnlineBookingView: React.FC<OnlineBookingViewProps> = ({
   clients,
   workingDays,
   profile,
+  onUpdateProfile,
   isDark,
   onOpenPublicView,
   triggerAlert
@@ -68,24 +70,63 @@ export const OnlineBookingView: React.FC<OnlineBookingViewProps> = ({
   const handleSaveSettings = async () => {
     try {
       const currentUserId = getDeviceEstablishmentId();
+      const oldSlug = config.slug;
+
+      // Delete any other slugs belonging to this user in Firestore
+      try {
+        const querySnapshot = await getDocs(collection(db, 'establishment_slugs'));
+        for (const documentSnapshot of querySnapshot.docs) {
+          const data = documentSnapshot.data();
+          if (documentSnapshot.id !== cleanSlug && data.userId === currentUserId) {
+            await deleteDoc(doc(db, 'establishment_slugs', documentSnapshot.id));
+          }
+        }
+      } catch (e) {
+        console.warn("Erro ao limpar slugs anteriores do usuário no Firestore:", e);
+      }
+
+      if (oldSlug && oldSlug !== cleanSlug) {
+        try {
+          await deleteDoc(doc(db, 'establishment_slugs', oldSlug));
+        } catch (e) {}
+      }
+
+      const {
+        title: _t,
+        welcomeMessage: _wm,
+        whatsapp: _wa,
+        coverImageUrl: _ci,
+        staffMembers: _sm,
+        seoTitle: _st,
+        seoDescription: _sd,
+        establishmentName: _en,
+        enabledServiceIds: _es,
+        ...cleanConfig
+      } = config as any;
+
       await setDoc(doc(db, 'establishment_slugs', cleanSlug), {
         userId: currentUserId,
         slug: cleanSlug,
-        config,
+        config: cleanConfig,
         services,
         profile: {
           name: profile.name,
           category: profile.category,
-          whatsapp: profile.whatsapp,
           instagram: profile.instagram,
           address: profile.address,
           avatarUrl: profile.avatarUrl,
-          coverUrl: profile.coverUrl,
-          bio: profile.bio,
         },
         workingDays,
         updatedAt: new Date().toISOString()
       }, { merge: true });
+
+      if (cleanSlug !== oldSlug) {
+        onUpdateConfig({
+          ...config,
+          slug: cleanSlug
+        });
+      }
+
       triggerAlert('Configurações salvas com sucesso!', 'success');
     } catch (err) {
       console.error(err);
@@ -162,21 +203,49 @@ export const OnlineBookingView: React.FC<OnlineBookingViewProps> = ({
     }
 
     const currentUserId = getDeviceEstablishmentId();
+    const oldSlug = config.slug;
 
     try {
-      await setDoc(doc(db, 'establishment_slugs', cleanSlug), {
-        userId: currentUserId,
-        slug: cleanSlug,
-        establishmentName: config.title || profile.name || 'Estabelecimento',
-        updatedAt: new Date().toISOString()
-      }, { merge: true });
+      // Query and delete any other slugs belonging to this user in Firestore
+      try {
+        const querySnapshot = await getDocs(collection(db, 'establishment_slugs'));
+        for (const documentSnapshot of querySnapshot.docs) {
+          const data = documentSnapshot.data();
+          if (documentSnapshot.id !== cleanSlug && data.userId === currentUserId) {
+            await deleteDoc(doc(db, 'establishment_slugs', documentSnapshot.id));
+          }
+        }
+      } catch (e) {
+        console.warn("Erro ao limpar slugs anteriores do usuário no Firestore:", e);
+      }
 
-      // Save to local registry as backup
+      if (oldSlug && oldSlug !== cleanSlug) {
+        try {
+          await deleteDoc(doc(db, 'establishment_slugs', oldSlug));
+        } catch (e) {
+          console.warn("Erro ao excluir slug anterior do Firestore:", e);
+        }
+      }
+
+      // Also clean up local storage registry for this user
       const localRegistryStr = localStorage.getItem('genda_local_reserved_slugs') || '{}';
       let localRegistry: Record<string, string> = {};
       try { localRegistry = JSON.parse(localRegistryStr); } catch {}
+      Object.keys(localRegistry).forEach((s) => {
+        if (localRegistry[s] === currentUserId && s !== cleanSlug) {
+          delete localRegistry[s];
+        }
+      });
       localRegistry[cleanSlug] = currentUserId;
       localStorage.setItem('genda_local_reserved_slugs', JSON.stringify(localRegistry));
+
+      await setDoc(doc(db, 'establishment_slugs', cleanSlug), {
+        userId: currentUserId,
+        slug: cleanSlug,
+        updatedAt: new Date().toISOString()
+      }, { merge: true });
+
+
 
       onUpdateConfig({
         ...config,
@@ -188,6 +257,14 @@ export const OnlineBookingView: React.FC<OnlineBookingViewProps> = ({
       triggerAlert(`Link único /${cleanSlug} registrado e verificado com sucesso no banco de dados!`, 'success');
     } catch (err) {
       console.error("Erro ao salvar no Firestore:", err);
+      if (oldSlug && oldSlug !== cleanSlug) {
+        const localRegistryStr = localStorage.getItem('genda_local_reserved_slugs') || '{}';
+        let localRegistry: Record<string, string> = {};
+        try { localRegistry = JSON.parse(localRegistryStr); } catch {}
+        delete localRegistry[oldSlug];
+        localStorage.setItem('genda_local_reserved_slugs', JSON.stringify(localRegistry));
+      }
+
       // Fallback save locally
       const localRegistryStr = localStorage.getItem('genda_local_reserved_slugs') || '{}';
       let localRegistry: Record<string, string> = {};
@@ -217,8 +294,8 @@ export const OnlineBookingView: React.FC<OnlineBookingViewProps> = ({
     if (navigator.share) {
       try {
         await navigator.share({
-          title: config.title || profile.name || 'Agendamento Online',
-          text: config.welcomeMessage || 'Agende seu horário online em segundos!',
+          title: profile.name || 'Agendamento Online',
+          text: profile.welcomeMessage || 'Agende seu horário online em segundos!',
           url: publicUrl,
         });
       } catch {
@@ -465,7 +542,8 @@ export const OnlineBookingView: React.FC<OnlineBookingViewProps> = ({
 
             <button
               type="button"
-              onClick={() => {
+              onClick={async () => {
+                await handleSaveSettings();
                 if (typeof window !== 'undefined') {
                   window.history.pushState({}, '', '?agendar=' + cleanSlug);
                 }
@@ -903,10 +981,10 @@ export const OnlineBookingView: React.FC<OnlineBookingViewProps> = ({
                     <input
                       type="text"
                       placeholder="+55 (11) 98765-4321"
-                      value={formatPhoneWithCountryCode(config.whatsapp || profile.whatsapp || '')}
+                      value={formatPhoneWithCountryCode(profile.whatsapp || '')}
                       onChange={(e) => {
                         const formatted = formatPhoneWithCountryCode(e.target.value);
-                        onUpdateConfig({ ...config, whatsapp: formatted });
+                        onUpdateProfile({ ...profile, whatsapp: formatted });
                       }}
                       className={`w-full ${isDark ? 'bg-zinc-800 border-zinc-700 text-white' : 'bg-white border-slate-200 text-slate-800'} rounded-xl px-3 py-2 text-xs font-mono border`}
                     />

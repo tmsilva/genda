@@ -311,6 +311,14 @@ export const DEFAULT_PROFILE: ProfessionalProfile = {
   name: 'Genda Barbershop',
   category: 'Barbearia & Estética',
   whatsapp: '(11) 98765-4321',
+  coverImageUrl: 'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=1000&auto=format&fit=crop&q=80',
+  welcomeMessage: 'Bem-vindo ao nosso Agendamento Online! Escolha o serviço desejado e o melhor horário para você.',
+  staffMembers: [
+    { id: 'p1', name: 'Carlos Silva', role: 'Master Barber', avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80' },
+    { id: 'p2', name: 'Ana Paula Santos', role: 'Esteticista', avatarUrl: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=100&auto=format&fit=crop&q=80' }
+  ],
+  seoTitle: 'Agendamento Online - Genda Barbershop',
+  seoDescription: 'Marque seu horário online em segundos no Genda Barbershop. Rápido, fácil e sem fila!',
   workingDays: DEFAULT_WORKING_DAYS,
   themeId: 'elegant-dark',
   isOfflineModeEnabled: true,
@@ -321,15 +329,11 @@ export const DEFAULT_PROFILE: ProfessionalProfile = {
 export const DEFAULT_ONLINE_BOOKING_CONFIG: OnlineBookingConfig = {
   isEnabled: true,
   slug: 'seunome',
-  title: 'Genda Barbershop & Estética',
   description: 'Agende seu horário com os melhores profissionais da região. Atendimento personalizado com excelência e conforto.',
   avatarUrl: '',
-  coverImageUrl: 'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=1000&auto=format&fit=crop&q=80',
   instagram: '@gendabarber',
-  whatsapp: '(11) 98765-4321',
   address: 'Av. Paulista, 1000 - Bela Vista, São Paulo - SP',
   primaryColor: '#4f46e5',
-  welcomeMessage: 'Bem-vindo ao nosso Agendamento Online! Escolha o serviço desejado e o melhor horário para você.',
   
   // Availability
   minAdvanceHours: 2,
@@ -341,10 +345,6 @@ export const DEFAULT_ONLINE_BOOKING_CONFIG: OnlineBookingConfig = {
   
   // Services & Staff
   enabledServiceIds: ['s1', 's2', 's3', 's4'],
-  staffMembers: [
-    { id: 'p1', name: 'Carlos Silva', role: 'Master Barber', avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80' },
-    { id: 'p2', name: 'Ana Paula Santos', role: 'Esteticista', avatarUrl: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=100&auto=format&fit=crop&q=80' }
-  ],
   autoAssignStaff: true,
   
   // Limits
@@ -364,8 +364,4 @@ export const DEFAULT_ONLINE_BOOKING_CONFIG: OnlineBookingConfig = {
   crossSellEnabled: true,
   crossSellServiceId: 's2',
   favoritesEnabled: true,
-  
-  // SEO
-  seoTitle: 'Agendamento Online - Genda Barbershop',
-  seoDescription: 'Marque seu horário online em segundos no Genda Barbershop. Rápido, fácil e sem fila!',
 };
