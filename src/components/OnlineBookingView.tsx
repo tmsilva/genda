@@ -7,7 +7,7 @@ import {
   Lock, Search, AlertTriangle, RefreshCw
 } from 'lucide-react';
 import { OnlineBookingConfig, Service, Appointment, Client, WorkingDay, ProfessionalProfile, BlockedDate } from '../types';
-import { formatPrice } from '../utils';
+import { formatPrice, formatPhoneWithCountryCode } from '../utils';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 
@@ -63,6 +63,33 @@ export const OnlineBookingView: React.FC<OnlineBookingViewProps> = ({
       localStorage.setItem('genda_establishment_uid', localId);
     }
     return localId;
+  };
+
+  const handleSaveSettings = async () => {
+    try {
+      const currentUserId = getDeviceEstablishmentId();
+      await setDoc(doc(db, 'establishment_slugs', cleanSlug), {
+        userId: currentUserId,
+        config,
+        services,
+        profile: {
+          name: profile.name,
+          category: profile.category,
+          whatsapp: profile.whatsapp,
+          instagram: profile.instagram,
+          address: profile.address,
+          avatarUrl: profile.avatarUrl,
+          coverUrl: profile.coverUrl,
+          bio: profile.bio,
+        },
+        workingDays,
+        updatedAt: new Date().toISOString()
+      }, { merge: true });
+      triggerAlert('Configurações salvas com sucesso!', 'success');
+    } catch (err) {
+      console.error(err);
+      triggerAlert('Configurações salvas localmente com sucesso!', 'success');
+    }
   };
 
   // Verify slug uniqueness in Firestore database
@@ -870,27 +897,44 @@ export const OnlineBookingView: React.FC<OnlineBookingViewProps> = ({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className={`block text-xs font-semibold mb-1 ${isDark ? 'text-zinc-300' : 'text-slate-700'}`}>
-                      Nome do Estabelecimento
+                      WhatsApp para Suporte ao Cliente
                     </label>
                     <input
                       type="text"
-                      value={config.title || profile.name}
-                      onChange={(e) => onUpdateConfig({ ...config, title: e.target.value })}
-                      className={`w-full ${isDark ? 'bg-zinc-800 border-zinc-700 text-white' : 'bg-white border-slate-200 text-slate-800'} rounded-xl px-3 py-2 text-xs border`}
+                      placeholder="+55 (11) 98765-4321"
+                      value={formatPhoneWithCountryCode(config.whatsapp || profile.whatsapp || '')}
+                      onChange={(e) => {
+                        const formatted = formatPhoneWithCountryCode(e.target.value);
+                        onUpdateConfig({ ...config, whatsapp: formatted });
+                      }}
+                      className={`w-full ${isDark ? 'bg-zinc-800 border-zinc-700 text-white' : 'bg-white border-slate-200 text-slate-800'} rounded-xl px-3 py-2 text-xs font-mono border`}
                     />
                   </div>
 
                   <div>
                     <label className={`block text-xs font-semibold mb-1 ${isDark ? 'text-zinc-300' : 'text-slate-700'}`}>
-                      WhatsApp para Suporte ao Cliente
+                      Instagram (@seuinstagram)
                     </label>
                     <input
                       type="text"
-                      value={config.whatsapp || profile.whatsapp}
-                      onChange={(e) => onUpdateConfig({ ...config, whatsapp: e.target.value })}
+                      placeholder="@seuinstagram"
+                      value={config.instagram !== undefined ? config.instagram : (profile.instagram || '')}
+                      onChange={(e) => onUpdateConfig({ ...config, instagram: e.target.value })}
                       className={`w-full ${isDark ? 'bg-zinc-800 border-zinc-700 text-white' : 'bg-white border-slate-200 text-slate-800'} rounded-xl px-3 py-2 text-xs border`}
                     />
                   </div>
+                </div>
+
+                <div>
+                  <label className={`block text-xs font-semibold mb-1 ${isDark ? 'text-zinc-300' : 'text-slate-700'}`}>
+                    Endereço Físico
+                  </label>
+                  <input
+                    type="text"
+                    value={config.address}
+                    onChange={(e) => onUpdateConfig({ ...config, address: e.target.value })}
+                    className={`w-full ${isDark ? 'bg-zinc-800 border-zinc-700 text-white' : 'bg-white border-slate-200 text-slate-800'} rounded-xl px-3 py-2 text-xs border`}
+                  />
                 </div>
 
                 <div>
@@ -904,36 +948,22 @@ export const OnlineBookingView: React.FC<OnlineBookingViewProps> = ({
                     className={`w-full ${isDark ? 'bg-zinc-800 border-zinc-700 text-white' : 'bg-white border-slate-200 text-slate-800'} rounded-xl p-2.5 text-xs border`}
                   />
                 </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className={`block text-xs font-semibold mb-1 ${isDark ? 'text-zinc-300' : 'text-slate-700'}`}>
-                      Instagram (@seuinstagram)
-                    </label>
-                    <input
-                      type="text"
-                      value={config.instagram}
-                      onChange={(e) => onUpdateConfig({ ...config, instagram: e.target.value })}
-                      className={`w-full ${isDark ? 'bg-zinc-800 border-zinc-700 text-white' : 'bg-white border-slate-200 text-slate-800'} rounded-xl px-3 py-2 text-xs border`}
-                    />
-                  </div>
-
-                  <div>
-                    <label className={`block text-xs font-semibold mb-1 ${isDark ? 'text-zinc-300' : 'text-slate-700'}`}>
-                      Endereço Físico
-                    </label>
-                    <input
-                      type="text"
-                      value={config.address}
-                      onChange={(e) => onUpdateConfig({ ...config, address: e.target.value })}
-                      className={`w-full ${isDark ? 'bg-zinc-800 border-zinc-700 text-white' : 'bg-white border-slate-200 text-slate-800'} rounded-xl px-3 py-2 text-xs border`}
-                    />
-                  </div>
-                </div>
               </div>
             )}
           </div>
         </div>
+      </div>
+
+      {/* SAVE BUTTON FOR LOGGED USER */}
+      <div className="pt-4 pb-8 flex justify-end">
+        <button
+          type="button"
+          onClick={handleSaveSettings}
+          className="px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm shadow-lg shadow-indigo-600/30 flex items-center gap-2 transition-all cursor-pointer"
+        >
+          <Check className="w-4 h-4" />
+          Salvar Configurações
+        </button>
       </div>
 
       {/* QR CODE MODAL */}

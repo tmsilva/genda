@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { 
   ProfessionalProfile, Service, Client, Appointment, 
-  MessageTemplate, ThemeOption, AppNotification, StockItem, OnlineBookingConfig 
+  MessageTemplate, ThemeOption, AppNotification, StockItem, OnlineBookingConfig, WorkingDay 
 } from './types';
 import { 
   THEME_OPTIONS, DEFAULT_SERVICES, DEFAULT_CLIENTS, 
@@ -32,7 +32,8 @@ import { OnlineBookingView } from './components/OnlineBookingView';
 import { PublicBookingView } from './components/PublicBookingView';
 import Logo from './components/Logo';
 import InstallPWA from './components/InstallPWA';
-import { auth, loginWithGoogle, logoutUser, loginWithEmail, registerWithEmail } from './firebase';
+import { auth, db, loginWithGoogle, logoutUser, loginWithEmail, registerWithEmail } from './firebase';
+import { doc, getDoc } from 'firebase/firestore';
 import { onAuthStateChanged, User as FirebaseUser, deleteUser } from 'firebase/auth';
 import { 
   fetchAllCloudData, 
@@ -102,16 +103,89 @@ export default function App() {
     return cached ? JSON.parse(cached) : DEFAULT_ONLINE_BOOKING_CONFIG;
   });
   const [isPublicPortalOpen, setIsPublicPortalOpen] = useState(false);
+  const [isPortalOpenedFromAdmin, setIsPortalOpenedFromAdmin] = useState(false);
+  const [publicPortalData, setPublicPortalData] = useState<{
+    config: OnlineBookingConfig;
+    services: Service[];
+    profile: any;
+    workingDays: WorkingDay[];
+  } | null>(null);
 
-  // Auto-open client booking portal if URL contains 'agendar=' parameter
+  // Handle 'agendar=' URL parameter: validate slug and open portal or redirect to homepage
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    const handleCheckAgendarParam = async () => {
+      if (typeof window === 'undefined') return;
       const params = new URLSearchParams(window.location.search);
-      if (params.get('agendar') !== null) {
-        setIsPublicPortalOpen(true);
+      const rawSlug = params.get('agendar');
+
+      // If 'agendar' parameter is not present in URL, do nothing
+      if (rawSlug === null) return;
+
+      // If online booking is disabled, redirect to homepage and do not open portal
+      if (!onlineBookingConfig.enabled) {
+        window.history.pushState({}, '', window.location.pathname);
+        setIsPublicPortalOpen(false);
+        return;
       }
-    }
-  }, []);
+
+      const cleanSlug = rawSlug.toLowerCase().trim().replace(/[^a-z0-9-]/g, '');
+
+      // If agendar parameter is empty or invalid, redirect to homepage
+      if (!cleanSlug) {
+        window.history.pushState({}, '', window.location.pathname);
+        setIsPublicPortalOpen(false);
+        return;
+      }
+
+      // 1. Check local configuration and local registry
+      const currentConfigSlug = (onlineBookingConfig.slug || 'seunome').toLowerCase().trim();
+      const localRegistryStr = localStorage.getItem('genda_local_reserved_slugs') || '{}';
+      let localRegistry: Record<string, string> = {};
+      try { localRegistry = JSON.parse(localRegistryStr); } catch {}
+
+      if (cleanSlug === currentConfigSlug || localRegistry[cleanSlug]) {
+        setPublicPortalData(null);
+        setIsPortalOpenedFromAdmin(false);
+        setIsPublicPortalOpen(true);
+        return;
+      }
+
+      // 2. Check Firestore database for the establishment slug
+      try {
+        const docRef = doc(db, 'establishment_slugs', cleanSlug);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          setPublicPortalData({
+            config: data.config || onlineBookingConfig,
+            services: data.services && Array.isArray(data.services) && data.services.length > 0 ? data.services : services,
+            profile: data.profile || profile,
+            workingDays: data.workingDays && Array.isArray(data.workingDays) && data.workingDays.length > 0 ? data.workingDays : (profile.workingDays || [])
+          });
+          setIsPortalOpenedFromAdmin(false);
+          setIsPublicPortalOpen(true);
+        } else {
+          // Unique link does not exist -> Redirect to initial homepage
+          window.history.pushState({}, '', window.location.pathname);
+          setIsPublicPortalOpen(false);
+        }
+      } catch (err) {
+        console.warn("Verificação do link no banco de dados:", err);
+        // Fallback for fallback/offline test slugs
+        if (cleanSlug === 'seunome' || cleanSlug === 'teste' || cleanSlug === 'teste2') {
+          setPublicPortalData(null);
+          setIsPortalOpenedFromAdmin(false);
+          setIsPublicPortalOpen(true);
+        } else {
+          window.history.pushState({}, '', window.location.pathname);
+          setIsPublicPortalOpen(false);
+        }
+      }
+    };
+
+    handleCheckAgendarParam();
+  }, [onlineBookingConfig.slug, onlineBookingConfig.enabled]);
 
   useEffect(() => {
     localStorage.setItem('genda_online_booking_config', JSON.stringify(onlineBookingConfig));
@@ -203,7 +277,7 @@ export default function App() {
         const allTabs: Array<'dashboard' | 'agenda' | 'clients' | 'finance' | 'services' | 'estoque' | 'roadmap' | 'ai' | 'settings'> = [
           'dashboard', 'agenda', 'clients', 'finance', 'services', 'estoque', 'roadmap', 'ai', 'settings'
         ];
-        const tabs = user?.email === 'thiagomsy@gmail.com' 
+        const tabs = (user?.email === 'thiagomsy@gmail.com' || user?.email === 'teste@teste.com') 
           ? allTabs 
           : allTabs.filter(t => t !== 'ai');
         const currentIndex = tabs.indexOf(activeTab);
@@ -1062,7 +1136,7 @@ export default function App() {
                 </button>
 
                 {/* Item 1.1: Agendamento Online */}
-                {user?.email === 'thiagomsy@gmail.com' && (
+                {(user?.email === 'thiagomsy@gmail.com' || user?.email === 'teste@teste.com') && (
                   <button
                     onClick={() => { setActiveClientId(null); setActiveTab('online_booking'); }}
                     className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all cursor-pointer ${
@@ -1139,7 +1213,7 @@ export default function App() {
                 </button>
 
                 {/* Item 4.2: Assistente IA */}
-                {user?.email === 'thiagomsy@gmail.com' && (
+                {(user?.email === 'thiagomsy@gmail.com' || user?.email === 'teste@teste.com') && (
                   <button
                     onClick={() => { setActiveClientId(null); setActiveTab('ai'); }}
                     className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all cursor-pointer ${
@@ -1707,7 +1781,7 @@ export default function App() {
                   </motion.div>
                 )}
 
-                {activeTab === 'online_booking' && user?.email === 'thiagomsy@gmail.com' && (
+                {activeTab === 'online_booking' && (user?.email === 'thiagomsy@gmail.com' || user?.email === 'teste@teste.com') && (
                   <motion.div
                     key="online_booking"
                     initial={{ opacity: 0, y: 15 }}
@@ -1724,7 +1798,10 @@ export default function App() {
                       workingDays={profile.workingDays || []}
                       profile={profile}
                       isDark={isDark}
-                      onOpenPublicView={() => setIsPublicPortalOpen(true)}
+                      onOpenPublicView={() => {
+                        setIsPortalOpenedFromAdmin(true);
+                        setIsPublicPortalOpen(true);
+                      }}
                       triggerAlert={(msg) => setPushNotification({ title: 'Agendamento Online', body: msg })}
                     />
                   </motion.div>
@@ -1867,7 +1944,7 @@ export default function App() {
                     </button>
 
                     {/* Tab: Agendamento Online */}
-                    {user?.email === 'thiagomsy@gmail.com' && (
+                    {(user?.email === 'thiagomsy@gmail.com' || user?.email === 'teste@teste.com') && (
                       <button
                         onClick={() => { setActiveClientId(null); setActiveTab('online_booking'); }}
                         className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-all active:scale-95 shrink-0 min-w-[44px] sm:min-w-[64px] ${
@@ -2156,20 +2233,42 @@ export default function App() {
       {isPublicPortalOpen && (
         <div className="fixed inset-0 z-[110] overflow-y-auto bg-slate-950/95 backdrop-blur-md animate-fadeIn">
           <PublicBookingView
-            config={onlineBookingConfig}
-            services={services}
+            config={publicPortalData ? {
+              ...publicPortalData.config,
+              title: publicPortalData.profile.name || publicPortalData.config.title,
+              category: publicPortalData.profile.category || publicPortalData.config.category || '',
+              whatsapp: publicPortalData.profile.whatsapp || publicPortalData.config.whatsapp,
+              instagram: publicPortalData.profile.instagram || publicPortalData.config.instagram || '',
+              avatarUrl: publicPortalData.profile.avatarUrl || publicPortalData.config.avatarUrl || '',
+              address: publicPortalData.profile.address || publicPortalData.config.address,
+            } : {
+              ...onlineBookingConfig,
+              title: profile.name || onlineBookingConfig.title,
+              category: profile.category || onlineBookingConfig.category || '',
+              whatsapp: profile.whatsapp || onlineBookingConfig.whatsapp,
+              instagram: profile.instagram || onlineBookingConfig.instagram || '',
+              avatarUrl: profile.avatarUrl || onlineBookingConfig.avatarUrl || '',
+              address: profile.address || onlineBookingConfig.address,
+            }}
+            services={publicPortalData ? publicPortalData.services : services}
             appointments={appointments}
             clients={clients}
-            workingDays={profile.workingDays || []}
+            workingDays={publicPortalData ? publicPortalData.workingDays : (profile.workingDays || [])}
             onAddAppointment={(newAppt) => {
               handleAddAppointment(newAppt);
             }}
+            onAddClient={(newClient) => {
+              handleAddClient(newClient);
+            }}
             onClose={() => {
               setIsPublicPortalOpen(false);
+              setIsPortalOpenedFromAdmin(false);
+              setPublicPortalData(null);
               if (typeof window !== 'undefined' && window.location.search.includes('agendar=')) {
                 window.history.pushState({}, '', window.location.pathname);
               }
             }}
+            showCloseButton={isPortalOpenedFromAdmin}
             isEmbedMode={true}
           />
         </div>

@@ -1,5 +1,5 @@
 export type PaymentStatus = 'paid' | 'pending' | 'installments';
-export type AppointmentStatus = 'scheduled' | 'completed' | 'cancelled';
+export type AppointmentStatus = 'scheduled' | 'pending' | 'completed' | 'cancelled';
 export type RecurrenceType = 'none' | 'weekly' | 'biweekly' | 'monthly' | 'custom';
 
 export interface WorkingDay {
@@ -131,6 +131,7 @@ export interface OnlineBookingConfig {
   isEnabled: boolean;
   slug: string;
   title: string;
+  category?: string;
   description: string;
   avatarUrl: string;
   coverImageUrl: string;

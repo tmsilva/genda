@@ -23,6 +23,32 @@ export const formatPhone = (value: string): string => {
 };
 
 /**
+ * Formats a raw input string into a Brazilian phone mask with country code +55:
+ * +55 (XX) XXXXX-XXXX or +55 (XX) XXXX-XXXX
+ */
+export const formatPhoneWithCountryCode = (value: string): string => {
+  if (!value) return '';
+  let digits = value.replace(/\D/g, '');
+  if (digits.startsWith('55')) {
+    digits = digits.slice(2);
+  }
+  const truncated = digits.slice(0, 11);
+  if (truncated.length === 0) {
+    return '';
+  }
+  if (truncated.length <= 2) {
+    return `+55 (${truncated}`;
+  }
+  if (truncated.length <= 6) {
+    return `+55 (${truncated.slice(0, 2)}) ${truncated.slice(2)}`;
+  }
+  if (truncated.length <= 10) {
+    return `+55 (${truncated.slice(0, 2)}) ${truncated.slice(2, 6)}-${truncated.slice(6)}`;
+  }
+  return `+55 (${truncated.slice(0, 2)}) ${truncated.slice(2, 7)}-${truncated.slice(7)}`;
+};
+
+/**
  * Normalizes a phone number to be used in a WhatsApp Link (wa.me)
  * It preserves the country code if it already exists (starts with '+'),
  * or defaults to prepending '55' (Brazil) if it's a standard 10 or 11-digit local number.

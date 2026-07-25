@@ -323,7 +323,7 @@ export const DEFAULT_ONLINE_BOOKING_CONFIG: OnlineBookingConfig = {
   slug: 'seunome',
   title: 'Genda Barbershop & Estética',
   description: 'Agende seu horário com os melhores profissionais da região. Atendimento personalizado com excelência e conforto.',
-  avatarUrl: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=200&auto=format&fit=crop&q=80',
+  avatarUrl: '',
   coverImageUrl: 'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=1000&auto=format&fit=crop&q=80',
   instagram: '@gendabarber',
   whatsapp: '(11) 98765-4321',

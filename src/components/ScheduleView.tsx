@@ -60,6 +60,7 @@ export default function ScheduleView({
   // Drag and drop & Universal Search states
   const [dragOverSlot, setDragOverSlot] = useState<string | null>(null);
   const [globalSearchTerm, setGlobalSearchTerm] = useState('');
+  const [clientSearchQuery, setClientSearchQuery] = useState('');
   
   // Modals
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -242,6 +243,7 @@ export default function ScheduleView({
     setFormServiceId(services[0]?.id || '');
     setFormDate(selectedDate);
     setFormTime(timePreset || '10:00');
+    setClientSearchQuery('');
     
     const service = services[0];
     if (service) {
@@ -276,6 +278,7 @@ export default function ScheduleView({
     setFormReminder(appt.isReminderEnabled);
     setFormPaymentStatus(appt.paymentStatus);
     setFormPaymentMethod(appt.paymentMethod || 'pix');
+    setClientSearchQuery('');
     
     setShowDetailsModal(false);
     setShowCreateModal(true);
@@ -444,6 +447,18 @@ export default function ScheduleView({
     setShowPaymentMethodSelector(true);
   };
 
+  const handleApproveAppointment = () => {
+    if (!selectedAppointment) return;
+    const updated: Appointment = {
+      ...selectedAppointment,
+      status: 'scheduled'
+    };
+    onUpdateAppointment(updated);
+    setSelectedAppointment(updated);
+    setShowDetailsModal(false);
+    triggerAlert('Agendamento aprovado com sucesso!', 'success');
+  };
+
   const handleConfirmMarkAsCompleted = () => {
     if (!selectedAppointment) return;
     const updated: Appointment = {
@@ -607,6 +622,23 @@ export default function ScheduleView({
     return '█'.repeat(filledBlocks) + '░'.repeat(emptyBlocks);
   }, [dayOccupancy.percentage]);
 
+  // Filter clients for modal creation selection
+  const filteredModalClients = useMemo(() => {
+    if (!clientSearchQuery.trim()) return clients;
+    const norm = clientSearchQuery.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    const queryDigits = clientSearchQuery.replace(/\D/g, '');
+
+    return clients.filter(c => {
+      const nameNorm = c.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      const phoneDigits = c.phone.replace(/\D/g, '');
+      return (
+        nameNorm.includes(norm) ||
+        c.phone.toLowerCase().includes(norm) ||
+        (queryDigits.length >= 3 && phoneDigits.includes(queryDigits))
+      );
+    });
+  }, [clients, clientSearchQuery]);
+
   // Global search results across all appointments
   const globalSearchResults = useMemo(() => {
     if (!globalSearchTerm.trim()) return [];
@@ -614,13 +646,14 @@ export default function ScheduleView({
     // Helper to remove accents for better searching
     const normalize = (str: string) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
     const term = normalize(globalSearchTerm);
+    const queryDigits = globalSearchTerm.replace(/\D/g, '');
     
     return appointments.map(appt => {
       const client = getApptClient(appt.clientId);
       const service = getApptService(appt.serviceId);
       
       const paymentStatusPt = appt.paymentStatus === 'paid' ? 'pago' : appt.paymentStatus === 'installments' ? 'parcelado' : 'pendente';
-      const statusPt = appt.status === 'scheduled' ? 'agendado' : appt.status === 'completed' ? 'concluido' : 'cancelado';
+      const statusPt = appt.status === 'scheduled' ? 'agendado' : appt.status === 'pending' ? 'pendente' : appt.status === 'completed' ? 'concluido' : 'cancelado';
 
       return {
         ...appt,
@@ -630,9 +663,11 @@ export default function ScheduleView({
         statusPt
       };
     }).filter(item => {
+      const clientPhoneDigits = item.client.phone.replace(/\D/g, '');
       return (
         normalize(item.client.name).includes(term) ||
-        item.client.phone.includes(term) ||
+        item.client.phone.toLowerCase().includes(term) ||
+        (queryDigits.length >= 3 && clientPhoneDigits.includes(queryDigits)) ||
         normalize(item.service.name).includes(term) ||
         item.date.includes(term) ||
         item.paymentStatusPt.includes(term) ||
@@ -716,10 +751,11 @@ export default function ScheduleView({
                       </span>
                       <span className={`text-[9px] px-2 py-0.5 rounded-full font-semibold capitalize ${
                         appt.status === 'completed' ? 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300' :
+                        appt.status === 'pending' ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400' :
                         appt.status === 'cancelled' ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400' :
                         'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-400'
                       }`}>
-                        {appt.status === 'completed' ? 'Concluído' : appt.status === 'cancelled' ? 'Cancelado' : 'Agendado'}
+                        {appt.status === 'completed' ? 'Concluído' : appt.status === 'pending' ? 'Pendente' : appt.status === 'cancelled' ? 'Cancelado' : 'Agendado'}
                       </span>
                     </div>
                   </button>
@@ -1267,21 +1303,47 @@ export default function ScheduleView({
                     + Novo Cliente Rápido
                   </button>
                 </div>
-                <div className="relative">
-                  <span className={`absolute inset-y-0 left-0 pl-3 flex items-center ${isDark ? 'text-zinc-500' : 'text-slate-400'}`}>
-                    <User className="w-4 h-4" />
-                  </span>
-                  <select
-                    value={formClientId}
-                    onChange={(e) => setFormClientId(e.target.value)}
-                    className={`w-full ${isDark ? 'bg-zinc-800 border-zinc-700 text-zinc-100 focus:border-zinc-500' : 'bg-slate-50 border-slate-200 text-slate-800 focus:border-slate-800'} rounded-xl pl-10 pr-4 py-2 focus:outline-none transition-all appearance-none`}
-                    required
-                  >
-                    <option value="" className={isDark ? 'bg-zinc-900 text-zinc-100' : 'bg-white text-slate-800'}>-- Selecione o Cliente --</option>
-                    {clients.map(c => (
-                      <option key={c.id} value={c.id} className={isDark ? 'bg-zinc-900 text-zinc-100' : 'bg-white text-slate-800'}>{c.name} {c.phone}</option>
-                    ))}
-                  </select>
+
+                <div className="space-y-1.5">
+                  {/* Phone / Name Filter input */}
+                  <div className="relative">
+                    <span className={`absolute inset-y-0 left-0 pl-3 flex items-center ${isDark ? 'text-zinc-500' : 'text-slate-400'}`}>
+                      <Search className="w-3.5 h-3.5" />
+                    </span>
+                    <input
+                      type="text"
+                      placeholder="Buscar por nome ou telefone..."
+                      value={clientSearchQuery}
+                      onChange={(e) => setClientSearchQuery(e.target.value)}
+                      className={`w-full ${isDark ? 'bg-zinc-800 border-zinc-700 text-zinc-100 placeholder:text-zinc-500' : 'bg-slate-50 border-slate-200 text-slate-800 placeholder:text-slate-400'} border rounded-xl pl-9 pr-8 py-1.5 text-xs focus:outline-none`}
+                    />
+                    {clientSearchQuery && (
+                      <button
+                        type="button"
+                        onClick={() => setClientSearchQuery('')}
+                        className="absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-slate-600"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="relative">
+                    <span className={`absolute inset-y-0 left-0 pl-3 flex items-center ${isDark ? 'text-zinc-500' : 'text-slate-400'}`}>
+                      <User className="w-4 h-4" />
+                    </span>
+                    <select
+                      value={formClientId}
+                      onChange={(e) => setFormClientId(e.target.value)}
+                      className={`w-full ${isDark ? 'bg-zinc-800 border-zinc-700 text-zinc-100 focus:border-zinc-500' : 'bg-slate-50 border-slate-200 text-slate-800 focus:border-slate-800'} rounded-xl pl-10 pr-4 py-2 focus:outline-none transition-all appearance-none`}
+                      required
+                    >
+                      <option value="" className={isDark ? 'bg-zinc-900 text-zinc-100' : 'bg-white text-slate-800'}>-- Selecione o Cliente --</option>
+                      {filteredModalClients.map(c => (
+                        <option key={c.id} value={c.id} className={isDark ? 'bg-zinc-900 text-zinc-100' : 'bg-white text-slate-800'}>{c.name} ({c.phone})</option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
 
                 {/* TEXTO INFORMATIVO DE PREFERÊNCIAS DO CLIENTE */}
@@ -1784,6 +1846,16 @@ export default function ScheduleView({
               {/* Actions Footer row */}
               <div className={`border-t pt-4 flex flex-col gap-2 ${isDark ? 'border-zinc-800' : 'border-slate-100'}`}>
                 
+                {selectedAppointment.status === 'pending' && (
+                  <button
+                    onClick={handleApproveAppointment}
+                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm mb-1"
+                  >
+                    <Check className="w-4 h-4" />
+                    Aprovar Agendamento Online
+                  </button>
+                )}
+
                 {/* Mark as Completed Button with Payment Method Selection */}
                 {selectedAppointment.status === 'scheduled' && (
                   <div className="space-y-3">
