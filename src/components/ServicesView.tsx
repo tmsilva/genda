@@ -12,9 +12,10 @@ interface ServicesViewProps {
   profile?: ProfessionalProfile;
   isDark?: boolean;
   stock?: StockItem[];
+  onlineBookingEnabled?: boolean;
 }
 
-export default function ServicesView({ services, onUpdateServices, profile, isDark = false, stock = [] }: ServicesViewProps) {
+export default function ServicesView({ services, onUpdateServices, profile, isDark = false, stock = [], onlineBookingEnabled = false }: ServicesViewProps) {
   const discountPercent = profile?.packageDiscount !== undefined ? profile.packageDiscount : 10;
   const discountMultiplier = (100 - discountPercent) / 100;
 
@@ -134,10 +135,18 @@ export default function ServicesView({ services, onUpdateServices, profile, isDa
     if (editingService) {
       const updated = services.map(s => s.id === editingService.id ? serviceData : s);
       onUpdateServices(updated);
-      triggerAlert('Serviço atualizado com sucesso!', 'success');
+      if (onlineBookingEnabled) {
+        triggerAlert('Serviço atualizado! Salve o Agendamento Online para atualizar a página pública.', 'info');
+      } else {
+        triggerAlert('Serviço atualizado com sucesso!', 'success');
+      }
     } else {
       onUpdateServices([...services, serviceData]);
-      triggerAlert('Novo serviço cadastrado com sucesso!', 'success');
+      if (onlineBookingEnabled) {
+        triggerAlert('Novo serviço cadastrado! Salve o Agendamento Online para atualizar a página pública.', 'info');
+      } else {
+        triggerAlert('Novo serviço cadastrado com sucesso!', 'success');
+      }
     }
 
     setShowFormModal(false);

@@ -27,6 +27,7 @@ interface SettingsViewProps {
   onLogout?: () => Promise<void> | void;
   onLoginEmail?: (email: string, password: string) => Promise<void>;
   onRegisterEmail?: (email: string, password: string, displayName: string) => Promise<void>;
+  onlineBookingEnabled?: boolean;
 }
 
 type SettingsSection = 'profile' | 'hours' | 'templates' | 'theme' | 'backup' | 'feedback' | 'about';
@@ -47,6 +48,7 @@ export default function SettingsView({
   onLogout,
   onLoginEmail,
   onRegisterEmail,
+  onlineBookingEnabled = false,
 }: SettingsViewProps) {
   // Navigation
   const isDark = profile.isDarkMode ?? true;
@@ -242,7 +244,11 @@ export default function SettingsView({
       ...profile,
       workingDays,
     });
-    triggerAlert('Horários de atendimento salvos com sucesso!', 'success');
+    if (onlineBookingEnabled) {
+      triggerAlert('Horários salvos! Salve o Agendamento Online para atualizar a página pública.', 'info');
+    } else {
+      triggerAlert('Horários de atendimento salvos com sucesso!', 'success');
+    }
   };
 
   // Synchronization simulation
@@ -288,7 +294,11 @@ export default function SettingsView({
       whatsapp: whatsapp ? `${countryCode} ${whatsapp}` : undefined,
       packageDiscount: packageDiscount,
     });
-    triggerAlert('Dados do perfil salvos com sucesso!', 'success');
+    if (onlineBookingEnabled) {
+      triggerAlert('Perfil salvo! Salve o Agendamento Online para atualizar a página pública.', 'info');
+    } else {
+      triggerAlert('Dados do perfil salvos com sucesso!', 'success');
+    }
   };
 
   // Handle Save templates

@@ -430,7 +430,8 @@ export const OnlineBookingView: React.FC<OnlineBookingViewProps> = ({
         </div>
       </div>
 
-      {/* TOP CARDS: PUBLIC UNIQUE LINK & REAL SYSTEM METRICS */}
+      <div className={`space-y-6 transition-all duration-300 ${!config.isEnabled ? 'opacity-40 pointer-events-none select-none' : ''}`}>
+        {/* TOP CARDS: PUBLIC UNIQUE LINK & REAL SYSTEM METRICS */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
         
         {/* Public Link Card with Database Verification */}
@@ -1047,6 +1048,8 @@ export const OnlineBookingView: React.FC<OnlineBookingViewProps> = ({
           <Check className="w-4 h-4" />
           Salvar Configurações
         </button>
+      </div>
+
       </div>
 
       {/* QR CODE MODAL */}

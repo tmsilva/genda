@@ -1878,6 +1878,7 @@ export default function App() {
                       profile={profile}
                       isDark={isDark}
                       stock={stock}
+                      onlineBookingEnabled={onlineBookingConfig.isEnabled}
                     />
                   </motion.div>
                 )}
@@ -1923,6 +1924,7 @@ export default function App() {
                       onLogout={handleLogout}
                       onLoginEmail={handleLoginEmail}
                       onRegisterEmail={handleRegisterEmail}
+                      onlineBookingEnabled={onlineBookingConfig.isEnabled}
                     />
                   </motion.div>
                 )}
