@@ -33,7 +33,7 @@ import { PublicBookingView } from './components/PublicBookingView';
 import Logo from './components/Logo';
 import InstallPWA from './components/InstallPWA';
 import { auth, db, loginWithGoogle, logoutUser, loginWithEmail, registerWithEmail } from './firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, getDocs, collection } from 'firebase/firestore';
 import { onAuthStateChanged, User as FirebaseUser, deleteUser } from 'firebase/auth';
 import { 
   fetchAllCloudData, 
@@ -109,6 +109,9 @@ export default function App() {
     services: Service[];
     profile: any;
     workingDays: WorkingDay[];
+    appointments: Appointment[];
+    clients: Client[];
+    ownerUid?: string;
   } | null>(null);
 
   // Handle 'agendar=' URL parameter: validate slug and open portal or redirect to homepage
@@ -150,11 +153,30 @@ export default function App() {
 
         if (docSnap.exists()) {
           const data = docSnap.data();
+          const ownerUid = data.userId;
+          let ownerAppointments: Appointment[] = [];
+          let ownerClients: Client[] = [];
+          if (ownerUid) {
+            try {
+              const [apptsSnap, clientsSnap] = await Promise.all([
+                getDocs(collection(db, 'users', ownerUid, 'appointments')),
+                getDocs(collection(db, 'users', ownerUid, 'clients'))
+              ]);
+              ownerAppointments = apptsSnap.docs.map(d => d.data() as Appointment);
+              ownerClients = clientsSnap.docs.map(d => d.data() as Client);
+            } catch (e) {
+              console.warn("Erro ao buscar dados do estabelecimento:", e);
+            }
+          }
+
           setPublicPortalData({
             config: data.config || onlineBookingConfig,
             services: data.services && Array.isArray(data.services) && data.services.length > 0 ? data.services : services,
             profile: data.profile || profile,
-            workingDays: data.workingDays && Array.isArray(data.workingDays) && data.workingDays.length > 0 ? data.workingDays : (profile.workingDays || [])
+            workingDays: data.workingDays && Array.isArray(data.workingDays) && data.workingDays.length > 0 ? data.workingDays : (profile.workingDays || []),
+            appointments: ownerAppointments,
+            clients: ownerClients,
+            ownerUid
           });
           setIsPortalOpenedFromAdmin(false);
           setIsPublicPortalOpen(true);
@@ -1082,14 +1104,44 @@ export default function App() {
               seoDescription: profile.seoDescription || '',
             }}
             services={publicPortalData ? publicPortalData.services : services}
-            appointments={appointments}
-            clients={clients}
+            appointments={publicPortalData ? publicPortalData.appointments : appointments}
+            clients={publicPortalData ? publicPortalData.clients : clients}
             workingDays={publicPortalData ? publicPortalData.workingDays : (profile.workingDays || [])}
-            onAddAppointment={(newAppt) => {
-              handleAddAppointment(newAppt);
+            onAddAppointment={async (newAppt) => {
+              const targetUid = publicPortalData?.ownerUid || auth.currentUser?.uid || localStorage.getItem('genda_establishment_uid');
+              if (targetUid) {
+                try {
+                  await syncAppointment(targetUid, newAppt);
+                } catch (e) {
+                  console.error("Erro ao salvar agendamento na agenda do profissional:", e);
+                }
+              }
+              if (publicPortalData) {
+                setPublicPortalData({
+                  ...publicPortalData,
+                  appointments: [...publicPortalData.appointments, newAppt]
+                });
+              } else {
+                handleAddAppointment(newAppt);
+              }
             }}
-            onAddClient={(newClient) => {
-              handleAddClient(newClient);
+            onAddClient={async (newClient) => {
+              const targetUid = publicPortalData?.ownerUid || auth.currentUser?.uid || localStorage.getItem('genda_establishment_uid');
+              if (targetUid) {
+                try {
+                  await syncClient(targetUid, newClient);
+                } catch (e) {
+                  console.error("Erro ao salvar cliente na base do profissional:", e);
+                }
+              }
+              if (publicPortalData) {
+                setPublicPortalData({
+                  ...publicPortalData,
+                  clients: [...publicPortalData.clients, newClient]
+                });
+              } else {
+                handleAddClient(newClient);
+              }
             }}
             onClose={() => {
               setIsPublicPortalOpen(false);
