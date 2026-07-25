@@ -28,7 +28,7 @@ const ROADMAP_ITEMS: RoadmapItem[] = [
     icon: Globe,
     title: 'Agendamento Online',
     category: 'Atendimento & Cliente',
-    badgeText: 'Em desenvolvimento',
+    badgeText: 'Em Teste',
     description: 'Permita que seus clientes realizem agendamentos através de um link exclusivo do seu perfil, escolhendo serviço, data e horário disponível, tudo sincronizado automaticamente com sua agenda.'
   },
   {
@@ -318,9 +318,11 @@ export default function RoadmapView({ isDark = false }: RoadmapViewProps) {
                         </h3>
                         {item.badgeText && (
                           <span className={`px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-semibold border inline-flex items-center shrink-0 ${
-                            isDark 
-                              ? 'bg-amber-950/50 text-amber-300 border-amber-800/60' 
-                              : 'bg-amber-50 text-amber-700 border-amber-200'
+                            item.badgeText === 'Em Teste'
+                              ? (isDark ? 'bg-emerald-950/50 text-emerald-300 border-emerald-800/60' : 'bg-emerald-50 text-emerald-700 border-emerald-200')
+                              : (isDark 
+                                  ? 'bg-amber-950/50 text-amber-300 border-amber-800/60' 
+                                  : 'bg-amber-50 text-amber-700 border-amber-200')
                           }`}>
                             {item.badgeText}
                           </span>
