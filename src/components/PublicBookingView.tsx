@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { 
   Globe, Calendar as CalendarIcon, Clock, User, CheckCircle2, ChevronRight, 
   ArrowLeft, Phone, MapPin, Instagram, Sparkles, AlertCircle, Heart, 
-  Gift, Check, ShieldCheck, QrCode, Share2, Plus, Zap, ExternalLink, RefreshCw
+  Gift, Check, ShieldCheck, QrCode, Share2, Plus, Zap, ExternalLink, RefreshCw, X
 } from 'lucide-react';
 import { OnlineBookingConfig, Service, Appointment, Client, WorkingDay } from '../types';
 import { formatPrice, formatPhone, formatPhoneWithCountryCode } from '../utils';
@@ -51,6 +51,7 @@ export const PublicBookingView: React.FC<PublicBookingViewProps> = ({
   const [clientEmail, setClientEmail] = useState<string>('');
   const [clientNotes, setClientNotes] = useState<string>('');
   const [acceptedLgpd, setAcceptedLgpd] = useState<boolean>(true);
+  const [isTermsModalOpen, setIsTermsModalOpen] = useState<boolean>(false);
   const [createdAppointment, setCreatedAppointment] = useState<Appointment | null>(null);
 
   // Favorites / Returning Client Lookup
@@ -136,7 +137,7 @@ export const PublicBookingView: React.FC<PublicBookingViewProps> = ({
     // Existing appointments on selected date
     const dateAppts = appointments.filter(a => a.date === selectedDate && a.status !== 'cancelled');
 
-    const slots: { time: string; isBooked: boolean; isSmart: boolean }[] = [];
+    const slots: { time: string; isBooked: boolean }[] = [];
 
     for (let current = startTotalMins; current + totalDuration <= endTotalMins; current += interval) {
       const slotStart = current;
@@ -156,7 +157,6 @@ export const PublicBookingView: React.FC<PublicBookingViewProps> = ({
 
       // Check conflict with existing appointments
       let hasConflict = false;
-      let isAdjacentToExisting = false;
 
       for (const appt of dateAppts) {
         const [aStartH, aStartM] = appt.time.split(':').map(Number);
@@ -168,17 +168,11 @@ export const PublicBookingView: React.FC<PublicBookingViewProps> = ({
           hasConflict = true;
           break;
         }
-
-        // Smart slot detection: slot directly before or after an existing appointment
-        if (slotStart === aEndMins || slotEnd === aStartMins) {
-          isAdjacentToExisting = true;
-        }
       }
 
       slots.push({
         time: timeStr,
-        isBooked: hasConflict,
-        isSmart: config.smartSlotsEnabled && isAdjacentToExisting && !hasConflict
+        isBooked: hasConflict
       });
     }
 
@@ -606,11 +600,6 @@ END:VCALENDAR`;
                 <span className="text-xs font-bold text-slate-300">
                   Horários da Agenda ({dayjs(selectedDate).format('DD/MM/YYYY')})
                 </span>
-                {config.smartSlotsEnabled && (
-                  <span className="text-[10px] text-amber-400 font-bold flex items-center gap-1">
-                    <Zap className="w-3 h-3 text-amber-400" /> Horários Recomendados
-                  </span>
-                )}
               </div>
 
               {timeSlots.length === 0 ? (
@@ -634,8 +623,6 @@ END:VCALENDAR`;
                             ? 'bg-slate-900/40 border-slate-800 text-slate-500 cursor-not-allowed opacity-60'
                             : isSelected
                             ? 'bg-indigo-600 border-indigo-500 text-white shadow-md shadow-indigo-600/30 scale-105 cursor-pointer'
-                            : slot.isSmart
-                            ? 'bg-amber-950/30 border-amber-500/50 text-amber-300 hover:bg-amber-900/40 cursor-pointer'
                             : 'bg-slate-900 border-slate-800 text-slate-200 hover:bg-slate-800 cursor-pointer'
                         }`}
                       >
@@ -645,12 +632,7 @@ END:VCALENDAR`;
                             <span className="text-[9px] uppercase tracking-wider text-rose-400 font-sans font-semibold mt-0.5">Reservado</span>
                           </div>
                         ) : (
-                          <>
-                            {slot.isSmart && !isSelected && (
-                              <span className="absolute -top-1.5 -right-1.5 w-2 h-2 bg-amber-400 rounded-full animate-ping"></span>
-                            )}
-                            <span>{slot.time}</span>
-                          </>
+                          <span>{slot.time}</span>
                         )}
                       </button>
                     );
@@ -770,7 +752,7 @@ END:VCALENDAR`;
                   className="mt-0.5 rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4 cursor-pointer"
                 />
                 <label htmlFor="lgpd" className="text-[11px] text-slate-400 select-none">
-                  Concordo com os termos de agendamento e política de confirmação via WhatsApp (LGPD).
+                  Concordo com os <button type="button" onClick={() => setIsTermsModalOpen(true)} className="text-indigo-400 underline hover:text-indigo-300 font-semibold cursor-pointer">termos de agendamento</button> e política de confirmação via WhatsApp (LGPD).
                 </label>
               </div>
             </div>
@@ -934,6 +916,52 @@ END:VCALENDAR`;
           </div>
         )}
       </div>
+
+      {/* TERMS MODAL */}
+      {isTermsModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fadeIn">
+          <div className="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full max-h-[85vh] overflow-y-auto p-6 shadow-2xl relative text-slate-200">
+            <button 
+              onClick={() => setIsTermsModalOpen(false)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-white p-1 rounded-lg bg-slate-800 cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2.5 rounded-xl bg-indigo-600/20 text-indigo-400 border border-indigo-500/30">
+                <ShieldCheck className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-white">Termos de Agendamento e LGPD</h3>
+                <p className="text-xs text-slate-400">Política de privacidade e regras de atendimento</p>
+              </div>
+            </div>
+            <div className="space-y-3 text-xs text-slate-300 leading-relaxed border-t border-slate-800 pt-4">
+              <p>
+                <strong>1. Confirmação de Agendamento:</strong> Ao agendar um horário através desta plataforma, você concorda em comparecer no horário estipulado ou avisar com antecedência mínima de tolerância estabelecida pelo estabelecimento.
+              </p>
+              <p>
+                <strong>2. Notificações e WhatsApp:</strong> Você autoriza o envio de lembretes, confirmações e atualizações sobre o seu atendimento via WhatsApp ou SMS cadastrados.
+              </p>
+              <p>
+                <strong>3. Proteção de Dados (LGPD):</strong> Seus dados pessoais (nome, telefone e histórico de agendamentos) são armazenados com segurança e utilizados exclusivamente para a gestão do seu atendimento e contato pelo profissional ou estabelecimento. Nenhum dado é comercializado com terceiros.
+              </p>
+              <p>
+                <strong>4. Cancelamento e Reagendamento:</strong> Cancelamentos podem ser realizados diretamente através dos canais de atendimento ou informados com antecedência ao profissional.
+              </p>
+            </div>
+            <div className="mt-6 pt-4 border-t border-slate-800 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setIsTermsModalOpen(false)}
+                className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs transition-all cursor-pointer"
+              >
+                Entendido
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
