@@ -33,7 +33,7 @@ import { PublicBookingView } from './components/PublicBookingView';
 import Logo from './components/Logo';
 import InstallPWA from './components/InstallPWA';
 import { auth, db, loginWithGoogle, logoutUser, loginWithEmail, registerWithEmail } from './firebase';
-import { doc, getDoc, getDocs, collection } from 'firebase/firestore';
+import { doc, getDoc, getDocs, collection, onSnapshot } from 'firebase/firestore';
 import { onAuthStateChanged, User as FirebaseUser, deleteUser } from 'firebase/auth';
 import { 
   fetchAllCloudData, 
@@ -475,6 +475,56 @@ export default function App() {
     });
     return () => unsubscribe();
   }, []);
+
+  // Real-time Firestore listener for appointments and clients to auto-update agenda and notify
+  useEffect(() => {
+    const activeUid = user?.uid || localStorage.getItem('genda_establishment_uid');
+    if (!activeUid) return;
+
+    const unsubAppts = onSnapshot(collection(db, 'users', activeUid, 'appointments'), (snapshot) => {
+      const cloudAppts = snapshot.docs.map(d => d.data() as Appointment);
+      if (cloudAppts.length > 0) {
+        setAppointments(prev => {
+          cloudAppts.forEach(cloudAppt => {
+            if (cloudAppt.source === 'online') {
+              const existsInState = prev.some(p => p.id === cloudAppt.id);
+              const alreadyNotified = notifications.some(n => n.appointmentId === cloudAppt.id);
+              if (!existsInState && !alreadyNotified) {
+                const client = clients.find(c => c.id === cloudAppt.clientId);
+                const service = services.find(s => s.id === cloudAppt.serviceId);
+                const newNotif: AppNotification = {
+                  id: 'notif_live_' + cloudAppt.id,
+                  title: 'Novo Agendamento Online',
+                  body: `${client ? client.name : 'Cliente'} solicitou agendamento de ${service ? service.name : 'serviço'} para ${cloudAppt.date} às ${cloudAppt.time}`,
+                  timestamp: now().format(),
+                  read: false,
+                  appointmentId: cloudAppt.id
+                };
+                setNotifications(nPrev => [newNotif, ...nPrev]);
+              }
+            }
+          });
+          return cloudAppts;
+        });
+      }
+    }, (err) => {
+      console.warn("Error listening to appointments:", err);
+    });
+
+    const unsubClients = onSnapshot(collection(db, 'users', activeUid, 'clients'), (snapshot) => {
+      const cloudClients = snapshot.docs.map(d => d.data() as Client);
+      if (cloudClients.length > 0) {
+        setClients(cloudClients);
+      }
+    }, (err) => {
+      console.warn("Error listening to clients:", err);
+    });
+
+    return () => {
+      unsubAppts();
+      unsubClients();
+    };
+  }, [user, clients, services, notifications]);
 
   const handleResolveConflictUseCloud = () => {
     if (!syncConflict) return;
@@ -1132,6 +1182,32 @@ export default function App() {
                   console.error("Erro ao salvar agendamento na agenda do profissional:", e);
                 }
               }
+
+              // Update main appointments state
+              setAppointments(prev => {
+                if (prev.some(a => a.id === newAppt.id)) return prev;
+                return [...prev, newAppt];
+              });
+
+              // Create notification for the professional
+              const clientList = publicPortalData ? publicPortalData.clients : clients;
+              const serviceList = publicPortalData ? publicPortalData.services : services;
+              const client = clientList.find(c => c.id === newAppt.clientId);
+              const service = serviceList.find(s => s.id === newAppt.serviceId);
+              
+              const newNotif: AppNotification = {
+                id: 'notif_' + Date.now(),
+                title: 'Novo Agendamento Online',
+                body: `${client ? client.name : 'Cliente'} solicitou agendamento de ${service ? service.name : 'serviço'} para ${newAppt.date} às ${newAppt.time}`,
+                timestamp: now().format(),
+                read: false,
+                appointmentId: newAppt.id
+              };
+              setNotifications(prev => {
+                if (prev.some(n => n.appointmentId === newAppt.id)) return prev;
+                return [newNotif, ...prev];
+              });
+
               if (publicPortalData) {
                 setPublicPortalData({
                   ...publicPortalData,
@@ -1150,6 +1226,10 @@ export default function App() {
                   console.error("Erro ao salvar cliente na base do profissional:", e);
                 }
               }
+              setClients(prev => {
+                if (prev.some(c => c.id === newClient.id)) return prev;
+                return [...prev, newClient];
+              });
               if (publicPortalData) {
                 setPublicPortalData({
                   ...publicPortalData,
