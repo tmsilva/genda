@@ -33,7 +33,7 @@ import { PublicBookingView } from './components/PublicBookingView';
 import Logo from './components/Logo';
 import InstallPWA from './components/InstallPWA';
 import { auth, db, loginWithGoogle, logoutUser, loginWithEmail, registerWithEmail } from './firebase';
-import { doc, getDoc, getDocs, collection } from 'firebase/firestore';
+import { doc, getDoc, getDocs, collection, onSnapshot } from 'firebase/firestore';
 import { onAuthStateChanged, User as FirebaseUser, deleteUser } from 'firebase/auth';
 import { 
   fetchAllCloudData, 
@@ -517,6 +517,54 @@ export default function App() {
     }
   };
 
+  // Real-time Firestore sync for appointments and clients when user is logged in
+  useEffect(() => {
+    if (!user) return;
+
+    const appointmentsColRef = collection(db, 'users', user.uid, 'appointments');
+    const unsubscribeAppts = onSnapshot(appointmentsColRef, (snapshot) => {
+      const cloudAppts = snapshot.docs.map(d => d.data() as Appointment);
+      setAppointments(prev => {
+        const newOnline = cloudAppts.filter(ca => ca.source === 'online' && !prev.some(pa => pa.id === ca.id));
+        if (newOnline.length > 0) {
+          newOnline.forEach(appt => {
+            const client = clients.find(c => c.id === appt.clientId);
+            const service = services.find(s => s.id === appt.serviceId);
+            const notifId = 'notif_online_' + appt.id;
+            const newNotif: AppNotification = {
+              id: notifId,
+              title: 'Novo Agendamento Online 🌐',
+              body: `${client ? client.name : 'Cliente'} solicitou agendamento de ${service ? service.name : 'serviço'} para ${appt.date} às ${appt.time}`,
+              timestamp: new Date().toISOString(),
+              read: false,
+              appointmentId: appt.id
+            };
+            setNotifications(nPrev => {
+              if (nPrev.some(n => n.appointmentId === appt.id)) return nPrev;
+              return [newNotif, ...nPrev];
+            });
+          });
+        }
+        return cloudAppts;
+      });
+    }, (error) => {
+      console.error("Real-time appointments listener error:", error);
+    });
+
+    const clientsColRef = collection(db, 'users', user.uid, 'clients');
+    const unsubscribeClients = onSnapshot(clientsColRef, (snapshot) => {
+      const cloudClients = snapshot.docs.map(d => d.data() as Client);
+      setClients(cloudClients);
+    }, (error) => {
+      console.error("Real-time clients listener error:", error);
+    });
+
+    return () => {
+      unsubscribeAppts();
+      unsubscribeClients();
+    };
+  }, [user]);
+
   // Handle simulated push notification trigger on app load after a delay (realistic 24h reminder demo)
   useEffect(() => {
     if (isOnboarded) {
@@ -589,22 +637,31 @@ export default function App() {
   };
 
   const handleAddAppointment = async (appt: Appointment) => {
-    setAppointments(prev => [...prev, appt]);
+    setAppointments(prev => {
+      if (prev.some(a => a.id === appt.id)) return prev;
+      return [...prev, appt];
+    });
     if (auth.currentUser) {
       await syncAppointment(auth.currentUser.uid, appt);
     }
 
     const client = clients.find(c => c.id === appt.clientId);
     const service = services.find(s => s.id === appt.serviceId);
+    const isOnline = appt.source === 'online';
     const newNotif: AppNotification = {
-      id: 'notif_' + Date.now(),
-      title: 'Novo Agendamento',
-      body: `${client ? client.name : 'Cliente'} agendou ${service ? service.name : 'serviço'} para ${appt.date} às ${appt.time}`,
+      id: 'notif_' + (appt.id || Date.now()),
+      title: isOnline ? 'Novo Agendamento Online 🌐' : 'Novo Agendamento',
+      body: isOnline
+        ? `${client ? client.name : 'Cliente'} solicitou agendamento de ${service ? service.name : 'serviço'} para ${appt.date} às ${appt.time}`
+        : `${client ? client.name : 'Cliente'} agendou ${service ? service.name : 'serviço'} para ${appt.date} às ${appt.time}`,
       timestamp: now().format(),
       read: false,
       appointmentId: appt.id
     };
-    setNotifications(prev => [newNotif, ...prev]);
+    setNotifications(prev => {
+      if (prev.some(n => n.appointmentId === appt.id)) return prev;
+      return [newNotif, ...prev];
+    });
   };
 
   const handleUpdateAppointment = async (appt: Appointment) => {
@@ -1137,9 +1194,8 @@ export default function App() {
                   ...publicPortalData,
                   appointments: [...publicPortalData.appointments, newAppt]
                 });
-              } else {
-                handleAddAppointment(newAppt);
               }
+              handleAddAppointment(newAppt);
             }}
             onAddClient={async (newClient) => {
               const targetUid = publicPortalData?.ownerUid || auth.currentUser?.uid || localStorage.getItem('genda_establishment_uid');
