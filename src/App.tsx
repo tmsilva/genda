@@ -121,13 +121,6 @@ export default function App() {
       // If 'agendar' parameter is not present in URL, do nothing
       if (rawSlug === null) return;
 
-      // If online booking is disabled, redirect to homepage and do not open portal
-      if (!onlineBookingConfig.enabled) {
-        window.history.pushState({}, '', window.location.pathname);
-        setIsPublicPortalOpen(false);
-        return;
-      }
-
       const cleanSlug = rawSlug.toLowerCase().trim().replace(/[^a-z0-9-]/g, '');
 
       // If agendar parameter is empty or invalid, redirect to homepage
