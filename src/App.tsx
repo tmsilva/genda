@@ -2200,12 +2200,10 @@ export default function App() {
                       <span className="text-[9px] sm:text-[10px] truncate max-w-full">Em breve</span>
                     </button>
 
-                    {/* Next Page Arrow (Mais) - Visible ONLY for authorized users */}
+                    {/* Next Page Arrow (Mais) */}
                     <button
                       onClick={() => setMobileNavPage(2)}
-                      className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-all active:scale-95 shrink-0 min-w-[40px] sm:min-w-[48px] text-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400 ${
-                        (user?.email === 'thiagomsy@gmail.com' || user?.email === 'teste@teste.com') ? '' : 'hidden'
-                      }`}
+                      className="flex flex-col items-center justify-center gap-1 cursor-pointer transition-all active:scale-95 shrink-0 min-w-[40px] sm:min-w-[48px] text-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400"
                     >
                       <div className="p-1 sm:p-1.5 rounded-xl transition-all bg-indigo-500/10 text-indigo-500 flex items-center justify-center h-[28px] w-[28px] sm:h-[32px] sm:w-[32px]">
                         <ChevronRight className="w-5 h-5 sm:w-5 sm:h-5" />
@@ -2215,7 +2213,7 @@ export default function App() {
                   </motion.div>
                 )}
 
-                {mobileNavPage === 2 && (user?.email === 'thiagomsy@gmail.com' || user?.email === 'teste@teste.com') && (
+                {mobileNavPage === 2 && (
                   <motion.div 
                     key="page2"
                     initial={{ opacity: 0, x: 20 }}
@@ -2235,24 +2233,26 @@ export default function App() {
                       <span className="text-[9px] sm:text-[10px] truncate max-w-full font-bold">Voltar</span>
                     </button>
 
-                    {/* Tab: Genda AI */}
-                    <button
-                      onClick={() => { setActiveClientId(null); setActiveTab('ai'); }}
-                      className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-all active:scale-95 shrink-0 min-w-[56px] sm:min-w-[64px] ${
-                        activeTab === 'ai' 
-                          ? (isDark ? 'text-indigo-400 scale-105 font-bold' : 'text-indigo-600 scale-105 font-bold') 
-                          : 'themed-mobile-inactive'
-                      }`}
-                    >
-                      <div className={`p-1 sm:p-1.5 rounded-xl transition-all ${
-                        activeTab === 'ai' 
-                          ? (isDark ? 'bg-indigo-500 text-white' : 'bg-indigo-50 text-indigo-600') 
-                          : 'bg-transparent'
-                      }`}>
-                        <Bot className="w-5 h-5 sm:w-5 sm:h-5" />
-                      </div>
-                      <span className="text-[9px] sm:text-[10px] truncate max-w-full">Genda AI</span>
-                    </button>
+                    {/* Tab: Genda AI (Only for authorized users) */}
+                    {(user?.email === 'thiagomsy@gmail.com' || user?.email === 'teste@teste.com') && (
+                      <button
+                        onClick={() => { setActiveClientId(null); setActiveTab('ai'); }}
+                        className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-all active:scale-95 shrink-0 min-w-[56px] sm:min-w-[64px] ${
+                          activeTab === 'ai' 
+                            ? (isDark ? 'text-indigo-400 scale-105 font-bold' : 'text-indigo-600 scale-105 font-bold') 
+                            : 'themed-mobile-inactive'
+                        }`}
+                      >
+                        <div className={`p-1 sm:p-1.5 rounded-xl transition-all ${
+                          activeTab === 'ai' 
+                            ? (isDark ? 'bg-indigo-500 text-white' : 'bg-indigo-50 text-indigo-600') 
+                            : 'bg-transparent'
+                        }`}>
+                          <Bot className="w-5 h-5 sm:w-5 sm:h-5" />
+                        </div>
+                        <span className="text-[9px] sm:text-[10px] truncate max-w-full">Genda AI</span>
+                      </button>
+                    )}
 
                     {/* Tab: Ajustes */}
                     <button
