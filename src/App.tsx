@@ -525,7 +525,11 @@ export default function App() {
     const unsubscribeAppts = onSnapshot(appointmentsColRef, (snapshot) => {
       const cloudAppts = snapshot.docs.map(d => d.data() as Appointment);
       setAppointments(prev => {
-        const newOnline = cloudAppts.filter(ca => ca.source === 'online' && !prev.some(pa => pa.id === ca.id));
+        const cloudIds = new Set(cloudAppts.map(a => a.id));
+        const missingLocal = prev.filter(p => !cloudIds.has(p.id));
+        const mergedAppts = [...cloudAppts, ...missingLocal];
+
+        const newOnline = mergedAppts.filter(ca => ca.source === 'online' && !prev.some(pa => pa.id === ca.id));
         if (newOnline.length > 0) {
           newOnline.forEach(appt => {
             const client = clients.find(c => c.id === appt.clientId);
@@ -545,7 +549,7 @@ export default function App() {
             });
           });
         }
-        return cloudAppts;
+        return mergedAppts;
       });
     }, (error) => {
       console.error("Real-time appointments listener error:", error);
@@ -1216,9 +1220,13 @@ export default function App() {
               }
             }}
             onClose={() => {
+              const wasFromAdmin = isPortalOpenedFromAdmin;
               setIsPublicPortalOpen(false);
               setIsPortalOpenedFromAdmin(false);
               setPublicPortalData(null);
+              if (wasFromAdmin) {
+                setActiveTab('agenda');
+              }
               if (typeof window !== 'undefined' && window.location.search.includes('agendar=')) {
                 window.history.pushState({}, '', window.location.pathname);
               }
