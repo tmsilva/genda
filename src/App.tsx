@@ -133,20 +133,7 @@ export default function App() {
         return;
       }
 
-      // 1. Check local configuration and local registry
-      const currentConfigSlug = (onlineBookingConfig.slug || 'seunome').toLowerCase().trim();
-      const localRegistryStr = localStorage.getItem('genda_local_reserved_slugs') || '{}';
-      let localRegistry: Record<string, string> = {};
-      try { localRegistry = JSON.parse(localRegistryStr); } catch {}
-
-      if (cleanSlug === currentConfigSlug || localRegistry[cleanSlug]) {
-        setPublicPortalData(null);
-        setIsPortalOpenedFromAdmin(false);
-        setIsPublicPortalOpen(true);
-        return;
-      }
-
-      // 2. Check Firestore database for the establishment slug
+      // 1. Check Firestore database for the establishment slug first for any slug
       try {
         const docRef = doc(db, 'establishment_slugs', cleanSlug);
         const docSnap = await getDoc(docRef);
@@ -180,22 +167,51 @@ export default function App() {
           });
           setIsPortalOpenedFromAdmin(false);
           setIsPublicPortalOpen(true);
-        } else {
-          // Unique link does not exist -> Redirect to initial homepage
-          window.history.pushState({}, '', window.location.pathname);
-          setIsPublicPortalOpen(false);
+          return;
         }
       } catch (err) {
-        console.warn("Verificação do link no banco de dados:", err);
-        // Fallback for fallback/offline test slugs
-        if (cleanSlug === 'seunome' || cleanSlug === 'teste' || cleanSlug === 'teste2') {
-          setPublicPortalData(null);
-          setIsPortalOpenedFromAdmin(false);
-          setIsPublicPortalOpen(true);
-        } else {
-          window.history.pushState({}, '', window.location.pathname);
-          setIsPublicPortalOpen(false);
-        }
+        console.warn("Verificação do link no Firestore:", err);
+      }
+
+      // 2. Check local configuration and local registry if not found in Firestore
+      const currentConfigSlug = (onlineBookingConfig.slug || 'seunome').toLowerCase().trim();
+      const localRegistryStr = localStorage.getItem('genda_local_reserved_slugs') || '{}';
+      let localRegistry: Record<string, string> = {};
+      try { localRegistry = JSON.parse(localRegistryStr); } catch {}
+
+      if (cleanSlug === currentConfigSlug || localRegistry[cleanSlug]) {
+        const localOwnerUid = auth.currentUser?.uid || localStorage.getItem('genda_establishment_uid') || undefined;
+        setPublicPortalData({
+          config: onlineBookingConfig,
+          services: services,
+          profile: profile,
+          workingDays: profile.workingDays || [],
+          appointments: appointments,
+          clients: clients,
+          ownerUid: localOwnerUid
+        });
+        setIsPortalOpenedFromAdmin(false);
+        setIsPublicPortalOpen(true);
+        return;
+      }
+
+      // 3. Fallback for test/default slugs if not found anywhere
+      if (cleanSlug === 'seunome' || cleanSlug === 'teste' || cleanSlug === 'teste2') {
+        const localOwnerUid = auth.currentUser?.uid || localStorage.getItem('genda_establishment_uid') || undefined;
+        setPublicPortalData({
+          config: onlineBookingConfig,
+          services: services,
+          profile: profile,
+          workingDays: profile.workingDays || [],
+          appointments: appointments,
+          clients: clients,
+          ownerUid: localOwnerUid
+        });
+        setIsPortalOpenedFromAdmin(false);
+        setIsPublicPortalOpen(true);
+      } else {
+        window.history.pushState({}, '', window.location.pathname);
+        setIsPublicPortalOpen(false);
       }
     };
 
