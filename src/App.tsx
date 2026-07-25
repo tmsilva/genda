@@ -305,8 +305,8 @@ export default function App() {
     // Ensure horizontal swipe is more pronounced than vertical swipe
     if (Math.abs(distanceX) > Math.abs(distanceY)) {
       if (isLeftSwipe || isRightSwipe) {
-        const allTabs: Array<'dashboard' | 'agenda' | 'clients' | 'finance' | 'services' | 'estoque' | 'roadmap' | 'ai' | 'settings'> = [
-          'dashboard', 'agenda', 'clients', 'finance', 'services', 'estoque', 'roadmap', 'ai', 'settings'
+        const allTabs: Array<'dashboard' | 'agenda' | 'online_booking' | 'clients' | 'finance' | 'services' | 'estoque' | 'roadmap' | 'ai' | 'settings'> = [
+          'dashboard', 'agenda', 'online_booking', 'clients', 'finance', 'services', 'estoque', 'roadmap', 'ai', 'settings'
         ];
         const tabs = (user?.email === 'thiagomsy@gmail.com' || user?.email === 'teste@teste.com') 
           ? allTabs 
@@ -1316,25 +1316,23 @@ export default function App() {
                 </button>
 
                 {/* Item 1.1: Agendamento Online */}
-                {(user?.email === 'thiagomsy@gmail.com' || user?.email === 'teste@teste.com') && (
-                  <button
-                    onClick={() => { setActiveClientId(null); setActiveTab('online_booking'); }}
-                    className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all cursor-pointer ${
-                      activeTab === 'online_booking'
-                        ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/25'
-                        : 'themed-sidebar-inactive-btn'
-                    } ${!isSidebarExpanded && 'justify-center'}`}
-                    title="Agendamento Online 🌐"
-                  >
-                    <Globe className={`w-5 h-5 shrink-0 ${onlineBookingConfig.isEnabled ? 'text-emerald-400' : 'text-red-400'}`} />
-                    {isSidebarExpanded && (
-                      <div className="flex items-center justify-between w-full overflow-hidden">
-                        <span className="text-sm truncate">Agendamento Online</span>
-                        <span className={`w-2 h-2 rounded-full ${onlineBookingConfig.isEnabled ? 'bg-emerald-400 animate-pulse' : 'bg-red-500'} shrink-0`}></span>
-                      </div>
-                    )}
-                  </button>
-                )}
+                <button
+                  onClick={() => { setActiveClientId(null); setActiveTab('online_booking'); }}
+                  className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all cursor-pointer ${
+                    activeTab === 'online_booking'
+                      ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/25'
+                      : 'themed-sidebar-inactive-btn'
+                  } ${!isSidebarExpanded && 'justify-center'}`}
+                  title="Agendamento Online 🌐"
+                >
+                  <Globe className={`w-5 h-5 shrink-0 ${onlineBookingConfig.isEnabled ? 'text-emerald-400' : 'text-red-400'}`} />
+                  {isSidebarExpanded && (
+                    <div className="flex items-center justify-between w-full overflow-hidden">
+                      <span className="text-sm truncate">Agendamento Online</span>
+                      <span className={`w-2 h-2 rounded-full ${onlineBookingConfig.isEnabled ? 'bg-emerald-400 animate-pulse' : 'bg-red-500'} shrink-0`}></span>
+                    </div>
+                  )}
+                </button>
 
                 {/* Item 2: Clientes */}
                 <button
@@ -1963,7 +1961,7 @@ export default function App() {
                   </motion.div>
                 )}
 
-                {activeTab === 'online_booking' && (user?.email === 'thiagomsy@gmail.com' || user?.email === 'teste@teste.com') && (
+                {activeTab === 'online_booking' && (
                   <motion.div
                     key="online_booking"
                     initial={{ opacity: 0, y: 15 }}
@@ -2127,25 +2125,23 @@ export default function App() {
                     </button>
 
                     {/* Tab: Agendamento Online */}
-                    {(user?.email === 'thiagomsy@gmail.com' || user?.email === 'teste@teste.com') && (
-                      <button
-                        onClick={() => { setActiveClientId(null); setActiveTab('online_booking'); }}
-                        className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-all active:scale-95 shrink-0 min-w-[44px] sm:min-w-[64px] ${
-                          activeTab === 'online_booking' 
-                            ? (isDark ? 'text-indigo-400 scale-105 font-bold' : 'text-indigo-600 scale-105 font-bold') 
-                            : 'themed-mobile-inactive'
-                        }`}
-                      >
-                        <div className={`p-1 sm:p-1.5 rounded-xl transition-all ${
-                          activeTab === 'online_booking' 
-                            ? (isDark ? 'bg-indigo-500/10 text-indigo-400' : 'bg-indigo-50 text-indigo-600') 
-                            : 'bg-transparent'
-                        }`}>
-                          <Globe className={`w-5 h-5 sm:w-5 sm:h-5 ${onlineBookingConfig.isEnabled ? 'text-emerald-400' : 'text-red-400'}`} />
-                        </div>
-                        <span className="text-[9px] sm:text-[10px] truncate max-w-full">Online</span>
-                      </button>
-                    )}
+                    <button
+                      onClick={() => { setActiveClientId(null); setActiveTab('online_booking'); }}
+                      className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-all active:scale-95 shrink-0 min-w-[44px] sm:min-w-[64px] ${
+                        activeTab === 'online_booking' 
+                          ? (isDark ? 'text-indigo-400 scale-105 font-bold' : 'text-indigo-600 scale-105 font-bold') 
+                          : 'themed-mobile-inactive'
+                      }`}
+                    >
+                      <div className={`p-1 sm:p-1.5 rounded-xl transition-all ${
+                        activeTab === 'online_booking' 
+                          ? (isDark ? 'bg-indigo-500/10 text-indigo-400' : 'bg-indigo-50 text-indigo-600') 
+                          : 'bg-transparent'
+                      }`}>
+                        <Globe className={`w-5 h-5 sm:w-5 sm:h-5 ${onlineBookingConfig.isEnabled ? 'text-emerald-400' : 'text-red-400'}`} />
+                      </div>
+                      <span className="text-[9px] sm:text-[10px] truncate max-w-full">Online</span>
+                    </button>
 
                     {/* Tab: Serviços */}
                     <button
