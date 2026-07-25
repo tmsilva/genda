@@ -1057,34 +1057,79 @@ export default function App() {
   return (
     <div className={`h-[100dvh] w-full overflow-hidden theme-${currentTheme.id} ${isDark ? 'dark-mode' : 'light-mode'} ${currentTheme.background} selection:bg-indigo-600 selection:text-white transition-colors duration-300 font-sans`}>
       
+      {/* PUBLIC CLIENT BOOKING PORTAL OVERLAY */}
+      {isPublicPortalOpen && (
+        <div className="fixed inset-0 z-[110] overflow-y-auto bg-slate-950/95 backdrop-blur-md animate-fadeIn">
+          <PublicBookingView
+            config={publicPortalData ? {
+              ...publicPortalData.config,
+              title: publicPortalData.profile.name || publicPortalData.config.title,
+              category: publicPortalData.profile.category || publicPortalData.config.category || '',
+              whatsapp: publicPortalData.profile.whatsapp || publicPortalData.config.whatsapp,
+              instagram: publicPortalData.profile.instagram || publicPortalData.config.instagram || '',
+              avatarUrl: publicPortalData.profile.avatarUrl || publicPortalData.config.avatarUrl || '',
+              address: publicPortalData.profile.address || publicPortalData.config.address,
+            } : {
+              ...onlineBookingConfig,
+              title: profile.name || onlineBookingConfig.title,
+              category: profile.category || onlineBookingConfig.category || '',
+              whatsapp: profile.whatsapp || onlineBookingConfig.whatsapp,
+              instagram: profile.instagram || onlineBookingConfig.instagram || '',
+              avatarUrl: profile.avatarUrl || onlineBookingConfig.avatarUrl || '',
+              address: profile.address || onlineBookingConfig.address,
+            }}
+            services={publicPortalData ? publicPortalData.services : services}
+            appointments={appointments}
+            clients={clients}
+            workingDays={publicPortalData ? publicPortalData.workingDays : (profile.workingDays || [])}
+            onAddAppointment={(newAppt) => {
+              handleAddAppointment(newAppt);
+            }}
+            onAddClient={(newClient) => {
+              handleAddClient(newClient);
+            }}
+            onClose={() => {
+              setIsPublicPortalOpen(false);
+              setIsPortalOpenedFromAdmin(false);
+              setPublicPortalData(null);
+              if (typeof window !== 'undefined' && window.location.search.includes('agendar=')) {
+                window.history.pushState({}, '', window.location.pathname);
+              }
+            }}
+            showCloseButton={isPortalOpenedFromAdmin}
+            isEmbedMode={true}
+          />
+        </div>
+      )}
+
       {/* Onboarding View Check */}
       <AnimatePresence mode="wait">
         {!isOnboarded ? (
-          <motion.div
-            key="onboarding"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="w-full"
-          >
-            <Onboarding 
-              onComplete={handleOnboardingComplete} 
-              onQuickStart={handleQuickStart} 
-              onLoginGoogle={handleLoginGoogle}
-              onLoginEmail={handleLoginEmail}
-              onRegisterEmail={handleRegisterEmail}
-              user={user}
-              isCloudSyncing={isCloudSyncing}
-            />
-          </motion.div>
-        ) : (
-          /* DASHBOARD VIEWPORT WITH SHARED BOTTOM BAR */
-          <motion.div
-            key="dashboard"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="w-full h-full flex flex-col md:flex-row"
-          >
+            <motion.div
+              key="onboarding"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="w-full"
+            >
+              <Onboarding 
+                onComplete={handleOnboardingComplete} 
+                onQuickStart={handleQuickStart} 
+                onLoginGoogle={handleLoginGoogle}
+                onLoginEmail={handleLoginEmail}
+                onRegisterEmail={handleRegisterEmail}
+                user={user}
+                isCloudSyncing={isCloudSyncing}
+              />
+            </motion.div>
+          ) : (
+            /* DASHBOARD VIEWPORT WITH SHARED BOTTOM BAR */
+            <motion.div
+              key="dashboard"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="w-full h-full flex flex-col md:flex-row"
+            >
             {/* DESKTOP RETRACTABLE SIDEBAR */}
             <aside 
               className={`hidden md:flex flex-col shrink-0 transition-all duration-300 border-r z-40 h-full overflow-y-auto scrollbar-none ${
@@ -1820,9 +1865,9 @@ export default function App() {
                 )}
               </AnimatePresence>
             </main>
+            </div>
 
-            
-                        {/* PERSISTENT BOTTOM NAVIGATION TAB BAR */}
+            {/* PERSISTENT BOTTOM NAVIGATION TAB BAR */}
             <div className="fixed bottom-0 left-0 right-0 z-40 themed-mobile-bar backdrop-blur-md border-t shadow-[0_-4px_20px_-10px_rgba(0,0,0,0.1)] px-2 sm:px-6 py-2 flex items-center justify-between gap-1 sm:gap-4 md:hidden pb-safe">
               <AnimatePresence mode="wait">
                 {mobileNavPage === 0 && (
@@ -2094,8 +2139,8 @@ export default function App() {
                   </motion.div>
                 )}
               </AnimatePresence>
-            </div>          </div>
-        </motion.div>
+            </div>
+          </motion.div>
         )}
       </AnimatePresence>
 
@@ -2228,51 +2273,6 @@ export default function App() {
           </div>
         )}
       </AnimatePresence>
-
-      {/* PUBLIC CLIENT BOOKING PORTAL OVERLAY */}
-      {isPublicPortalOpen && (
-        <div className="fixed inset-0 z-[110] overflow-y-auto bg-slate-950/95 backdrop-blur-md animate-fadeIn">
-          <PublicBookingView
-            config={publicPortalData ? {
-              ...publicPortalData.config,
-              title: publicPortalData.profile.name || publicPortalData.config.title,
-              category: publicPortalData.profile.category || publicPortalData.config.category || '',
-              whatsapp: publicPortalData.profile.whatsapp || publicPortalData.config.whatsapp,
-              instagram: publicPortalData.profile.instagram || publicPortalData.config.instagram || '',
-              avatarUrl: publicPortalData.profile.avatarUrl || publicPortalData.config.avatarUrl || '',
-              address: publicPortalData.profile.address || publicPortalData.config.address,
-            } : {
-              ...onlineBookingConfig,
-              title: profile.name || onlineBookingConfig.title,
-              category: profile.category || onlineBookingConfig.category || '',
-              whatsapp: profile.whatsapp || onlineBookingConfig.whatsapp,
-              instagram: profile.instagram || onlineBookingConfig.instagram || '',
-              avatarUrl: profile.avatarUrl || onlineBookingConfig.avatarUrl || '',
-              address: profile.address || onlineBookingConfig.address,
-            }}
-            services={publicPortalData ? publicPortalData.services : services}
-            appointments={appointments}
-            clients={clients}
-            workingDays={publicPortalData ? publicPortalData.workingDays : (profile.workingDays || [])}
-            onAddAppointment={(newAppt) => {
-              handleAddAppointment(newAppt);
-            }}
-            onAddClient={(newClient) => {
-              handleAddClient(newClient);
-            }}
-            onClose={() => {
-              setIsPublicPortalOpen(false);
-              setIsPortalOpenedFromAdmin(false);
-              setPublicPortalData(null);
-              if (typeof window !== 'undefined' && window.location.search.includes('agendar=')) {
-                window.history.pushState({}, '', window.location.pathname);
-              }
-            }}
-            showCloseButton={isPortalOpenedFromAdmin}
-            isEmbedMode={true}
-          />
-        </div>
-      )}
 
       <InstallPWA isDark={isDark} />
     </div>

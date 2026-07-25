@@ -70,6 +70,7 @@ export const OnlineBookingView: React.FC<OnlineBookingViewProps> = ({
       const currentUserId = getDeviceEstablishmentId();
       await setDoc(doc(db, 'establishment_slugs', cleanSlug), {
         userId: currentUserId,
+        slug: cleanSlug,
         config,
         services,
         profile: {
