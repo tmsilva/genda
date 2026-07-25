@@ -2015,7 +2015,7 @@ export default function App() {
                     transition={{ duration: 0.2 }}
                     className="flex-1 flex items-center justify-between gap-1 sm:gap-4 w-full"
                   >
-                    {/* Tab 0: Dashboard */}
+                    {/* Tab 0: Painel */}
                     <button
                       onClick={() => { setActiveClientId(null); setActiveTab('dashboard'); }}
                       className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-all active:scale-95 shrink-0 min-w-[48px] sm:min-w-[64px] ${
@@ -2053,7 +2053,7 @@ export default function App() {
                       <span className="text-[9px] sm:text-[10px] truncate max-w-full">Agenda</span>
                     </button>
 
-                    {/* Tab 2: Clients */}
+                    {/* Tab 2: Clientes */}
                     <button
                       onClick={() => { setActiveClientId(null); setActiveTab('clients'); }}
                       className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-all active:scale-95 shrink-0 min-w-[48px] sm:min-w-[64px] ${
@@ -2072,7 +2072,7 @@ export default function App() {
                       <span className="text-[9px] sm:text-[10px] truncate max-w-full">Clientes</span>
                     </button>
 
-                    {/* Tab 3: Finance */}
+                    {/* Tab 3: Financeiro */}
                     <button
                       onClick={() => { setActiveClientId(null); setActiveTab('finance'); }}
                       className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-all active:scale-95 shrink-0 min-w-[48px] sm:min-w-[64px] ${
@@ -2124,7 +2124,7 @@ export default function App() {
                       <span className="text-[9px] sm:text-[10px] truncate max-w-full font-bold">Voltar</span>
                     </button>
 
-                    {/* Tab: Agendamento Online */}
+                    {/* Tab: Online */}
                     <button
                       onClick={() => { setActiveClientId(null); setActiveTab('online_booking'); }}
                       className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-all active:scale-95 shrink-0 min-w-[44px] sm:min-w-[64px] ${
@@ -2180,49 +2180,29 @@ export default function App() {
                       </div>
                       <span className="text-[9px] sm:text-[10px] truncate max-w-full">Estoque</span>
                     </button>
-                    
-                    {/* Tab: Genda AI or Em breve */}
-                    {(user?.email === 'thiagomsy@gmail.com' || user?.email === 'teste@teste.com') ? (
-                      <button
-                        onClick={() => { setActiveClientId(null); setActiveTab('ai'); }}
-                        className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-all active:scale-95 shrink-0 min-w-[44px] sm:min-w-[64px] ${
-                          activeTab === 'ai' 
-                            ? (isDark ? 'text-indigo-400 scale-105 font-bold' : 'text-indigo-600 scale-105 font-bold') 
-                            : 'themed-mobile-inactive'
-                        }`}
-                      >
-                        <div className={`p-1 sm:p-1.5 rounded-xl transition-all ${
-                          activeTab === 'ai' 
-                            ? (isDark ? 'bg-indigo-500 text-white' : 'bg-indigo-50 text-indigo-600') 
-                            : 'bg-transparent'
-                        }`}>
-                          <Bot className="w-5 h-5 sm:w-5 sm:h-5" />
-                        </div>
-                        <span className="text-[9px] sm:text-[10px] truncate max-w-full">Genda AI</span>
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => { setActiveClientId(null); setActiveTab('roadmap'); }}
-                        className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-all active:scale-95 shrink-0 min-w-[44px] sm:min-w-[64px] ${
-                          activeTab === 'roadmap' 
-                            ? (isDark ? 'text-indigo-400 scale-105 font-bold' : 'text-indigo-600 scale-105 font-bold') 
-                            : 'themed-mobile-inactive'
-                        }`}
-                      >
-                        <div className={`p-1 sm:p-1.5 rounded-xl transition-all ${
-                          activeTab === 'roadmap' 
-                            ? (isDark ? 'bg-indigo-500/10 text-indigo-400' : 'bg-indigo-50 text-indigo-600') 
-                            : 'bg-transparent'
-                        }`}>
-                          <Sparkles className="w-5 h-5 sm:w-5 sm:h-5 text-amber-400" />
-                        </div>
-                        <span className="text-[9px] sm:text-[10px] truncate max-w-full">Em breve</span>
-                      </button>
-                    )}
 
-                    {/* Next Page Arrow (Mais) */}
+                    {/* Tab: Em breve */}
                     <button
-                      onClick={() => setMobileNavPage((user?.email === 'thiagomsy@gmail.com' || user?.email === 'teste@teste.com') ? 2 : 1)}
+                      onClick={() => { setActiveClientId(null); setActiveTab('roadmap'); }}
+                      className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-all active:scale-95 shrink-0 min-w-[44px] sm:min-w-[64px] ${
+                        activeTab === 'roadmap' 
+                          ? (isDark ? 'text-indigo-400 scale-105 font-bold' : 'text-indigo-600 scale-105 font-bold') 
+                          : 'themed-mobile-inactive'
+                      }`}
+                    >
+                      <div className={`p-1 sm:p-1.5 rounded-xl transition-all ${
+                        activeTab === 'roadmap' 
+                          ? (isDark ? 'bg-indigo-500/10 text-indigo-400' : 'bg-indigo-50 text-indigo-600') 
+                          : 'bg-transparent'
+                      }`}>
+                        <Sparkles className="w-5 h-5 sm:w-5 sm:h-5 text-amber-400" />
+                      </div>
+                      <span className="text-[9px] sm:text-[10px] truncate max-w-full">Em breve</span>
+                    </button>
+
+                    {/* Next Page Arrow (Mais) - Visible ONLY for authorized users */}
+                    <button
+                      onClick={() => setMobileNavPage(2)}
                       className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-all active:scale-95 shrink-0 min-w-[40px] sm:min-w-[48px] text-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400 ${
                         (user?.email === 'thiagomsy@gmail.com' || user?.email === 'teste@teste.com') ? '' : 'hidden'
                       }`}
@@ -2242,7 +2222,7 @@ export default function App() {
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -20 }}
                     transition={{ duration: 0.2 }}
-                    className="flex-1 flex items-center justify-start gap-4 sm:gap-8 w-full"
+                    className="flex-1 flex items-center justify-between gap-1 sm:gap-4 w-full"
                   >
                     {/* Prev Page Arrow (Voltar) */}
                     <button
@@ -2255,23 +2235,23 @@ export default function App() {
                       <span className="text-[9px] sm:text-[10px] truncate max-w-full font-bold">Voltar</span>
                     </button>
 
-                    {/* Tab: Em breve */}
+                    {/* Tab: Genda AI */}
                     <button
-                      onClick={() => { setActiveClientId(null); setActiveTab('roadmap'); }}
+                      onClick={() => { setActiveClientId(null); setActiveTab('ai'); }}
                       className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-all active:scale-95 shrink-0 min-w-[56px] sm:min-w-[64px] ${
-                        activeTab === 'roadmap' 
+                        activeTab === 'ai' 
                           ? (isDark ? 'text-indigo-400 scale-105 font-bold' : 'text-indigo-600 scale-105 font-bold') 
                           : 'themed-mobile-inactive'
                       }`}
                     >
                       <div className={`p-1 sm:p-1.5 rounded-xl transition-all ${
-                        activeTab === 'roadmap' 
-                          ? (isDark ? 'bg-indigo-500/10 text-indigo-400' : 'bg-indigo-50 text-indigo-600') 
+                        activeTab === 'ai' 
+                          ? (isDark ? 'bg-indigo-500 text-white' : 'bg-indigo-50 text-indigo-600') 
                           : 'bg-transparent'
                       }`}>
-                        <Sparkles className="w-5 h-5 sm:w-5 sm:h-5 text-amber-400" />
+                        <Bot className="w-5 h-5 sm:w-5 sm:h-5" />
                       </div>
-                      <span className="text-[9px] sm:text-[10px] truncate max-w-full">Em breve</span>
+                      <span className="text-[9px] sm:text-[10px] truncate max-w-full">Genda AI</span>
                     </button>
 
                     {/* Tab: Ajustes */}
