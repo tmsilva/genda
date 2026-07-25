@@ -2182,23 +2182,25 @@ export default function App() {
                     </button>
                     
                     {/* Tab: Genda AI */}
-                    <button
-                      onClick={() => { setActiveClientId(null); setActiveTab('ai'); }}
-                      className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-all active:scale-95 shrink-0 min-w-[44px] sm:min-w-[64px] ${
-                        activeTab === 'ai' 
-                          ? (isDark ? 'text-indigo-400 scale-105 font-bold' : 'text-indigo-600 scale-105 font-bold') 
-                          : 'themed-mobile-inactive'
-                      }`}
-                    >
-                      <div className={`p-1 sm:p-1.5 rounded-xl transition-all ${
-                        activeTab === 'ai' 
-                          ? (isDark ? 'bg-indigo-500 text-white' : 'bg-indigo-50 text-indigo-600') 
-                          : 'bg-transparent'
-                      }`}>
-                        <Bot className="w-5 h-5 sm:w-5 sm:h-5" />
-                      </div>
-                      <span className="text-[9px] sm:text-[10px] truncate max-w-full">Genda AI</span>
-                    </button>
+                    {(user?.email === 'thiagomsy@gmail.com' || user?.email === 'teste@teste.com') && (
+                      <button
+                        onClick={() => { setActiveClientId(null); setActiveTab('ai'); }}
+                        className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-all active:scale-95 shrink-0 min-w-[44px] sm:min-w-[64px] ${
+                          activeTab === 'ai' 
+                            ? (isDark ? 'text-indigo-400 scale-105 font-bold' : 'text-indigo-600 scale-105 font-bold') 
+                            : 'themed-mobile-inactive'
+                        }`}
+                      >
+                        <div className={`p-1 sm:p-1.5 rounded-xl transition-all ${
+                          activeTab === 'ai' 
+                            ? (isDark ? 'bg-indigo-500 text-white' : 'bg-indigo-50 text-indigo-600') 
+                            : 'bg-transparent'
+                        }`}>
+                          <Bot className="w-5 h-5 sm:w-5 sm:h-5" />
+                        </div>
+                        <span className="text-[9px] sm:text-[10px] truncate max-w-full">Genda AI</span>
+                      </button>
+                    )}
 
                     {/* Next Page Arrow (Mais) */}
                     <button
