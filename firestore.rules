@@ -140,8 +140,12 @@ service cloud.firestore {
 
     match /establishment_slugs/{slugId} {
       allow read: if true;
-      allow create, update: if request.resource.data.userId is string && request.resource.data.slug is string;
-      allow delete: if resource.data.userId == request.resource.data.userId;
+
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+
+      allow update: if request.auth != null && request.auth.uid == resource.data.userId && request.auth.uid == request.resource.data.userId;
+
+      allow delete: if request.auth != null && request.auth.uid == resource.data.userId;
     }
   }
 }

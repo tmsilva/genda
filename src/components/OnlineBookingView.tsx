@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { OnlineBookingConfig, Service, Appointment, Client, WorkingDay, ProfessionalProfile, BlockedDate } from '../types';
 import { formatPrice, formatPhoneWithCountryCode } from '../utils';
-import { doc, getDoc, setDoc, deleteDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import { doc, getDoc, setDoc, deleteDoc, collection, query, where, getDocs, writeBatch } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 
 interface OnlineBookingViewProps {
@@ -52,9 +52,32 @@ export const OnlineBookingView: React.FC<OnlineBookingViewProps> = ({
   const [newBlockedDate, setNewBlockedDate] = useState('');
   const [newBlockedReason, setNewBlockedReason] = useState('');
 
-  // Dynamic real public link for the establishment
-  const cleanSlug = (slugInput || 'seunome').toLowerCase().trim().replace(/[^a-z0-9-]/g, '');
+  // Automatic normalization function (removes accents, spaces, uppercase, special chars)
+  const normalizeSlug = (str: string) => {
+    return (str || '')
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9-]/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '');
+  };
+
+  const cleanSlug = normalizeSlug(slugInput || 'seunome');
   const publicUrl = `https://genda-rose.vercel.app/?agendar=${cleanSlug}`;
+
+  // Automatic real-time validation / verification when slug changes
+  useEffect(() => {
+    if (!cleanSlug || cleanSlug.length < 3) {
+      setSlugStatus('invalid');
+      setSlugMessage('O link do estabelecimento deve ter pelo menos 3 caracteres.');
+      return;
+    }
+    const timer = setTimeout(() => {
+      handleVerifySlugInDatabase(cleanSlug);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [cleanSlug]);
 
   // Get or create persistent device establishment ID when user is unauthenticated
   const getDeviceEstablishmentId = () => {
@@ -72,23 +95,23 @@ export const OnlineBookingView: React.FC<OnlineBookingViewProps> = ({
       const currentUserId = getDeviceEstablishmentId();
       const oldSlug = config.slug;
 
-      // Delete any other slugs belonging to this user in Firestore
+      const batch = writeBatch(db);
+
+      // Atomically delete any other slugs belonging to this user in Firestore
       try {
-        const querySnapshot = await getDocs(collection(db, 'establishment_slugs'));
-        for (const documentSnapshot of querySnapshot.docs) {
-          const data = documentSnapshot.data();
-          if (documentSnapshot.id !== cleanSlug && data.userId === currentUserId) {
-            await deleteDoc(doc(db, 'establishment_slugs', documentSnapshot.id));
+        const q = query(collection(db, 'establishment_slugs'), where('userId', '==', currentUserId));
+        const querySnapshot = await getDocs(q);
+        querySnapshot.forEach((documentSnapshot) => {
+          if (documentSnapshot.id !== cleanSlug) {
+            batch.delete(doc(db, 'establishment_slugs', documentSnapshot.id));
           }
-        }
+        });
       } catch (e) {
-        console.warn("Erro ao limpar slugs anteriores do usuário no Firestore:", e);
+        console.warn("Erro ao buscar slugs anteriores para exclusão via batch:", e);
       }
 
       if (oldSlug && oldSlug !== cleanSlug) {
-        try {
-          await deleteDoc(doc(db, 'establishment_slugs', oldSlug));
-        } catch (e) {}
+        batch.delete(doc(db, 'establishment_slugs', oldSlug));
       }
 
       const {
@@ -104,7 +127,7 @@ export const OnlineBookingView: React.FC<OnlineBookingViewProps> = ({
         ...cleanConfig
       } = config as any;
 
-      await setDoc(doc(db, 'establishment_slugs', cleanSlug), {
+      batch.set(doc(db, 'establishment_slugs', cleanSlug), {
         userId: currentUserId,
         slug: cleanSlug,
         config: cleanConfig,
@@ -119,6 +142,8 @@ export const OnlineBookingView: React.FC<OnlineBookingViewProps> = ({
         workingDays,
         updatedAt: new Date().toISOString()
       }, { merge: true });
+
+      await batch.commit();
 
       if (cleanSlug !== oldSlug) {
         onUpdateConfig({
@@ -194,7 +219,7 @@ export const OnlineBookingView: React.FC<OnlineBookingViewProps> = ({
     }
   };
 
-  // Save unique slug to database
+  // Save unique slug to database atomically using WriteBatch
   const handleSaveAndReserveSlug = async () => {
     const isAvailable = await handleVerifySlugInDatabase(cleanSlug);
     if (!isAvailable) {
@@ -206,26 +231,55 @@ export const OnlineBookingView: React.FC<OnlineBookingViewProps> = ({
     const oldSlug = config.slug;
 
     try {
-      // Query and delete any other slugs belonging to this user in Firestore
+      const batch = writeBatch(db);
+
+      // Query and delete any other slugs belonging to this user in Firestore atomically
       try {
-        const querySnapshot = await getDocs(collection(db, 'establishment_slugs'));
-        for (const documentSnapshot of querySnapshot.docs) {
-          const data = documentSnapshot.data();
-          if (documentSnapshot.id !== cleanSlug && data.userId === currentUserId) {
-            await deleteDoc(doc(db, 'establishment_slugs', documentSnapshot.id));
+        const q = query(collection(db, 'establishment_slugs'), where('userId', '==', currentUserId));
+        const querySnapshot = await getDocs(q);
+        querySnapshot.forEach((documentSnapshot) => {
+          if (documentSnapshot.id !== cleanSlug) {
+            batch.delete(doc(db, 'establishment_slugs', documentSnapshot.id));
           }
-        }
+        });
       } catch (e) {
         console.warn("Erro ao limpar slugs anteriores do usuário no Firestore:", e);
       }
 
       if (oldSlug && oldSlug !== cleanSlug) {
-        try {
-          await deleteDoc(doc(db, 'establishment_slugs', oldSlug));
-        } catch (e) {
-          console.warn("Erro ao excluir slug anterior do Firestore:", e);
-        }
+        batch.delete(doc(db, 'establishment_slugs', oldSlug));
       }
+
+      const {
+        title: _t,
+        welcomeMessage: _wm,
+        whatsapp: _wa,
+        coverImageUrl: _ci,
+        staffMembers: _sm,
+        seoTitle: _st,
+        seoDescription: _sd,
+        establishmentName: _en,
+        enabledServiceIds: _es,
+        ...cleanConfig
+      } = config as any;
+
+      batch.set(doc(db, 'establishment_slugs', cleanSlug), {
+        userId: currentUserId,
+        slug: cleanSlug,
+        config: cleanConfig,
+        services,
+        profile: {
+          name: profile.name,
+          category: profile.category,
+          instagram: profile.instagram,
+          address: profile.address,
+          avatarUrl: profile.avatarUrl,
+        },
+        workingDays,
+        updatedAt: new Date().toISOString()
+      }, { merge: true });
+
+      await batch.commit();
 
       // Also clean up local storage registry for this user
       const localRegistryStr = localStorage.getItem('genda_local_reserved_slugs') || '{}';
@@ -238,14 +292,6 @@ export const OnlineBookingView: React.FC<OnlineBookingViewProps> = ({
       });
       localRegistry[cleanSlug] = currentUserId;
       localStorage.setItem('genda_local_reserved_slugs', JSON.stringify(localRegistry));
-
-      await setDoc(doc(db, 'establishment_slugs', cleanSlug), {
-        userId: currentUserId,
-        slug: cleanSlug,
-        updatedAt: new Date().toISOString()
-      }, { merge: true });
-
-
 
       onUpdateConfig({
         ...config,
@@ -450,9 +496,32 @@ export const OnlineBookingView: React.FC<OnlineBookingViewProps> = ({
 
             {/* Slug Editor & DB Verification Row */}
             <div className="space-y-2">
-              <label className={`block text-xs font-semibold ${isDark ? 'text-zinc-300' : 'text-slate-700'}`}>
-                Personalizar e Verificar Unicidade no Banco de Dados:
-              </label>
+              <div className="flex items-center justify-between">
+                <label className={`block text-xs font-semibold ${isDark ? 'text-zinc-300' : 'text-slate-700'}`}>
+                  Personalizar e Verificar Unicidade no Banco de Dados:
+                </label>
+                {/* Real-time Status Badge */}
+                <div className="flex items-center gap-1.5 text-xs font-bold shrink-0">
+                  {(slugStatus === 'checking' || isVerifyingSlug) && (
+                    <span className="flex items-center gap-1 text-amber-400 bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-500/20">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+                      🟡 Verificando...
+                    </span>
+                  )}
+                  {slugStatus === 'available' && !isVerifyingSlug && (
+                    <span className="flex items-center gap-1 text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                      🟢 Disponível
+                    </span>
+                  )}
+                  {(slugStatus === 'taken' || slugStatus === 'invalid') && !isVerifyingSlug && (
+                    <span className="flex items-center gap-1 text-rose-400 bg-rose-500/10 px-2.5 py-0.5 rounded-full border border-rose-500/20">
+                      <span className="w-1.5 h-1.5 rounded-full bg-rose-400"></span>
+                      🔴 Já está em uso
+                    </span>
+                  )}
+                </div>
+              </div>
               <div className="flex flex-col sm:flex-row gap-2">
                 <div className={`flex-1 flex items-center gap-1 px-3 py-2 rounded-xl border font-mono text-xs ${
                   isDark ? 'bg-zinc-950 border-zinc-700 text-white' : 'bg-slate-50 border-slate-300 text-slate-800'
@@ -462,7 +531,7 @@ export const OnlineBookingView: React.FC<OnlineBookingViewProps> = ({
                     type="text"
                     value={slugInput}
                     onChange={(e) => {
-                      const val = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '');
+                      const val = normalizeSlug(e.target.value);
                       setSlugInput(val);
                       setSlugStatus('idle');
                       setSlugMessage('');
