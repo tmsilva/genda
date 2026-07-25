@@ -110,20 +110,18 @@ service cloud.firestore {
       }
       
       match /clients/{clientId} {
-        allow get: if isOwner(userId) && isValidId(clientId);
-        allow list: if isOwner(userId);
-        allow create: if isOwner(userId) && isValidId(clientId) 
-          && isValidClient(request.resource.data);
+        allow get: if true;
+        allow list: if true;
+        allow create: if isValidId(clientId) && isValidClient(request.resource.data);
         allow update: if isOwner(userId) && isValidId(clientId) 
           && isValidClient(request.resource.data);
         allow delete: if isOwner(userId) && isValidId(clientId);
       }
       
       match /appointments/{appointmentId} {
-        allow get: if isOwner(userId) && isValidId(appointmentId);
-        allow list: if isOwner(userId);
-        allow create: if isOwner(userId) && isValidId(appointmentId) 
-          && isValidAppointment(request.resource.data);
+        allow get: if true;
+        allow list: if true;
+        allow create: if (isOwner(userId) || request.resource.data.source == 'online') && isValidId(appointmentId) && isValidAppointment(request.resource.data);
         allow update: if isOwner(userId) && isValidId(appointmentId) 
           && isValidAppointment(request.resource.data);
         allow delete: if isOwner(userId) && isValidId(appointmentId);

@@ -1262,11 +1262,11 @@ export default function App() {
                     } ${!isSidebarExpanded && 'justify-center'}`}
                     title="Agendamento Online 🌐"
                   >
-                    <Globe className="w-5 h-5 shrink-0 text-emerald-400" />
+                    <Globe className={`w-5 h-5 shrink-0 ${onlineBookingConfig.isEnabled ? 'text-emerald-400' : 'text-red-400'}`} />
                     {isSidebarExpanded && (
                       <div className="flex items-center justify-between w-full overflow-hidden">
                         <span className="text-sm truncate">Agendamento Online</span>
-                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0"></span>
+                        <span className={`w-2 h-2 rounded-full ${onlineBookingConfig.isEnabled ? 'bg-emerald-400 animate-pulse' : 'bg-red-500'} shrink-0`}></span>
                       </div>
                     )}
                   </button>
@@ -2075,7 +2075,7 @@ export default function App() {
                             ? (isDark ? 'bg-indigo-500/10 text-indigo-400' : 'bg-indigo-50 text-indigo-600') 
                             : 'bg-transparent'
                         }`}>
-                          <Globe className="w-5 h-5 sm:w-5 sm:h-5 text-emerald-400" />
+                          <Globe className={`w-5 h-5 sm:w-5 sm:h-5 ${onlineBookingConfig.isEnabled ? 'text-emerald-400' : 'text-red-400'}`} />
                         </div>
                         <span className="text-[9px] sm:text-[10px] truncate max-w-full">Online</span>
                       </button>

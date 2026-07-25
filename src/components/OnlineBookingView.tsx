@@ -378,7 +378,7 @@ export const OnlineBookingView: React.FC<OnlineBookingViewProps> = ({
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-1.5">
             <div className="flex items-center gap-2.5">
-              <div className="p-2.5 rounded-xl bg-indigo-600/10 text-indigo-500 border border-indigo-500/20">
+              <div className={`p-2.5 rounded-xl ${config.isEnabled ? 'bg-indigo-600/10 text-indigo-500 border border-indigo-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}`}>
                 <Globe className="w-6 h-6" />
               </div>
               <div>
@@ -386,9 +386,13 @@ export const OnlineBookingView: React.FC<OnlineBookingViewProps> = ({
                   <h1 className={`text-xl sm:text-2xl font-extrabold font-display ${isDark ? 'text-white' : 'text-slate-900'}`}>
                     Agendamento Online
                   </h1>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                    Dados Reais Sincronizados
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold flex items-center gap-1 ${
+                    config.isEnabled 
+                      ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
+                      : 'bg-red-500/10 text-red-400 border border-red-500/20'
+                  }`}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${config.isEnabled ? 'bg-emerald-400 animate-pulse' : 'bg-red-500'}`}></span>
+                    {config.isEnabled ? 'Dados Reais Sincronizados' : 'Portal Desativado'}
                   </span>
                 </div>
                 <p className={`text-xs sm:text-sm mt-0.5 ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
