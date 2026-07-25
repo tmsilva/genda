@@ -36,7 +36,6 @@ const ROADMAP_ITEMS: RoadmapItem[] = [
     icon: Bell,
     title: 'Lembretes Inteligentes',
     category: 'Comunicação',
-    badgeText: 'Em desenvolvimento',
     description: 'O Genda identificará automaticamente clientes que costumam retornar em determinado período e sugerirá o envio de lembretes personalizados.',
     quote: 'Seu cliente costuma retornar a cada 30 dias. Deseja enviar um lembrete?'
   },
@@ -45,7 +44,6 @@ const ROADMAP_ITEMS: RoadmapItem[] = [
     icon: UserX,
     title: 'Controle de Faltas',
     category: 'Gestão & Proteção',
-    badgeText: 'Em desenvolvimento',
     description: 'Acompanhe o histórico de comparecimento dos clientes. O sistema poderá identificar clientes recorrentes em faltas e sugerir cobrança antecipada para novos agendamentos.'
   },
   {
@@ -53,7 +51,6 @@ const ROADMAP_ITEMS: RoadmapItem[] = [
     icon: QrCode,
     title: 'Sinal via PIX',
     category: 'Financeiro & Pagamentos',
-    badgeText: 'Em desenvolvimento',
     description: 'Permita solicitar um valor antecipado para confirmação do agendamento. O horário será reservado somente após a confirmação automática do pagamento.'
   },
   {
@@ -61,7 +58,6 @@ const ROADMAP_ITEMS: RoadmapItem[] = [
     icon: RefreshCw,
     title: 'Reagendamento Inteligente',
     category: 'Atendimento & Cliente',
-    badgeText: 'Em desenvolvimento',
     description: 'Caso um cliente precise cancelar um atendimento, ele poderá escolher outro horário disponível sem precisar entrar em contato diretamente com o profissional.'
   },
   {
@@ -69,7 +65,6 @@ const ROADMAP_ITEMS: RoadmapItem[] = [
     icon: Hourglass,
     title: 'Lista de Espera Inteligente',
     category: 'Agenda & Otimização',
-    badgeText: 'Em desenvolvimento',
     description: 'Quando ocorrer um cancelamento, o Genda notificará automaticamente clientes interessados naquele horário, preenchendo vagas de forma rápida e reduzindo horários ociosos.'
   },
   {
@@ -77,7 +72,6 @@ const ROADMAP_ITEMS: RoadmapItem[] = [
     icon: Target,
     title: 'Metas',
     category: 'Gestão & Desempenho',
-    badgeText: 'Em desenvolvimento',
     description: 'Defina objetivos mensais e acompanhe sua evolução através de indicadores práticos:',
     bulletTitle: 'Indicadores monitorados:',
     bulletPoints: ['Faturamento', 'Número de clientes', 'Ticket médio', 'Quantidade de atendimentos']
@@ -87,7 +81,6 @@ const ROADMAP_ITEMS: RoadmapItem[] = [
     icon: TrendingUp,
     title: 'Ranking de Serviços',
     category: 'Relatórios & Inteligência',
-    badgeText: 'Em desenvolvimento',
     description: 'Descubra quais serviços geram mais faturamento e quais possuem maior procura.'
   },
   {
@@ -95,7 +88,6 @@ const ROADMAP_ITEMS: RoadmapItem[] = [
     icon: Crown,
     title: 'Ranking de Clientes',
     category: 'Relatórios & Inteligência',
-    badgeText: 'Em desenvolvimento',
     description: 'Veja quais clientes mais frequentam seu negócio e quais geram maior receita.'
   },
   {
@@ -103,7 +95,6 @@ const ROADMAP_ITEMS: RoadmapItem[] = [
     icon: Timer,
     title: 'Tempo Inteligente dos Serviços',
     category: 'IA & Otimização',
-    badgeText: 'Em desenvolvimento',
     description: 'O sistema aprenderá automaticamente quanto tempo cada serviço realmente leva para ser concluído, permitindo previsões cada vez mais precisas e uma agenda mais eficiente.'
   },
   {
@@ -111,7 +102,6 @@ const ROADMAP_ITEMS: RoadmapItem[] = [
     icon: Users,
     title: 'Multi Profissional',
     category: 'Equipes & Gestão',
-    badgeText: 'Em desenvolvimento',
     description: 'Ideal para equipes. Cada profissional poderá possuir:',
     bulletTitle: 'Controles individuais por profissional:',
     bulletPoints: ['Agenda individual', 'Horários próprios', 'Comissão', 'Metas', 'Serviços específicos']
@@ -121,7 +111,6 @@ const ROADMAP_ITEMS: RoadmapItem[] = [
     icon: Receipt,
     title: 'Controle de Comissões',
     category: 'Financeiro & Equipes',
-    badgeText: 'Em desenvolvimento',
     description: 'Calcule automaticamente as comissões dos colaboradores com base nos atendimentos realizados.'
   },
   {
@@ -129,7 +118,6 @@ const ROADMAP_ITEMS: RoadmapItem[] = [
     icon: Building2,
     title: 'Multiempresa',
     category: 'Expansão & Estrutura',
-    badgeText: 'Em desenvolvimento',
     description: 'Gerencie diversas empresas utilizando apenas uma conta.',
     bulletTitle: 'Cada empresa possuirá:',
     bulletPoints: ['Agenda própria', 'Financeiro independente', 'Clientes', 'Serviços', 'Configurações']
@@ -139,7 +127,6 @@ const ROADMAP_ITEMS: RoadmapItem[] = [
     icon: Gift,
     title: 'Programa de Fidelidade',
     category: 'Fidelização',
-    badgeText: 'Em desenvolvimento',
     description: 'Crie programas de recompensa para incentivar o retorno dos clientes.',
     examplesTitle: 'Mecanismos de recompensa:',
     examples: ['A cada 10 atendimentos, ganhe 1 gratuito.', 'Acumule pontos e troque por benefícios.']
@@ -149,7 +136,6 @@ const ROADMAP_ITEMS: RoadmapItem[] = [
     icon: Coins,
     title: 'Cashback',
     category: 'Fidelização & Financeiro',
-    badgeText: 'Em desenvolvimento',
     description: 'Ofereça créditos para que seus clientes utilizem em futuros agendamentos, aumentando a fidelização.'
   },
   {
@@ -157,7 +143,6 @@ const ROADMAP_ITEMS: RoadmapItem[] = [
     icon: Tag,
     title: 'CRM Inteligente',
     category: 'Clientes & CRM',
-    badgeText: 'Em desenvolvimento',
     description: 'Organize seus clientes utilizando etiquetas personalizadas.',
     examplesTitle: 'Exemplos de etiquetas:',
     examples: ['VIP', 'Novo Cliente', 'Inativo', 'Aniversariante', 'Premium', 'Faltoso'],
@@ -168,7 +153,6 @@ const ROADMAP_ITEMS: RoadmapItem[] = [
     icon: Megaphone,
     title: 'Marketing Inteligente',
     category: 'Marketing',
-    badgeText: 'Em desenvolvimento',
     description: 'Envie campanhas segmentadas diretamente para grupos específicos de clientes.',
     examplesTitle: 'Públicos segmentados:',
     examples: ['Clientes aniversariantes', 'Clientes inativos', 'Clientes VIP', 'Clientes que utilizam determinado serviço']
@@ -178,7 +162,6 @@ const ROADMAP_ITEMS: RoadmapItem[] = [
     icon: Bot,
     title: 'Inteligência Artificial',
     category: 'IA & Gestão',
-    badgeText: 'Em desenvolvimento',
     description: 'Receba recomendações inteligentes baseadas nos dados do seu negócio.',
     bulletTitle: 'Insights automáticos:',
     bulletPoints: [
@@ -314,11 +297,11 @@ export default function RoadmapView({ isDark = false }: RoadmapViewProps) {
                 {/* ACCORDION HEADER (Click to toggle) */}
                 <button
                   onClick={() => toggleAccordion(item.id)}
-                  className="w-full p-4 sm:p-5 flex items-center justify-between gap-4 text-left cursor-pointer transition-colors select-none"
+                  className="w-full p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 text-left cursor-pointer transition-colors select-none"
                   aria-expanded={isOpen}
                 >
-                  <div className="flex items-center gap-3.5 min-w-0">
-                    <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center shrink-0 transition-transform ${
+                  <div className="flex items-start sm:items-center gap-3.5 min-w-0 w-full">
+                    <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center shrink-0 transition-transform mt-0.5 sm:mt-0 ${
                       isOpen
                         ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30 scale-105'
                         : (isDark ? 'bg-zinc-800 text-indigo-400' : 'bg-indigo-50 text-indigo-600')
@@ -326,13 +309,22 @@ export default function RoadmapView({ isDark = false }: RoadmapViewProps) {
                       <IconComponent className="w-5 h-5 sm:w-5 sm:h-5" />
                     </div>
 
-                    <div className="min-w-0 space-y-0.5">
+                    <div className="min-w-0 space-y-1 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
-                        <h3 className={`font-bold text-sm sm:text-base tracking-tight truncate ${
+                        <h3 className={`font-bold text-sm sm:text-base tracking-tight break-words ${
                           isDark ? 'text-zinc-100' : 'text-slate-850'
                         }`}>
                           {item.title}
                         </h3>
+                        {item.badgeText && (
+                          <span className={`px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-semibold border inline-flex items-center shrink-0 ${
+                            isDark 
+                              ? 'bg-amber-950/50 text-amber-300 border-amber-800/60' 
+                              : 'bg-amber-50 text-amber-700 border-amber-200'
+                          }`}>
+                            {item.badgeText}
+                          </span>
+                        )}
                       </div>
                       <span className={`text-[11px] font-medium block ${
                         isDark ? 'text-zinc-500' : 'text-slate-400'
@@ -342,19 +334,14 @@ export default function RoadmapView({ isDark = false }: RoadmapViewProps) {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3 shrink-0">
-                    {item.title === 'Agendamento Online' && (
-                      <span className={`px-2.5 py-1 rounded-full text-[10px] sm:text-xs font-semibold border ${
-                        isDark 
-                          ? 'bg-amber-950/50 text-amber-300 border-amber-800/60' 
-                          : 'bg-amber-50 text-amber-700 border-amber-200'
-                      }`}>
-                        Em desenvolvimento
-                      </span>
-                    )}
-
+                  <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto pt-2 sm:pt-0 border-t sm:border-t-0 border-zinc-800/40 sm:border-none">
+                    <span className={`text-[11px] font-medium sm:hidden ${
+                      isDark ? 'text-zinc-500' : 'text-slate-400'
+                    }`}>
+                      {isOpen ? 'Recolher detalhes' : 'Ver detalhes'}
+                    </span>
                     {/* Expand/Collapse Chevron */}
-                    <div className={`p-1.5 rounded-lg transition-transform duration-300 ${
+                    <div className={`p-1.5 rounded-lg transition-transform duration-300 ml-auto sm:ml-0 ${
                       isOpen 
                         ? 'rotate-180 bg-indigo-500/10 text-indigo-500' 
                         : (isDark ? 'text-zinc-500 hover:text-zinc-300' : 'text-slate-400 hover:text-slate-700')
