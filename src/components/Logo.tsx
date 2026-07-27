@@ -13,9 +13,9 @@ export default function Logo({
   className = '',
   lightMode = false,
 }: LogoProps) {
-  // Use /favicon.png for icon variant, otherwise Logo.png for light theme and Logo-white.png for dark theme
+  // Use /favicon.png for icon variant in light mode, and /favicon-white.png in dark mode
   const logoSrc = variant === 'icon'
-    ? '/favicon.png'
+    ? (lightMode ? '/favicon.png' : '/favicon-white.png')
     : (lightMode ? '/Logo.png' : '/Logo-white.png');
 
   const sizeClasses = {

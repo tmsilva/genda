@@ -269,7 +269,7 @@ export default function SettingsView({
       triggerAlert('Por favor, preencha o assunto e a mensagem.', 'error');
       return;
     }
-    const mailtoUrl = `mailto:thiagomsy@gmail.com?subject=${encodeURIComponent(feedbackSubject)}&body=${encodeURIComponent(feedbackBody)}`;
+    const mailtoUrl = `mailto:contatogenda@gmail.com?subject=${encodeURIComponent(feedbackSubject)}&body=${encodeURIComponent(feedbackBody)}`;
     window.location.href = mailtoUrl;
     setFeedbackSubject('');
     setFeedbackBody('');
