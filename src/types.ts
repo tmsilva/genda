@@ -19,6 +19,7 @@ export interface ServiceStockMaterial {
 export interface Service {
   id: string;
   name: string;
+  description?: string; // Optional detailed description of the service
   duration: number; // in minutes
   price: number;
   color: string; // CSS color class name or hex code
@@ -67,6 +68,7 @@ export interface Appointment {
   paymentMethod?: string; // 'money' | 'pix' | 'credit' | 'debit'
   status: AppointmentStatus;
   source?: 'online' | 'manual';
+  notes?: string; // Optional notes or service description loaded at booking time
 }
 
 export interface MessageTemplate {

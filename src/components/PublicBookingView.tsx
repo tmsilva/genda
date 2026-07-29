@@ -225,7 +225,8 @@ export const PublicBookingView: React.FC<PublicBookingViewProps> = ({
       paymentStatus: config.paymentMode === 'none' ? 'pending' : 'paid',
       paymentMethod: config.paymentMode === 'none' ? 'money' : 'pix',
       status: config.autoApprove ? 'scheduled' : 'pending',
-      source: 'online'
+      source: 'online',
+      notes: selectedServices[0]?.description || undefined
     };
 
     onAddAppointment(newAppointment);

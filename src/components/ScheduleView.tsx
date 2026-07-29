@@ -103,6 +103,7 @@ export default function ScheduleView({
   const [formTime, setFormTime] = useState('');
   const [formDuration, setFormDuration] = useState(30);
   const [formPrice, setFormPrice] = useState(50);
+  const [formNotes, setFormNotes] = useState('');
   const [formRecurrence, setFormRecurrence] = useState<RecurrenceType>('none');
   const [formCustomIntervalDays, setFormCustomIntervalDays] = useState<number>(7);
   const [formRecurrenceCount, setFormRecurrenceCount] = useState<number>(4);
@@ -249,9 +250,11 @@ export default function ScheduleView({
     if (service) {
       setFormDuration(service.duration);
       setFormPrice(service.price);
+      setFormNotes(service.description || '');
     } else {
       setFormDuration(30);
       setFormPrice(50);
+      setFormNotes('');
     }
     
     setFormRecurrence('none');
@@ -272,6 +275,7 @@ export default function ScheduleView({
     setFormTime(appt.time);
     setFormDuration(appt.duration);
     setFormPrice(appt.price);
+    setFormNotes(appt.notes || '');
     setFormRecurrence(appt.isRecurring || 'none');
     setFormCustomIntervalDays(appt.customIntervalDays || 7);
     setFormRecurrenceCount(1);
@@ -291,6 +295,7 @@ export default function ScheduleView({
     if (service) {
       setFormDuration(service.duration);
       setFormPrice(service.price);
+      setFormNotes(service.description || '');
     }
   };
 
@@ -316,6 +321,7 @@ export default function ScheduleView({
         time: formTime,
         duration: formDuration,
         price: formPrice,
+        notes: formNotes.trim() || undefined,
         isRecurring: formRecurrence,
         customIntervalDays: formRecurrence === 'custom' ? formCustomIntervalDays : undefined,
         isReminderEnabled: formReminder,
@@ -338,6 +344,7 @@ export default function ScheduleView({
           time: formTime,
           duration: formDuration,
           price: formPrice,
+          notes: formNotes.trim() || undefined,
           isRecurring: 'none',
           isReminderEnabled: formReminder,
           paymentStatus: formPaymentStatus,
@@ -377,6 +384,7 @@ export default function ScheduleView({
             time: formTime,
             duration: formDuration,
             price: formPrice,
+            notes: formNotes.trim() || undefined,
             isRecurring: formRecurrence,
             customIntervalDays: formRecurrence === 'custom' ? customDays : undefined,
             recurrenceGroupId: groupId,
@@ -1438,6 +1446,17 @@ export default function ScheduleView({
                 </div>
               </div>
 
+              <div>
+                <label className={`block font-medium ${isDark ? 'text-zinc-400' : 'text-slate-500'} mb-1`}>Descrição / Observações do Agendamento</label>
+                <textarea
+                  value={formNotes}
+                  onChange={(e) => setFormNotes(e.target.value)}
+                  placeholder="Carregado automaticamente do serviço (pode ser editado)..."
+                  rows={2}
+                  className={`w-full ${isDark ? 'bg-zinc-800 border-zinc-700 text-zinc-100 placeholder-zinc-500' : 'bg-slate-50 border-slate-200 text-slate-800 placeholder-slate-400'} border rounded-xl px-3 py-2 text-xs resize-none focus:outline-none`}
+                />
+              </div>
+
               {/* Recurrence & Lembrete 24h */}
               <div className="space-y-3">
                 <div className="grid grid-cols-2 gap-3">
@@ -1784,6 +1803,15 @@ export default function ScheduleView({
                     </div>
                   </div>
                 </div>
+
+                {selectedAppointment.notes && (
+                  <div className={`space-y-1 pt-2.5 border-t ${isDark ? 'border-zinc-800' : 'border-slate-200/50'}`}>
+                    <span className="text-[10px] text-slate-400 font-semibold block uppercase tracking-wider">Descrição / Observações</span>
+                    <p className={`text-xs ${isDark ? 'text-zinc-300' : 'text-slate-600'} whitespace-pre-wrap`}>
+                      {selectedAppointment.notes}
+                    </p>
+                  </div>
+                )}
 
                 {/* Client Quick Contact */}
                 <div className={`pt-2 border-t flex items-center justify-between text-[11px] ${

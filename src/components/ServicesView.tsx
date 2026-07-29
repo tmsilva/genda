@@ -39,6 +39,7 @@ export default function ServicesView({ services, onUpdateServices, profile, isDa
 
   // Form inputs
   const [formName, setFormName] = useState('');
+  const [formDescription, setFormDescription] = useState('');
   const [formDuration, setFormDuration] = useState(30);
   const [formPrice, setFormPrice] = useState(50);
   const [formColor, setFormColor] = useState('#0ea5e9');
@@ -79,6 +80,7 @@ export default function ServicesView({ services, onUpdateServices, profile, isDa
   const handleOpenCreate = () => {
     setEditingService(null);
     setFormName('');
+    setFormDescription('');
     setFormDuration(30);
     setFormPrice(50);
     setFormColor('#0ea5e9');
@@ -94,6 +96,7 @@ export default function ServicesView({ services, onUpdateServices, profile, isDa
   const handleOpenEdit = (service: Service) => {
     setEditingService(service);
     setFormName(service.name);
+    setFormDescription(service.description || '');
     setFormDuration(service.duration);
     setFormPrice(service.price);
     setFormColor(service.color || '#0ea5e9');
@@ -124,6 +127,7 @@ export default function ServicesView({ services, onUpdateServices, profile, isDa
     const serviceData: Service = {
       id: editingService?.id || 's_' + Date.now(),
       name: formName.trim(),
+      description: formDescription.trim() || undefined,
       duration: formDuration,
       price: formPrice,
       color: formColor,
@@ -236,6 +240,11 @@ export default function ServicesView({ services, onUpdateServices, profile, isDa
                     <span className={`font-bold ${isDark ? 'text-white' : 'text-slate-900'} text-sm leading-snug break-words`}>
                       {service.name}
                     </span>
+                    {service.description && (
+                      <p className={`text-[11px] ${isDark ? 'text-zinc-400' : 'text-slate-500'} mt-0.5 line-clamp-2`}>
+                        {service.description}
+                      </p>
+                    )}
                     {service.isPackage && (
                       <div className="mt-1">
                         <span className={`${
@@ -384,6 +393,23 @@ export default function ServicesView({ services, onUpdateServices, profile, isDa
                         ? 'bg-zinc-950 border-zinc-800 text-zinc-100 placeholder-zinc-600 focus:border-zinc-700' 
                         : 'bg-slate-50 border-slate-200 text-slate-800 placeholder-slate-400 focus:border-slate-800'
                     } rounded-xl px-3 py-2 text-xs focus:outline-none`}
+                  />
+                </div>
+
+                <div>
+                  <label className={`block font-semibold ${isDark ? 'text-zinc-300' : 'text-slate-700'} mb-1.5`}>
+                    Descrição Detalhada do Serviço
+                  </label>
+                  <textarea
+                    placeholder="Descreva detalhes, etapas, recomendações ou o que está incluso no serviço..."
+                    rows={3}
+                    value={formDescription}
+                    onChange={(e) => setFormDescription(e.target.value)}
+                    className={`w-full ${
+                      isDark 
+                        ? 'bg-zinc-950 border-zinc-800 text-zinc-100 placeholder-zinc-600 focus:border-zinc-700' 
+                        : 'bg-slate-50 border-slate-200 text-slate-800 placeholder-slate-400 focus:border-slate-800'
+                    } rounded-xl px-3 py-2 text-xs resize-none focus:outline-none`}
                   />
                 </div>
 

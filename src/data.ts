@@ -129,6 +129,7 @@ export const DEFAULT_SERVICES: Service[] = [
   { 
     id: 's1', 
     name: 'Corte de Cabelo Masculino', 
+    description: 'Corte moderno com acabamento na navalha, lavagem e finalização com pomada.',
     duration: 30, 
     price: 50, 
     color: '#0ea5e9',
@@ -137,14 +138,15 @@ export const DEFAULT_SERVICES: Service[] = [
   { 
     id: 's2', 
     name: 'Barba Terapia', 
+    description: 'Barba completa com toalha quente, óleos essenciais e hidratação profunda.',
     duration: 30, 
     price: 40, 
     color: '#10b981',
     stockMaterials: []
   }, // emerald-500
-  { id: 's3', name: 'Manicure Completa', duration: 45, price: 60, color: '#ec4899', stockMaterials: [] }, // pink-500
-  { id: 's4', name: 'Consultoria Individual', duration: 60, price: 150, color: '#8b5cf6', stockMaterials: [] }, // violet-500
-  { id: 's_pkg_1', name: 'Pacote Premium (Corte + Barba + Sobrancelha)', duration: 80, price: 95, color: '#f59e0b', isPackage: true, packageItems: ['s1', 's2'], stockMaterials: [] },
+  { id: 's3', name: 'Manicure Completa', description: 'Cutilagem, esmaltação e hidratação das mãos com produtos de alta qualidade.', duration: 45, price: 60, color: '#ec4899', stockMaterials: [] }, // pink-500
+  { id: 's4', name: 'Consultoria Individual', description: 'Sessão personalizada de consultoria de imagem e estilo.', duration: 60, price: 150, color: '#8b5cf6', stockMaterials: [] }, // violet-500
+  { id: 's_pkg_1', name: 'Pacote Premium (Corte + Barba + Sobrancelha)', description: 'Combo completo incluindo corte de cabelo, barba terapia e alinhamento de sobrancelha.', duration: 80, price: 95, color: '#f59e0b', isPackage: true, packageItems: ['s1', 's2'], stockMaterials: [] },
 ];
 
 export const DEFAULT_STOCK_ITEMS: StockItem[] = [];
